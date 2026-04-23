@@ -1,0 +1,48 @@
+# Secrets / local config
+pages/conf.php
+pages/confphp7.php
+pages/data_base_connect.php
+pages/data_base_connectOLD.php
+pages/aerocanada_db.php
+pages/v2/config.php
+.env
+.env.*
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+pages/_logs/
+pages/debug_company22.log
+pages/log_debug.txt
+pages/log_debug_company22.txt
+logs_debug_contact.txt
+
+# Backups / dumps / archives
+*.sql
+*.zip
+backup/
+backup-auto-mysql/
+pages/soap.zip
+pages_backup.zip
+backup.zip
+
+# Upload / temp / cache
+pages/uploads/
+upload/
+uploads/
+tmp/
+temp/
+cache/
+sessions/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Disabled / local leftovers
+*.bak
+*.disabled

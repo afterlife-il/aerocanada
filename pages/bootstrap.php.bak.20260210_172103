@@ -1,0 +1,195 @@
+<?php
+/**
+ * ========================================
+ * AEROCANADA BOOTSTRAP
+ * Version: 1.0 - Safe Patch
+ * Date: 2026-02-10
+ * ========================================
+ * 
+ * À INCLURE EN PREMIÈRE LIGNE DE CHAQUE PAGE
+ * Remplace: session_start() + include conf.php
+ * 
+ * AVANT:
+ * session_start();
+ * include_once "conf.php";
+ * 
+ * APRÈS:
+ * require_once 'bootstrap.php';
+ */
+
+// 1. Output buffering (évite headers already sent)
+if (!ob_get_level()) {
+    ob_start();
+}
+
+// 2. Configuration session sécurisée
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    
+    // HTTPS uniquement si configuré
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+        ini_set('session.cookie_secure', 1);
+    }
+    
+    ini_set('session.cookie_samesite', 'Lax');
+    ini_set('session.gc_maxlifetime', 3600); // 1h
+    
+    session_start();
+}
+
+// 3. Charger configuration DB (une seule fois)
+if (!defined('CONFIG_LOADED')) {
+    define('CONFIG_LOADED', true);
+    require_once __DIR__ . '/conf.php';
+    // Logs applicatifs (dossier dédié dans /pages)
+define('AEROCANADA_LOG_DIR', __DIR__ . '/_logs');
+define('AEROCANADA_ERROR_LOG', AEROCANADA_LOG_DIR . '/app_errors.log');
+}
+
+// 4. Fonctions helpers
+
+/**
+ * Redirection sécurisée
+ */
+function safe_redirect($url, $permanent = false) {
+    $code = $permanent ? 301 : 303;
+
+    // Nettoyer les buffers sans provoquer d'erreur
+    while (ob_get_level() > 0) {
+        @ob_end_clean();
+    }
+
+    if (!headers_sent()) {
+        header("Location: $url", true, $code);
+        exit;
+    }
+
+    // Fallback si headers déjà envoyés
+    echo '<script>window.location.href=' . json_encode($url) . ';</script>';
+    echo '<noscript><meta http-equiv="refresh" content="0;url=' . htmlspecialchars($url) . '"></noscript>';
+    exit;
+}
+
+/**
+ * Vérifier authentification
+ */
+function require_auth() {
+    if (!isset($_SESSION['conectroy']) || $_SESSION['conectroy'] !== 'parfait') {
+        safe_redirect('login.php');
+    }
+}
+
+/**
+ * Vérifier rôle
+ */
+function require_role($required_role) {
+    require_auth();
+    
+    $allowed = ['SuperAdmin'];
+    if (is_array($required_role)) {
+        $allowed = array_merge($allowed, $required_role);
+    } else {
+        $allowed[] = $required_role;
+    }
+    
+    if (!in_array($_SESSION['statut'], $allowed)) {
+        http_response_code(403);
+        die('Access denied');
+    }
+}
+
+/**
+ * Logger erreur
+ */
+function log_error($message, $context = []) {
+    // dossier _logs (PAS /logs Plesk)
+    if (!file_exists(AEROCANADA_LOG_DIR)) {
+        @mkdir(AEROCANADA_LOG_DIR, 0755, true);
+    }
+
+    $timestamp = date('Y-m-d H:i:s');
+    $user = $_SESSION['nom_utilisateur'] ?? 'anonymous';
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+
+    $log_entry = "[$timestamp] [$user@$ip] [$uri] $message";
+
+    if (!empty($context)) {
+        $json = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($json !== false) {
+            $log_entry .= ' | ' . $json;
+        }
+    }
+
+    $log_entry .= PHP_EOL;
+
+    @file_put_contents(AEROCANADA_ERROR_LOG, $log_entry, FILE_APPEND | LOCK_EX);
+}
+
+/**
+ * Logger requête SQL lente
+ */
+function log_slow_query($sql, $duration_ms) {
+    if ($duration_ms > 1000) { // > 1 seconde
+        log_error("SLOW QUERY ($duration_ms ms)", ['sql' => $sql]);
+    }
+}
+
+/**
+ * Générer token CSRF
+ */
+function generate_csrf_token() {
+    if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Vérifier token CSRF
+ */
+function verify_csrf_token($token) {
+    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+// 5. Handler d'erreurs global
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    if (!(error_reporting() & $errno)) {
+        return false;
+    }
+    
+    $error_types = [
+        E_ERROR => 'ERROR',
+        E_WARNING => 'WARNING',
+        E_NOTICE => 'NOTICE',
+        E_USER_ERROR => 'USER_ERROR',
+        E_USER_WARNING => 'USER_WARNING',
+        E_USER_NOTICE => 'USER_NOTICE',
+    ];
+    
+    $type = $error_types[$errno] ?? 'UNKNOWN';
+    
+    log_error("PHP $type: $errstr in $errfile:$errline");
+    
+    return true;
+});
+
+// 6. Handler exceptions non catchées
+set_exception_handler(function($exception) {
+    log_error("UNCAUGHT EXCEPTION: " . $exception->getMessage(), [
+        'file' => $exception->getFile(),
+        'line' => $exception->getLine(),
+        'trace' => $exception->getTraceAsString(),
+    ]);
+    
+    if ($GLOBALS['debug_mode'] ?? false) {
+        echo "<h1>Exception</h1>";
+        echo "<pre>" . $exception->getMessage() . "</pre>";
+        echo "<pre>" . $exception->getTraceAsString() . "</pre>";
+    } else {
+        http_response_code(500);
+        echo "An error occurred. Please contact support.";
+    }
+});
+
+?>

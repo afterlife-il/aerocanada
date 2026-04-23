@@ -1,0 +1,47 @@
+<?xml version ='1.0' encoding ='UTF-8' ?> 
+<definitions name='Temperature' 
+  targetNamespace='http://example.org/temperature' 
+  xmlns:tns=' http://example.org/temperature ' 
+  xmlns:soap='http://schemas.xmlsoap.org/wsdl/soap/' 
+  xmlns:xsd='http://www.w3.org/2001/XMLSchema' 
+  xmlns:soapenc='http://schemas.xmlsoap.org/soap/encoding/' 
+  xmlns:wsdl='http://schemas.xmlsoap.org/wsdl/' 
+  xmlns='http://schemas.xmlsoap.org/wsdl/'> 
+
+<message name='getTempRequest'> 
+  <part name='symbol' type='xsd:string'/> 
+</message> 
+<message name='getTempResponse'> 
+  <part name='Result' type='xsd:float'/> 
+</message> 
+
+<portType name='TempPortType'> 
+  <operation name='getTemp'> 
+    <input message='tns:getTempRequest'/> 
+    <output message='tns:getTempResponse'/> 
+  </operation> 
+</portType> 
+
+<binding name='TempBinding' type='tns:TempPortType'> 
+  <soap:binding style='rpc' 
+    transport='http://schemas.xmlsoap.org/soap/http'/> 
+  <operation name='getTemp'> 
+    <soap:operation soapAction='urn:localhost-temperature#getTemp'/> 
+    <input> 
+      <soap:body use='encoded' namespace='urn:localhost-temperature' 
+        encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'/> 
+    </input> 
+    <output> 
+      <soap:body use='encoded' namespace='urn:localhost-temperature' 
+        encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'/> 
+    </output> 
+  </operation> 
+</binding> 
+
+<service name='TemperatureService'> 
+  <port name='TempPort' binding='TempBinding'> 
+    <soap:address location='http://localhost/phptest/server.php'/> 
+  </port> 
+</service>
+</definitions> 
+

@@ -1,0 +1,152 @@
+						
+<?php
+
+//exemple code https://coderexample.com/datatable-demo-server-side-in-phpmysql-and-ajax/
+/* Database connection start */
+include_once "conf.php";
+include_once "page_titles.php";
+/* Database connection end */
+
+
+// storing  request (ie, get/post) global array to a variable  
+$requestData= $_REQUEST;
+
+$columns = array( 
+// datatable column index  => database column name
+
+
+	0 =>'Fld_Company_ID', 
+	1 =>'Company_Old_Id', 
+	2=> 'Fld_Company_Name',
+	3=> 'Fld_Company_Rating_ID',
+	4=> 'delete',
+	5=> 'companyrating',
+	6=> 'aci_contact',
+	7=> 'logocompany'
+);
+
+// getting total number records without any search
+//Table tb_company :::: Fld_Company_ID      Company_Old_Id        Fld_Company_Name        Fld_Company_Rating_ID         delete    companyrating    aci_contact  logocompany status internet  cage_code
+if ((empty($_GET['companyrating']))||($_GET['companyrating']=='all')) $sql = "SELECT * FROM tb_company where status='Available'";
+else $sql = "SELECT * FROM tb_company where companyrating='".$_GET['companyrating']."' AND status='Available'";
+ 
+//echo $sql;
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalData = mysqli_num_rows($query);
+//echo $totalData;
+$totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
+
+//$sql = "SELECT tb_company.*,tbl_Company_Details.Fld_Remark FROM tb_company,tbl_Company_Details where tb_company.Fld_Company_ID=tbl_Company_Details.Fld_Company_ID AND tb_company.status='Available'";//Old version
+
+//ci dessous requete avec recherche dans table company contact
+// $sql ="SELECT DISTINCT(tb_company.Fld_Company_Name),tb_company.Fld_Company_ID,tb_company.Company_Old_Id,tb_company.Fld_Company_Rating_ID,tb_company.delete,tb_company.companyrating,tb_company.aci_contact,tb_company.logocompany,tb_company.status,tb_company.internet,tb_company.cage_code 
+// FROM tb_company,tbl_Company_Details,tb_company_contact where tb_company.Fld_Company_ID=tbl_Company_Details.Fld_Company_ID AND tb_company.Fld_Company_ID=tb_company_contact.Fld_Company_ID AND tb_company.status='Available'";
+
+
+// ****tbl_Employee*****  Employee_ID Employee_Name
+if ((empty($_GET['companyrating']))||($_GET['companyrating']=='all')) $sql ="SELECT DISTINCT(tb_company.Fld_Company_Name),tb_company.Fld_Company_ID,tb_company.Company_Old_Id,tb_company.Fld_Company_Rating_ID,tb_company.delete,tb_company.companyrating,tb_company.aci_contact,tb_company.logocompany,tb_company.status,tb_company.internet,tb_company.cage_code,tbl_Employee.Employee_Name
+FROM tb_company,tbl_Company_Details,tbl_Employee where tb_company.Fld_Company_ID=tbl_Company_Details.Fld_Company_ID AND tb_company.aci_contact=tbl_Employee.Employee_ID AND tb_company.status='Available'";
+else $sql ="SELECT DISTINCT(tb_company.Fld_Company_Name),tb_company.Fld_Company_ID,tb_company.Company_Old_Id,tb_company.Fld_Company_Rating_ID,tb_company.delete,tb_company.companyrating,tb_company.aci_contact,tb_company.logocompany,tb_company.status,tb_company.internet,tb_company.cage_code 
+FROM tb_company,tbl_Company_Details where tb_company.Fld_Company_ID=tbl_Company_Details.Fld_Company_ID AND tb_company.status='Available' and tb_company.companyrating='".$_GET['companyrating']."'";
+
+if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
+	$sql.=" AND (( tb_company.Fld_Company_ID LIKE '%".$requestData['search']['value']."%' ";  
+
+			//*******requete d'affichage de toutes les colonnes d'une table
+			$sql.=" OR tb_company.Fld_Company_ID LIKE '%".$requestData['search']['value']."%' ";
+			$sql.=" OR tb_company.Fld_Company_Name LIKE '%".$requestData['search']['value']."%' ";
+			$sql.=" OR tb_company.internet LIKE '%".$requestData['search']['value']."%' ";
+			$sql.=" OR tb_company.aci_contact LIKE '%".$requestData['search']['value']."%' ";
+			$sql.=" OR tb_company.logocompany LIKE '%".$requestData['search']['value']."%' ";
+			$sql.=" OR tb_company.cage_code LIKE '%".$requestData['search']['value']."%' ";
+			//******requete d'affichage de toutes les colonnes d'une table
+			$sql.=")";
+			//partie de la requete qui cherche dans le champ remarque de la table company details
+			$sql.="OR (tbl_Company_Details.Fld_Remark LIKE '%".$requestData['search']['value']."%')";
+			$sql.="OR (tbl_Employee.Employee_Name LIKE '%".$requestData['search']['value']."%')";
+			// $sql.="OR (tb_company_contact.Fld_Contact_Name LIKE '%".$requestData['search']['value']."%' OR tb_company_contact.Fld_Contact_Remark LIKE '%".$requestData['search']['value']."%' OR tb_company_contact.Fld_Contact_Email LIKE '%".$requestData['search']['value']."%')";
+			$sql.=")";
+}
+
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
+//$sql.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+$sql.=" ORDER BY tb_company.Fld_Company_ID Desc  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+
+
+/* $requestData['order'][0]['column'] contains colmun index, $requestData['order'][0]['dir'] contains order such as asc/desc  */	
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+
+$data = array();
+while( $row=mysqli_fetch_array($query) ) {  // preparing an array
+	$nestedData=array(); 
+
+	$nestedData[] = $row["Fld_Company_ID"];
+	if (!empty($row['logocompany'])) $nestedData[] = "<a href='javascript:detailcompany(".$row['Fld_Company_ID'].")' style='decoration:none;' title='company details'><img src='../logo_company/".$row["logocompany"]."' width='200'></a>";
+	else $nestedData[] = "<div align='center'><span style='color:#be0831;font-family: \"Times New Roman\", Times, serif;font-style: oblique;font-weight: bold;'>No Logo Available</span></div>";
+	$company_majuscule=strtoupper($row["Fld_Company_Name"]);
+	$nestedData[] = "<a href='javascript:detailcompany(".$row['Fld_Company_ID'].")' style='decoration:none;' title='company details'>".htmlspecialchars($company_majuscule)."</a>";
+	$nestedData[] = htmlspecialchars($row["cage_code"]);
+					//recuperation de l'heure utc de l'adresse de la compagnie	
+					include_once "conf.php";
+include_once "page_titles.php";
+					$sqltz="SELECT UTC_timezone FROM tbl_Company_Details WHERE Fld_Company_ID=".$row['Fld_Company_ID'];
+					$reqtz = mysql2_query($sqltz);
+					$datatz = mysqli_fetch_array($reqtz);
+					$triggerOn="";
+					if(!empty($datatz['UTC_timezone'])){
+					$triggerOn=date("Y-m-d h:iA");				
+					$schedule_date = new DateTime($triggerOn, new DateTimeZone('UTC') );
+					$schedule_date->setTimeZone(new DateTimeZone($datatz['UTC_timezone']));
+					$triggerOn =  $schedule_date->format('H:iA d/m/Y');
+					$localtimecompany =  $schedule_date->format('H:iA');
+					}
+					//Fin recuperation de l'heure utc de l'adresse de la compagnie	
+//verification heure ouverture je verifie si l'heure du pays de la compagnie est entre 8h du matin et 20h du soir
+$current_time = $localtimecompany;
+$sunrise = "8:00AM";
+$sunset = "20:00PM";
+$date1 = DateTime::createFromFormat('H:i a', $current_time);
+$date2 = DateTime::createFromFormat('H:i a', $sunrise);
+$date3 = DateTime::createFromFormat('H:i a', $sunset);
+if ($date1 > $date2 && $date1 < $date3)
+{
+   $couleur_horaire="green";
+}
+else $couleur_horaire="red";
+//Fin verification heure ouverture
+	$nestedData[] = "<span style='font-weight: bold;color:".$couleur_horaire."'>".htmlspecialchars($triggerOn)."</span>";
+	// $nestedData[] = htmlspecialchars($triggerOn);
+	$nestedData[] = htmlspecialchars($row['Employee_Name']);
+
+					if ($row["companyrating"]=='5') $nestedData[] = "<span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span>";
+					elseif ($row["companyrating"]=='4') $nestedData[] = "<span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span>";
+					elseif ($row["companyrating"]=='3') $nestedData[] = "<span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span>";
+					elseif ($row["companyrating"]=='2') $nestedData[] = "<span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span>";
+					elseif ($row["companyrating"]=='1') $nestedData[] = "<span style='font-size: 25px;color:#FFA500;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span>";
+					else $nestedData[] = "<span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span><span style='font-size: 25px;color:#aaa;'>★</span>";
+					
+					//$nestedData[] = $sql;
+					$nestedData[] = "<a href='javascript:detailcompany(".$row['Fld_Company_ID'].")' style='decoration:none;' title='company details'><i style='margin-left:10px;position: relative;top: 4px;font-size:23px;' class='fa  fa-plus-square'></i></a><a href='modif_company.php?Fld_Company_ID=".$row['Fld_Company_ID']."' style='decoration:none;' title='Modification Company'>
+						<i style='margin-left:10px;position: relative;top: 4px;font-size:23px;' class='fa  fa-pencil-square-o'></i>
+					    </a>
+						<a href='ajout_contact_company.php?Fld_Company_ID=".$row['Fld_Company_ID']."' style='decoration:none;' title='Add Contact Company'>
+						<img src='images/add_contact2.png' width='35'>
+					    </a>
+						<a href='archive_company.php?Fld_Company_ID=".$row['Fld_Company_ID']."' onClick=\"return(confirm('Etes vous sur ?'));\" style='decoration:none;'  title='Archive Company'>
+						<i style='margin-left:10px;position: relative;top: 4px;font-size:23px;' class='fa  fa-archive'></i>
+					    </a>";
+					
+	$data[] = $nestedData;
+}
+
+$json_data = array(
+			"draw"            => intval( $requestData['draw'] ),   // for every request/draw by clientside , they send a number as a parameter, when they recieve a response/data they first check the draw number, so we are sending same number in draw. 
+			"recordsTotal"    => intval( $totalData ),  // total number of records
+			"recordsFiltered" => intval( $totalFiltered ), // total number of records after searching, if there is no searching then totalFiltered = totalData
+			"data"            => $data   // total data array
+			);
+
+echo json_encode($json_data);  // send data as json format
+
+?>

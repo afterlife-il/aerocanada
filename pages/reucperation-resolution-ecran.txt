@@ -1,0 +1,33 @@
+<!--recuperation resolution ecran-->
+<script>document.cookie = "largeur=" + window.innerWidth + "; expires=0"</script>
+<script>document.cookie = "hauteur=" + window.innerHeight + "; expires=0"</script>
+
+<?php
+    if (isset ($_COOKIE ['largeur']))
+    {
+        echo "    Largeur = ".$_COOKIE ['largeur']." pixels<br/>\n";
+        if (isset ($_COOKIE ['hauteur']))
+            echo "    Hauteur = ".$_COOKIE ['hauteur']." pixels<br/>\n";
+        else
+            echo "    Hauteur non disponible, réafficher la page<br/>\n";
+    }
+    else
+    {
+        if (isset ($_COOKIE ['hauteur']))
+        {
+            echo "    Hauteur = ".$_COOKIE ['hauteur']." pixels<br/>\n";
+            echo "    Largeur non disponible, réafficher la page<br/>\n";
+        }
+        else
+        {
+            echo "    Largeur et hauteur non disponibles, réafficher la page<br/><br/>\n";
+            echo "    Si ça ne marche toujours pas vérifiez les points suivants :\n";
+            echo "    <ul>\n";
+            echo "        <li>votre navigateur web doit accepter les cookies</li>\n";
+            echo "        <li>votre navigateur web doit utiliser javascript</li>\n";
+            echo "        <li>votre navigateur web doit être compatible</li>\n";
+            echo "    </ul>\n";
+        }
+    }
+?>
+<!--Fin recuperation resolution ecran-->

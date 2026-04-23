@@ -1,0 +1,107 @@
+/*****************************************/
+/*SAISIE DU PO ACKNOWLEDGMENT dans la BDD*/
+//1er etape table tbl_PO_Customer
+
+				//recuperation Supplier ID
+				/** tbl_RFQ_2 ** 
+				$sqlsupplierid="SELECT Fld_Supplier_ID FROM tbl_RFQ_2 where Fld_RFQ_ID='".$_POST['Fld_RFQ_ID']."'";
+				
+				$reqsupplierid = mysql2_query($sqlsupplierid);
+				$datasupplierid = mysqli_fetch_array($reqsupplierid);
+				//Fin recuperation Supplier ID
+				
+				//creation du po nb aci770
+				//recuperation du dernier numero de PO
+				$sqlrecupponb="SELECT MAX(nb_po) as maxpo FROM tbl_PO_Customer";
+				$reqrecupponb = mysql2_query($sqlrecupponb);
+				$datarecupponb = mysqli_fetch_array($reqrecupponb);
+				$maxpo=$datarecupponb['maxpo'];
+				//Fin recuperation du dernier numero de PO
+				$newnb=$maxpo+181;
+				$Fld_ACI_PO="AC".date('ymd')."-".$newnb;
+				$newmaxpo=$maxpo+1;
+				//Fin creation du po nb aci770
+				
+				//Recuperation de la date de paiement
+				if(!empty($_POST['Fld_Payment_Term_ID'])){
+				$sqlnbjour="SELECT nb_jour FROM tbl_Payment where Fld_Payment_Term_ID='".$_POST['Fld_Payment_Term_ID']."'";
+				
+				$reqnbjour = mysql2_query($sqlnbjour);
+				$datanbjour = mysqli_fetch_array($reqnbjour);
+				if($datanbjour['nb_jour']=='0') $Fld_Payment_Date=date("Y-m-d");
+				else {
+				$dt = date("Y-m-d");
+				$Fld_Payment_Date=date( "Y-m-d", strtotime( $dt." +".$datanbjour['nb_jour']." day" ) );
+				$jour_reminder=$datanbjour['nb_jour']-5;
+				$Fld_Reminder_Date=date( "Y-m-d", strtotime( $dt." +".$jour_reminder." day" ) );
+				}
+				}
+				//Fin Recuperation de la date de paiement
+			*/
+// $req="INSERT INTO `tbl_PO_Customer` (`Fld_Row_ID`, `Fld_PO`, `Fld_Current_Date`, `Fld_Company_Supplier_ID`, `Fld_Company_Details_ID`, `Fld_Company_ShipTo_ID`, `Fld_Fwrd_Ship_Via`, `Fld_Vat_ID`, `Fld_Remark`, `Fld_ACI_PO`, `Fld_ACI_Location_ID`, `Fld_Supplier_Invoice_Nbr`, `Fld_Supplier_Payment_Method`, `Fld_Payment_Date`, `Fld_Shipping_Cost`, `id_company_address_accounting`, `id_company_address_delivery`, `id_Forwarder`, `nb_po`) VALUES (NULL, '".$_POST['customer_po_number']."', '".$_POST['po_date']."', '".$datasupplierid['Fld_Supplier_ID']."', NULL, NULL, NULL, NULL, '".$_POST['Fld_Remark']."', '".$Fld_ACI_PO."', NULL, NULL, NULL, '".$Fld_Payment_Date."', NULL, '".$_POST['id_company_address_accounting']."', '".$_POST['id_company_address_delivery']."', '".$_POST['id_Forwarder']."', '".$newmaxpo."');";
+// $requete = mysql2_query($req);
+//Fin table tbl_PO_Customer
+
+//2e etape table Tbl_Customer_PO_Follow_UP
+//Fld_Phase id:12 -  Acknowledged
+// $req2="INSERT INTO `Tbl_Customer_PO_Follow_UP` (`id`, `Fld_RFQ_ID`, `Fld_Part_ID`, `Fld_Part_SN`, `Fld_Reminder_Date`, `Fld_Last_Info`, `Fld_Phase`, `Fld_Phase_Person_In_Charge`, `Fld_Date_in_Phase`, `Fld_Urgency_Dgree`, `Fld_PO`, `Fld_RFQ3_ID`, `Fld_Stock_ID`) VALUES (NULL, '".$_POST['Fld_RFQ_ID']."', '".$_POST['Fld_Part_Id']."', '".$_POST['Fld_Part_SN']."', '".$Fld_Reminder_Date."', NULL, '12', '".$_SESSION['id_utilisateur']."', '".$_POST['po_date']."', '".$Fld_Priority_ID."', '".$_POST['customer_po_number']."', '".$_POST['Fld_RFQ3_ID']."', NULL);";
+// $requete2 = mysql2_query($req2);
+//FIN table Tbl_Customer_PO_Follow_UP
+
+//3e etape table tbl_Sales_Order
+// $req3="INSERT INTO `tbl_Sales_Order` (`Fld_Row_ID`, `Fld_PO`, `Fld_Current_Date`, `Fld_Company_Supplier_ID`, `Fld_Company_Details_ID`, `Fld_Company_Supplier_Contact`, `Fld_Company_ShipTo_ID`, `Fld_Company_ShipTo_Details_ID`, `Fld_Company_ShipTo_Contact`, `Fld_Fwrd_Ship_Via`, `Fld_Vat_ID`, `Fld_Remark`, `Fld_ACI_PO`, `Fld_ACI_Location_ID`, `Fld_Supplier_Invoice_Nbr`, `Fld_Supplier_Payment_Method`, `Fld_Payment_Date`, `Fld_Supplier_Bank_Account`, `Fld_Paying_Bank_Account`, `Fld_Payment_Cheque_No`, `Fld_Paid_in_full`, `Fld_Payment_Remark`, `Fld_PO_Still_Open`, `Fld_AWB`, `Fld_AWB_Out_RCVD_by_Supplier`, `Fld_Shipping_Porforma_Nbr`, `Fld_Country_Origin`, `Fld_No_Boxes`, `Fld_RFQ_ID`, `Fld_Priority_ID`, `Fld_AWB_Coming_IN`, `Fld_AWB_Coming_RCVD`, `Fld_Employee_ID`, `Fld_Order_Rating`, `Fld_Approved_for_Payment_by`) VALUES (NULL, '".$_POST['customer_po_number']."', '".$_POST['po_date']."', '".$datasupplierid['Fld_Supplier_ID']."', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '".$_POST['Fld_Remark']."', '".$Fld_ACI_PO."', NULL, NULL, NULL, '".$Fld_Payment_Date."', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '".$_POST['Fld_RFQ_ID']."', '".$Fld_Priority_ID."', NULL, NULL, '".$_SESSION['id_utilisateur']."', NULL, NULL);";
+// $requete3 = mysql2_query($req3);
+//FIN table tbl_Sales_Order
+
+//4e etape table tbl_RFQ
+
+//je verifie si une rfq a ete faite pour ce rfqid dans tbl_RFQ_1
+// $resultrfq1 = mysql2_query("SELECT * FROM tbl_RFQ_1 where Fld_RFQ_ID='".$_POST['Fld_RFQ_ID']."'");
+// $num_rows_rfq1 = mysqli_num_rows($resultrfq1);
+// if(0<$num_rows_rfq1) $Fld_Step_1="TRUE"; else $Fld_Step_1="FALSE";
+//Fin verification si une rfq a ete faite pour ce rfqid dans tbl_RFQ_1
+
+//je verifie si une rfq a ete faite pour ce rfqid dans tbl_RFQ_2
+// $resultrfq2 = mysql2_query("SELECT * FROM tbl_RFQ_2 where Fld_RFQ_ID='".$_POST['Fld_RFQ_ID']."'");
+// $num_rows_rfq2 = mysqli_num_rows($resultrfq2);
+// if(0<$num_rows_rfq2) $Fld_Step_2="TRUE"; else $Fld_Step_2="FALSE";
+//Fin verification si une rfq a ete faite pour ce rfqid dans tbl_RFQ_2
+
+//je verifie si une rfq a ete faite pour ce rfqid dans tbl_RFQ_3
+// $resultrfq3 = mysql2_query("SELECT * FROM tbl_RFQ_3 where Fld_RFQ_ID='".$_POST['Fld_RFQ_ID']."'");
+// $num_rows_rfq3 = mysqli_num_rows($resultrfq3);
+// if(0<$num_rows_rfq3) $Fld_Step_3="TRUE"; else $Fld_Step_3="FALSE";
+//Fin verification si une rfq a ete faite pour ce rfqid dans tbl_RFQ_3
+
+//je verifie si le RFQ ID se trouve dans la table tbl_RFQ 
+// $result = mysql2_query("SELECT * FROM tbl_RFQ where Fld_RFQ_ID='".$_POST['Fld_RFQ_ID']."'");
+// $num_rows = mysqli_num_rows($result);
+// if(0<$num_rows)
+// {
+// Textes complets	   Fld_Customer_ID
+//ID  Fld_RFQ_ID  Fld_Date  Fld_Step_1  Fld_Step_2  Fld_Step_3  Fld_Priority_ID  Fld_Observation  Fld_RFQ_Type_ID  Fld_RFQ_ACI_Employee_Id  Fld_Customer_ID  Fld_Contact_ID  Fld_Customer_Detail_ID  Fld_PO  Fld_PO_Date  Fld_Requested_Date  Fld_Payment_Term_ID  Fld_Customer_Forwarder_ID  Fld_ShipTo_Company  Fld_Customer_ShippingDetail_ID  Fld_Customer_ShippingContact_ID  Fld_PO_IsOpen  RowIndex  Fld_Order_Rating
+// $sql4="update tbl_RFQ set Fld_Step_1='".$Fld_Step_1."',Fld_Step_2='".$Fld_Step_2."',Fld_Step_3='".$Fld_Step_3."',Fld_Priority_ID='".$Fld_Priority_ID."',Fld_PO='".$_POST['customer_po_number']."',Fld_PO_Date='".$_POST['po_date']."' where Fld_RFQ_ID='".$_POST['Fld_RFQ_ID']."'";
+// $query4=mysql2_query($sql4);	
+// }
+// else {
+// $req5="INSERT INTO `tbl_RFQ` (`ID`, `Fld_RFQ_ID`, `Fld_Date`, `Fld_Step_1`, `Fld_Step_2`, `Fld_Step_3`, `Fld_Priority_ID`, `Fld_Observation`, `Fld_RFQ_Type_ID`, `Fld_RFQ_ACI_Employee_Id`, `Fld_Customer_ID`, `Fld_Contact_ID`, `Fld_Customer_Detail_ID`, `Fld_PO`, `Fld_PO_Date`, `Fld_Requested_Date`, `Fld_Payment_Term_ID`, `Fld_Customer_Forwarder_ID`, `Fld_ShipTo_Company`, `Fld_Customer_ShippingDetail_ID`, `Fld_Customer_ShippingContact_ID`, `Fld_PO_IsOpen`, `RowIndex`, `Fld_Order_Rating`) VALUES (NULL, '".$_POST['Fld_RFQ_ID']."', '".$_POST['date_rfq']."', '".$Fld_Step_1."', '".$Fld_Step_2."', '".$Fld_Step_3."', '".$Fld_Priority_ID."', NULL, NULL, '".$_SESSION['id_utilisateur']."', '".$_POST['Fld_Customer_ID']."', NULL, NULL, '".$_POST['customer_po_number']."', '".$_POST['po_date']."', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);";
+// $requete5 = mysql2_query($req5);
+// }
+//FIN table tbl_RFQ
+
+
+//Mise a jour de la quotation (table tbl_RFQ_3)
+/****tbl_RFQ_3**** ID  Fld_RFQ_ID  Fld_Quote_Date  Fld_Part_Id  Fld_Part_SN  Fld_Qty  Fld_Condition  Fld_Price  Fld_Price_Min  Fld_Price_Max  Fld_Currency_ID  Fld_Remark  Fld_Supply_Date  Fld_Traceability_ID  Fld_Tag_Info_ID  Fld_Tag_Date  Fld_Release_ID  Fld_Linked_ID  Fld_Exch_Core_Value  Fld_Exch_Core_Value_Currency_ID  Fld_Exch_Cond  Fld_IsBeen_Chosen  Fld_Send_Mail  Fld_Exch_Core_RCVD  moq  lead_time  Fld_Priority_ID */
+// $sql6="update tbl_RFQ_3 set Fld_Part_SN='".$_POST['Fld_Part_SN']."',Fld_Price='".$_POST['Fld_Price']."',Fld_Currency_ID='".$_POST['FldCurrencyID']."',Fld_Remark='".$_POST['Fld_Remark']."' where ID='".$_POST['Fld_RFQ3_ID']."'";
+// $query6=mysql2_query($sql6);
+//Fin  mise a jour de la quotation (table tbl_RFQ_3)
+
+
+//Mise a jour du core value dans la table part
+/*****tbl_Parts*************  Fld_Part_ID  Fld_Part_Nbr  Fld_Part_Desc  Fld_Part_MFG  Fld_Part_MFG_Old  Fld_AC_ID  Fld_Old_LP  Fld_Part_List_Price  Fld_Part_Price_Currency_ID  Fld_Part_LP_Date  Fld_Remark status alt_pn Fld_Add_PN_Date aci_contact_entry ata_chapter   cage_code   essentiality_category_id  nha  moq  	oem_lead_time  core_value  id_currency_core_value*/
+// $sql7="update tbl_Parts set core_value='".$_POST['core_value']."',id_currency_core_value='".$_POST['id_currency_core_value']."' where Fld_Part_ID='".$_POST['Fld_Part_Id']."'";
+// $query7=mysql2_query($sql7);
+//Fin  Mise a jour du core value dans la table part
+
+/*END SAISIE DU PO ACKNOWLEDGMENT dans la BDD*/
+/*********************************************/

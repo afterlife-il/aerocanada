@@ -1,0 +1,210 @@
+<?php
+session_start();
+//****tbl_RFQ_3**** ID  Fld_RFQ_ID  Fld_Quote_Date  Fld_Part_Id  Fld_Part_SN  Fld_Qty  Fld_Condition  Fld_Price  Fld_Price_Min  Fld_Price_Max  Fld_Currency_ID  Fld_Remark  Fld_Supply_Date  Fld_Traceability_ID  Fld_Tag_Info_ID  Fld_Tag_Date  Fld_Release_ID  Fld_Linked_ID  Fld_Exch_Core_Value  Fld_Exch_Core_Value_Currency_ID  Fld_Exch_Cond  Fld_IsBeen_Chosen  Fld_Send_Mail  Fld_Exch_Core_RCVD  moq  lead_time  Fld_Priority_ID
+                                            
+
+//exemple code https://coderexample.com/datatable-demo-server-side-in-phpmysql-and-ajax/
+/* Database connection start */
+include_once "conf.php";
+include_once "page_titles.php";
+/* Database connection end */
+
+
+// storing  request (ie, get/post) global array to a variable  
+$requestData= $_REQUEST;
+
+$columns = array( 
+// datatable column index  => database column name
+	0 =>'ID', 
+	1 => 'Fld_RFQ_ID',
+	2=> 'Fld_Quote_Date',
+	3=> 'Fld_Part_ID',
+	4=> 'Fld_Part_SN',
+	5=> 'Fld_Qty',
+	6=> 'Fld_Condition',
+    7=> 'Fld_Price',
+	8=> 'Fld_Currency_ID',
+	9=> 'Fld_Remark',
+	10=> 'Fld_Traceability_ID',
+	11=> 'Fld_Tag_Info_ID',
+	12=> 'Fld_Tag_Date',
+	13=> 'Fld_Release_ID',
+	14=> 'moq',
+	15=> 'lead_time',
+	16=> 'Fld_Priority_ID'
+);
+
+// getting total number records without any search
+$sql = "SELECT * from tbl_RFQ_3 where 1=1";
+//echo $sql;
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalData = mysqli_num_rows($query);
+$totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
+
+$sql = "SELECT tbl_RFQ_3.*,tbl_Parts.Fld_Part_Nbr,tbl_Parts.Fld_Part_Desc from tbl_RFQ_3,tbl_Parts where tbl_RFQ_3.Fld_Part_ID=tbl_Parts.Fld_Part_ID ";
+if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
+	$sql.=" AND (( tbl_RFQ_3.ID LIKE '%".$requestData['search']['value']."%' ";  
+			//*******requete d'affichage de toutes les colonnes d'une table
+			$sql2 = "SHOW COLUMNS from tbl_RFQ_3";
+			$query2=mysqli_query($conn, $sql2) or die("server_processing.php: get employees");
+			while( $row2=mysqli_fetch_array($query2) ) 
+			{
+			$sql.=" OR tbl_RFQ_3.".$row2["Field"]." LIKE '%".$requestData['search']['value']."%' ";										
+			}
+			//******requete d'affichage de toutes les colonnes d'une table
+	$sql.=" )";
+	$sql.="OR (tbl_Parts.Fld_Part_Nbr LIKE '%".$requestData['search']['value']."%' OR tbl_Parts.Fld_Part_Desc LIKE '%".$requestData['search']['value']."%')";
+	// $sql.="OR (tb_company.Fld_Company_Name LIKE '%".$requestData['search']['value']."%')";
+	$sql.=")";
+	
+}
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
+$sql.=" ORDER BY tbl_RFQ_3.". $columns[$requestData['order'][0]['column']]."  DESC  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+
+// echo $sql;
+/* $requestData['order'][0]['column'] contains colmun index, $requestData['order'][0]['dir'] contains order such as asc/desc  */	
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+
+$data = array();
+while( $row=mysqli_fetch_array($query) ) {  // preparing an array
+	$nestedData=array(); 
+											include_once "conf.php";
+include_once "page_titles.php";
+											
+											//recuperation des PN et Description ********************
+											//tbl_Parts**** Fld_Part_ID  Fld_Part_Nbr  Fld_Part_Desc
+											// $sqlpndesc="SELECT Fld_Part_Nbr,Fld_Part_Desc FROM  tbl_Parts WHERE Fld_Part_ID=".$row["Fld_Part_Id"];
+											// $reqpndesc = mysql2_query($sqlpndesc);
+											// $datapndesc = mysqli_fetch_array($reqpndesc);
+											//Fin recuperation des PN et Description ********************
+											
+											//recuperation de conditions ********************
+											//tbl_Condition****Fld_Condition_ID  Fld_Condition_Text
+											$sqlct="SELECT Fld_Condition_Text FROM  tbl_Condition WHERE Fld_Condition_ID=".$row["Fld_Condition"];
+											$reqct = mysql2_query($sqlct);
+											$datact = mysqli_fetch_array($reqct);
+											//Fin recuperation de conditions ********************
+											
+											//recuperation des CURRENCY
+											// tbl_Currency****** Fld_Currency_ID  Fld_Currency_Text
+					                        $sqlcurrency="SELECT Fld_Currency_Text FROM tbl_Currency where Fld_Currency_ID=".$row['Fld_Currency_ID'];
+											
+											$reqcurrency = mysql2_query($sqlcurrency);
+											$datacurrency = mysqli_fetch_array($reqcurrency);
+					                        //Fin recuperation des CURRENCY
+											
+											if ($row['Fld_Traceability_ID']) {
+												//recuperation du nom de compagnie tracability ********************
+												$sqltra="SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID=".$row['Fld_Traceability_ID'];
+												$reqtra = mysql2_query($sqltra);
+												$datatra = mysqli_fetch_array($reqtra);
+												//Fin recuperation du nom de compagnie pour tracability ********************
+											}
+											
+											//recuperation du nom de compagnie tag info ********************
+											$sqltinfo="SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID=".$row['Fld_Tag_Info_ID'];
+											$reqtinfo = mysql2_query($sqltinfo);
+											$datatinfo = mysqli_fetch_array($reqtinfo);
+											//Fin recuperation du nom de compagnie pour tag info ********************
+											
+											//recuperation release
+											// ** tbl_Release ** Fld_Release_ID  Fld_Release_Text
+					                        $sqlr="SELECT Fld_Release_Text from tbl_Release where Fld_Release_ID=".$row["Fld_Release_ID"];
+											
+											$reqr = mysql2_query($sqlr);
+											$datar = mysqli_fetch_array($reqr);
+					                        //Fin recuperation release 
+											
+											
+											
+											//recuperation Employee_Name
+											$sqlrfq1id="SELECT Employee_ID FROM tbl_RFQ_1 where Fld_RFQ_ID='".$row['Fld_RFQ_ID']."'";
+											
+											$reqrfq1id = mysql2_query($sqlrfq1id);
+											$datarfq1id = mysqli_fetch_array($reqrfq1id);
+					                        $sqlemp="SELECT Employee_Name FROM tbl_Employee where Employee_ID=".$datarfq1id['Employee_ID'];
+											
+											$reqemp = mysql2_query($sqlemp);
+											$dataemp = mysqli_fetch_array($reqemp);
+					                        //Fin recuperation Employee_Name
+											
+											/*
+											//recuperation RFQ Type 
+											// ** tbl_RFQ_Type ** Fld_RFQ_Type_ID  Fld_RFQ_Type_Text
+					                        $sqlrfqt="SELECT Fld_RFQ_Type_Text FROM tbl_RFQ_Type where Fld_RFQ_Type_ID=".$row['Fld_RFQ_Type_ID'];
+											
+											$reqrfqt = mysql2_query($sqlrfqt);
+											$datarfqt = mysqli_fetch_array($reqrfqt);
+					                        //Fin recuperation RFQ Type
+											
+											
+											
+											//recuperation des TERMS
+											// tbl_Payment****** Fld_Payment_Term_ID  Fld_Payment_Text
+					                        $sqlptid="SELECT Fld_Payment_Text FROM tbl_Payment where Fld_Payment_Term_ID=".$row['Fld_Payment_Term_ID'];
+											
+											$reqptid = mysql2_query($sqlptid);
+											$dataptid = mysqli_fetch_array($reqptid);
+					                        //Fin recuperation des TERMS
+										*/
+											//recuperation Priority
+											// ** tbl_Priority ** Fld_Priority_ID  Fld_Priority_Text
+					                        $sqlPriority="SELECT Fld_Priority_Text FROM tbl_Priority where Fld_Priority_ID=".$row['Fld_Priority_ID'];
+											
+											$reqPriority = mysql2_query($sqlPriority);
+											$dataPriority = mysqli_fetch_array($reqPriority);
+					                        //Fin recuperation Priority
+											
+											//recuperation company client
+											////****tbl_RFQ_1****ID Fld_RFQ_ID  Fld_Qty  Fld_Part_ID  Fld_Observation  Fld_Customer_ID date  Fld_RFQ_Type_ID  Fld_Priority_ID  Employee_ID  id_company_contact  Fld_Payment_Term_ID  Fld_Condition_ID  pn_rfq description_rfq
+					                        $sqlcde="SELECT Fld_Customer_ID FROM tbl_RFQ_1 where Fld_RFQ_ID='".$row["Fld_RFQ_ID"]."'";
+											
+											$reqcde = mysql2_query($sqlcde);
+											$datacde = mysqli_fetch_array($reqcde);
+											$sqlcclient="SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID='".$datacde['Fld_Customer_ID']."'";
+											$reqcclient = mysql2_query($sqlcclient);
+											
+											$datacclient = mysqli_fetch_array($reqcclient);
+											//Fin recuperation company client
+				
+	$nestedData[] = "<a href='modif_quotations.php?ID=".$row["ID"]."'>".$row["Fld_RFQ_ID"]."</a>";
+	$nestedData[] = htmlspecialchars($row["Fld_Quote_Date"]);
+	$nestedData[] = "<a href='company-fiche.php?id=".$datacde['Fld_Customer_ID']."' target='_blank'>".htmlspecialchars($datacclient["Fld_Company_Name"])."</a>";
+	$nestedData[] = htmlspecialchars($row["Fld_Part_Nbr"]);
+	$nestedData[] = htmlspecialchars($row["Fld_Part_Desc"]);
+	$nestedData[] = htmlspecialchars($row["Fld_Part_SN"]);
+	$nestedData[] = htmlspecialchars($row['Fld_Qty']);
+	$nestedData[] = htmlspecialchars($datact["Fld_Condition_Text"]);
+	$nestedData[] = htmlspecialchars($row["Fld_Price"]);
+	$nestedData[] = htmlspecialchars($datacurrency["Fld_Currency_Text"]);
+	$nestedData[] = htmlspecialchars($row['Fld_Remark']);
+	$nestedData[] = htmlspecialchars($datatra['Fld_Company_Name']);
+	$nestedData[] = htmlspecialchars($datatinfo['Fld_Company_Name']);
+	$nestedData[] = htmlspecialchars($row["Fld_Tag_Date"]);
+	$nestedData[] = htmlspecialchars($datar["Fld_Release_Text"]);
+	$nestedData[] = htmlspecialchars($row["moq"]);
+	$nestedData[] = htmlspecialchars($row["lead_time"]);
+	$nestedData[] = htmlspecialchars($dataPriority['Fld_Priority_Text']);
+	$nestedData[] = $dataemp["Employee_Name"];
+	$nestedData[] = $row["ID"];
+	if($_SESSION['statut']=="SuperAdmin") $nestedData[] = "<a href='del_quotation.php?ID=".$row['ID']."' onClick=\"return(confirm('Etes vous sur ?'));\"><img src='images/bin-blue-full-icon.png' border='0' width='27'></a>";
+	
+
+	$data[] = $nestedData;
+}
+// echo "totalData:".$totalData."<br>";
+// echo "totalFiltered:".$totalFiltered."<br>";
+// echo "data:".$data."<br>";
+$json_data = array(
+			"draw"            => intval( $requestData['draw'] ),   // for every request/draw by clientside , they send a number as a parameter, when they recieve a response/data they first check the draw number, so we are sending same number in draw. 
+			"recordsTotal"    => intval( $totalData ),  // total number of records
+			"recordsFiltered" => intval( $totalFiltered ), // total number of records after searching, if there is no searching then totalFiltered = totalData
+			"data"            => $data   // total data array
+			);
+
+echo json_encode($json_data);  // send data as json format
+
+?>
+
+

@@ -1,0 +1,399 @@
+<?php 
+include_once "conf.php";
+include_once "page_titles.php";
+//echo "test".$_GET['id'];
+
+/*
+			//****tbl_RFQ_1****ID Fld_RFQ_ID  Fld_Qty  Fld_Part_ID  Fld_Observation  Fld_Customer_ID date  Fld_RFQ_Type_ID  Fld_Priority_ID  Employee_ID  id_company_contact  Fld_Payment_Term_ID  Fld_Condition_ID  pn_rfq description_rfq
+*/
+					$sql="SELECT * from tbl_RFQ_1 where ID='".$_GET['id']."'";
+					
+					//echo $sql;
+					$req = mysql2_query($sql);
+					$data = mysqli_fetch_array($req);
+					
+?>
+						<!---new--->
+						<div class="panel-body" id='blocrecuprfqquote'>  
+						  <div id='divrecuprfqquote'>
+						<div class="row">
+								<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>RFQ ID</label>
+                                            <input class="form-control" name="RFQ_ID" value="<?php echo $data["Fld_RFQ_ID"];?>">
+                                        </div>
+								</div>
+								
+								<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>DATE</label>
+                                            <input class="form-control" name="RFQ_DATE" value="<?php echo $data["date"];?>">
+                                    </div>
+								</div>
+								<div class="col-lg-8">
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>CUSTOMER'S NAME</label><br>
+											<?php
+											//recuperation du nom de compagnie ********************
+											$sqlrn="SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID='".$data["Fld_Customer_ID"]."'";
+											$reqrn = mysql2_query($sqlrn);
+											$datarn = mysqli_fetch_array($reqrn);
+											//Fin recuperation du nom de compagnie ********************
+											?>
+											<input type="text" name="companyid" id="companyid" class="companyid" value="<?php echo $datarn['Fld_Company_Name'].",".$data["Fld_Customer_ID"];?>">
+											<input type="hidden" name="Fld_Customer_ID" value="<?php echo $data["Fld_Customer_ID"];?>">
+                                        </div>
+								</div>
+								<div class="col-lg-2" id='bloccontactname'>
+										<div class="form-group has-warning" id='divcontactname'>
+                                            <label>CONTACT NAME</label>
+											<select class="form-control" name="id_company_contact" onclick="javascript:majtarea();">
+											<?php
+											//recuperation des contacts de compagnie
+											// **tb_company_contact** id_company_contact Fld_Linked_ID  Fld_Company_ID  Company_Old_Id  Fld_Contact_Name  Fld_Contact_Phone  Fld_Contact_Phone2  Fld_Contact_Fax  Fld_Company_Mobile  Fld_Contact_Division_ID  Fld_Contact_Email  Fld_Contact_Title  Fld_Contact_Remark  status  aci_contact  entry_date
+											
+					                        $sqlcc="SELECT * FROM tb_company_contact where Fld_Company_ID='".$data["Fld_Customer_ID"]."' AND Fld_Contact_Name!='' AND status='available' ORDER BY Fld_Contact_Name";
+											
+											$reqcc = mysql2_query($sqlcc);
+											while($datacc = mysqli_fetch_array($reqcc)){
+												echo "<option value='".$datacc['id_company_contact']."'";
+												if($datacc['id_company_contact']==$data["id_company_contact"]) echo " selected";
+												echo ">".$datacc['Fld_Contact_Name']."</option>";
+											}
+					                        //Fin recuperation des contacts de compagnie
+											?>
+
+                                            </select>
+                                        </div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>RFQ TYPE</label>
+											<select class="form-control" name="Fld_RFQ_Type_ID">
+											<option></option>
+											<?php
+											//recuperation RFQ Type 
+											// ** tbl_RFQ_Type ** Fld_RFQ_Type_ID  Fld_RFQ_Type_Text
+					                        $sqlrfqt="SELECT * FROM tbl_RFQ_Type";
+											
+											$reqrfqt = mysql2_query($sqlrfqt);
+											while($datarfqt = mysqli_fetch_array($reqrfqt)){
+												echo "<option value='".$datarfqt['Fld_RFQ_Type_ID']."'";
+												if ($datarfqt['Fld_RFQ_Type_ID']==$data["Fld_RFQ_Type_ID"]) echo " selected";
+												echo ">".$datarfqt['Fld_RFQ_Type_Text']."</option>";
+											}
+					                        //Fin recuperation RFQ Type
+											?>
+                                                
+                                            </select>
+                                        </div>
+								</div>
+								<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>TERMS</label>
+											<select class="form-control" name="Fld_Payment_Term_ID">
+											<?php
+											//recuperation des TERMS
+											// tbl_Payment****** Fld_Payment_Term_ID  Fld_Payment_Text
+											
+					                        $sqlptid="SELECT * FROM tbl_Payment";
+											
+											$reqptid = mysql2_query($sqlptid);
+											while($dataptid = mysqli_fetch_array($reqptid)){
+												echo "<option value='".$dataptid['Fld_Payment_Term_ID']."'";
+												if ($dataptid['Fld_Payment_Term_ID']==$data["Fld_Payment_Term_ID"]) echo " selected";
+												echo ">".$dataptid['Fld_Payment_Text']."</option>";
+											}
+					                        //Fin recuperation des TERMS
+											?>
+                                                
+                                            </select>
+                                        </div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>PRIORITY</label>
+											<select class="form-control" name="Fld_Priority_ID">
+											<?php
+											//recuperation Priority
+											// ** tbl_Priority ** Fld_Priority_ID  Fld_Priority_Text
+					                        $sqlPriority="SELECT * FROM tbl_Priority";
+											
+											$reqPriority = mysql2_query($sqlPriority);
+											while($dataPriority = mysqli_fetch_array($reqPriority)){
+												echo "<option value='".$dataPriority['Fld_Priority_ID']."'";
+												if ($dataPriority['Fld_Priority_ID']==$data["Fld_Priority_ID"]) echo " selected";
+												echo ">".$dataPriority['Fld_Priority_Text']."</option>";
+											}
+					                        //Fin recuperation Priority
+											?>
+                                                
+                                            </select>
+                                        </div>
+								</div>
+								<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>SALES CONTACT</label>
+											<select class="form-control" name="Employee_ID">
+											<?php
+											//recuperation des types de compagnie
+					                        $sqlemp="SELECT distinct(Employee_Name),Employee_ID FROM tbl_Employee";
+											
+											$reqemp = mysql2_query($sqlemp);
+											while($dataemp = mysqli_fetch_array($reqemp)){
+												echo "<option value='".$dataemp['Employee_ID']."'";
+												if ($dataemp['Employee_ID']==$_SESSION['id_utilisateur']) echo "selected";
+												echo ">".$dataemp ['Employee_Name']."</option>";
+											}
+					                        //Fin recuperation des type de compagnie
+											?>
+                                                
+                                            </select>
+										</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-lg-4">
+										<div class="form-group">
+                                            <label style="color:#a7142a;">INTERNAL REMARK</label>
+											<!--!!!!!!! Surtout ne pas mettre les informations de ramarque de la table stock par ce que ce sont des infos interne de la boite qui ne doivent pas arriver au client!!!!!!!-->
+                                            <textarea class="form-control" rows="3" name="Fld_Remark_rfq" id="Fld_Remark_rfq" style="background-color:#DDDDDD;color:#a7142a;border-color: #a7142a;
+											box-shadow: 0 0 10px #a7142a;"><?php echo $data["Fld_Observation"];?></textarea>
+                                        </div>
+                                </div>
+							</div>
+							<div class="row">
+									<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>PN</label>
+                                            <input class="form-control" name="pn_rfq" id="pn_rfq" value="<?php echo $data["pn_rfq"];?>"> 
+                                        </div>
+									</div>
+									<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>DESCRIPTION</label>
+                                            <input class="form-control" name="description_rfq" id="description_rfq" value="<?php echo $data['description_rfq'];?>">
+                                        </div>
+                                    </div>
+									<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>QTY</label>
+                                            <input class="form-control" name="Fld_Qty" id="Fld_Qty" value="<?php echo $data['Fld_Qty'];?>">
+                                        </div>
+                                    </div>
+									<div class="col-lg-2">
+										<div class="form-group has-warning">
+                                            <label>CONDITION</label>
+                                            <select class="form-control" name="Fld_Condition_ID">
+											<option></option>
+											<?php
+											//recuperation condition 
+											// ** tbl_Condition ** Fld_Condition_ID  Fld_Condition_Text
+					                        $sqlc="SELECT * FROM tbl_Condition order by Fld_Condition_Text";
+											
+											$reqc = mysql2_query($sqlc);
+											while($datac = mysqli_fetch_array($reqc)){
+												echo "<option value='".$datac['Fld_Condition_ID']."'";
+												if ($datac['Fld_Condition_ID']==$data['Fld_Condition_ID']) echo " selected";
+												echo ">".$datac ['Fld_Condition_Text']."</option>";
+											}
+					                        //Fin recuperation condition 
+											?>
+                                                
+                                            </select>
+                                        </div>
+                                    </div>
+							</div>
+							<hr>
+							<div class="row">
+									
+									<div class="col-lg-2">
+										<div class="form-group">
+                                            <label>RELEASE</label>
+                                            <select class="form-control" name="Fld_Release_ID">
+											<?php
+											//recuperation release
+											// ** tbl_Release ** Fld_Release_ID  Fld_Release_Text
+					                        $sqlr="SELECT * from tbl_Release";
+											
+											$reqr = mysql2_query($sqlr);
+											while($datar = mysqli_fetch_array($reqr)){
+												echo "<option value='".$datar['Fld_Release_ID']."'>".$datar['Fld_Release_Text']."</option>";
+											}
+					                        //Fin recuperation release 
+											?>
+                                            </select>
+                                        </div>
+									</div>
+									<div class="col-lg-2">
+										<div class="form-group">
+                                            <label>TAG INFO</label><br>
+                                            <input type="text" name="Fld_Tag_Info_ID" id="Fld_Tag_Info_ID" class="Fld_Tag_Info_ID" placeholder="Please Enter company" style="width: 335px;">
+                                        </div>
+									</div>
+									<div class="col-lg-2">
+										<div class="form-group">
+                                            <label>TAG DATE</label>
+                                            <input class="form-control" name="Fld_Tag_Date" id="Fld_Tag_Date" value="">
+                                        </div>
+									</div>
+									<div class="col-lg-2">
+										<div class="form-group">
+                                            <label>Traced To</label><br>
+											<input type="text" name="Fld_Traceability_ID" id="Fld_Traceability_ID" class="Fld_Traceability_ID" placeholder="Please Enter company" >
+                                        </div>
+									</div>
+						   </div>
+						   <div class="row">
+									<div class="col-lg-2">
+										<div class="form-group">
+                                            <label>STOCK LOC / LEAD TIME</label>
+                                            <input class="form-control" name="lead_time" id="lead_time" value="">
+                                        </div>
+									</div>
+									<div class="col-lg-2">
+										<div class="form-group">
+                                            <label>PRICE</label>
+                                            <input class="form-control" name="Fld_Price" id="Fld_Price" value="">
+                                        </div>
+									</div>
+									<div class="col-lg-2">
+										<div class="form-group">
+                                            <label>CURRENCY</label>
+                                            <select class="form-control" name="FldCurrencyID" id="FldCurrencyID" onmouseleave='javascript:majpn(<?php echo $data['Fld_Part_ID'];?>)'>
+											<?php
+											//recuperation des currency
+											//tbl_Currency---- Fld_Currency_ID Fld_Currency_Text
+					                        $sqlcid="SELECT * FROM tbl_Currency";
+											
+											$reqcid = mysql2_query($sqlcid);
+											while($datacid = mysqli_fetch_array($reqcid)){
+												echo "<option value='".$datacid['Fld_Currency_ID']."'>".$datacid['Fld_Currency_Text']."</option>";
+											}
+					                        //End recuperation of the currency
+											?>
+                                                
+                                            </select>
+                                        </div>
+									</div>
+									<div class="col-lg-3">
+										<div class="form-group">
+                                            <label>COMMENTS FOR THE CLIENT</label>
+                                            <textarea class="form-control" rows="3" name="Fld_Remark" id="Fld_Remark"></textarea>
+                                        </div>
+                                    </div>
+							</div>	
+							<div class="row">
+									<div class="col-lg-2">
+										<div class="form-group">
+                                            <label>SN</label>
+                                            <input class="form-control" name="Fld_Part_SN" id="Fld_Part_SN" value="">
+                                        </div>
+                                    </div>
+									
+									<div class="col-lg-2">
+										<div class="form-group">
+                                            <label>MOQ (Minimum Qty)</label>
+                                            <input class="form-control" name="moq" id="moq" value="">
+                                        </div>
+                                    </div>
+									
+						   </div>
+						<input type="hidden" name="quote_type" value="suppliers_quote">
+						<input type="hidden" name="part_id" value="<?php echo $data["Fld_Part_ID"];?>">
+						<input type="hidden" name="Fld_Part_Nbr" value="<?php echo $data["pn_rfq"];?>">
+						<input type="hidden" name="Fld_Part_Desc" value="<?php echo $data['description_rfq'];?>">
+					
+						<div  id='blocquotecustomer'>
+                           <div class="row" id='divquotecustomer'>
+								<div class="col-lg-12">
+										<div class="form-group" style="text-align:center;">
+                                        </div>
+								</div>
+								<input type="hidden" class="form-control" name="qtc" value="valid">
+						   </div>
+						</div>
+						<input type="hidden" class="form-control" name="quotethecustomer" value="">
+						<div class="row">
+								<div class="col-lg-4">
+										<div class="form-group" align="right">
+										<INPUT type="button" value="ADD RFQ" name=button1 onclick="return OnButton1();">
+										</div>
+								</div>	
+								<div class="col-lg-4">
+										<div class="form-group" align="right">
+										<INPUT type="button" value="SEND QUOTATION" name=button2 onclick="return OnButton2();">
+										</div>
+								</div>									
+						</div>	
+						</div>	
+						</div>	
+						
+						
+<!--Ajout pour autocompression Roy-->
+<script src="../vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+	
+	    <!-- Custom Theme JavaScript -->
+    <script src="../dist/js/sb-admin-2.js"></script>
+	
+ <!--<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>-->
+    <script src="js/typeahead.js"></script>
+<script>
+//Création de la balise
+var js = document.createElement("script");
+js.type = "text/javascript";
+js.src = "autocompression.js";
+//Ajout de la balise dans la page
+document.body.appendChild(js);
+
+
+$(document).ready(function() { 
+function sayHello(){
+    alert('hello');
+}
+});
+</script>
+    <style>
+
+		.tt-hint,
+        .companyid,.companyidforoem,.Fld_Tag_Info_ID,.Fld_Traceability_ID,.companyidtaginfo,.companyidtreacability {
+            display: block;
+    width: 100%;
+    height: 34px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+        }
+
+        .tt-dropdown-menu {
+            width: 400px;
+            margin-top: 5px;
+            padding: 8px 12px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 8px 8px 8px 8px;
+            font-size: 18px;
+            color: #111;
+            background-color: #F1F1F1;
+        }
+    </style>
+<!--Fin Ajout pour autocompression Roy-->

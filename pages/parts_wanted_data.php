@@ -1,0 +1,130 @@
+						
+<?php
+session_start();
+//Table tbl_Parts :::: Fld_Part_ID  Fld_Part_Nbr  Fld_Part_Desc  Fld_Part_MFG  Fld_Part_MFG_Old  Fld_AC_ID  Fld_Old_LP  Fld_Part_List_Price  Fld_Part_Price_Currency_ID  Fld_Part_LP_Date  Fld_Remark status
+
+//exemple code https://coderexample.com/datatable-demo-server-side-in-phpmysql-and-ajax/
+/* Database connection start */
+include_once "conf.php";
+include_once "page_titles.php";
+/* Database connection end */
+
+
+// storing  request (ie, get/post) global array to a variable  
+$requestData= $_REQUEST;
+
+$columns = array( 
+// datatable column index  => database column name
+	0 =>'Fld_Part_ID', 
+	1 => 'Fld_Part_Nbr',
+	2=> 'Fld_Part_Desc',
+	3=> 'Fld_Part_Desc',
+	4=> 'Fld_Part_MFG',
+	5=> 'Fld_Part_MFG_Old',
+	6=> 'Fld_AC_ID',
+    7=> 'Fld_Old_LP',
+	8=> 'Fld_Part_List_Price',
+	9=> 'Fld_Part_Price_Currency_ID',
+	10=> 'Fld_Part_LP_Date',
+	11=> 'Fld_Remark',
+	12=> 'status'
+);
+
+// getting total number records without any search
+$sql = "SELECT * from tbl_Parts where status='Available'";
+//echo $sql;
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalData = mysqli_num_rows($query);
+$totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
+
+// $sql = "SELECT tbl_Parts.*,tbl_Aircraft.Fld_AC_Model from tbl_Parts,tbl_Aircraft where tbl_Parts.status='Available' AND tbl_Parts.Fld_AC_ID=tbl_Aircraft.Fld_AC_ID";//requete avec recuperation model avion
+
+$sql = "SELECT * from tbl_Parts where status='Available' AND wanted='1'";
+if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
+	$sql.=" AND ( tbl_Parts.Fld_Part_ID LIKE '%".$requestData['search']['value']."%' ";  
+	//$sql.=" OR Country LIKE '%".$requestData['search']['value']."%' ";
+	//$sql.=" OR Airline LIKE '%".$requestData['search']['value']."%' )";
+			//*******requete d'affichage de toutes les colonnes d'une table
+			$sql2 = "SHOW COLUMNS from tbl_Parts";
+			$query2=mysqli_query($conn, $sql2) or die("server_processing.php: get employees");
+			while( $row2=mysqli_fetch_array($query2) ) {
+			$sql.=" OR tbl_Parts.".$row2["Field"]." LIKE '%".$requestData['search']['value']."%' ";
+														}
+			//******requete d'affichage de toutes les colonnes d'une table
+	$sql.=" )";
+}
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
+// $sql.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+$sql.=" ORDER BY tbl_Parts.Fld_Part_Nbr ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+
+//echo $sql;
+/* $requestData['order'][0]['column'] contains colmun index, $requestData['order'][0]['dir'] contains order such as asc/desc  */	
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+
+$data = array();
+while( $row=mysqli_fetch_array($query) ) {  // preparing an array
+	$nestedData=array(); 
+				
+							//recuperation du nom de la currency	
+							// Fld_Currency_ID    Fld_Currency_Text
+							if (!empty($row["Fld_Part_Price_Currency_ID"])){
+							
+						    $sqlCurrency="SELECT htmlcode FROM tbl_Currency where Fld_Currency_ID=".$row["Fld_Part_Price_Currency_ID"];
+							$reqCurrency=mysqli_query($conn, $sqlCurrency) or die("server_processing.php: get employees");
+						    $dataCurrency = mysqli_fetch_array($reqCurrency);
+							$currency=$dataCurrency['htmlcode'];
+							}
+							else $currency="";
+							//Fin recuperation du nom de la currency
+							
+							//recuperation du nom du aircraft	
+							if (!empty($row["Fld_AC_ID"])){
+							// Fld_AC_ID  Fld_AC_Model  Fld_AC_Series  Fld_AC_Manufacturer  Fld_AC_Engine_Model  Fld_AC_Engine_Series
+						    $sqlac="SELECT Fld_AC_Model FROM tbl_Aircraft where Fld_AC_ID=".$row["Fld_AC_ID"];
+							$reqac=mysqli_query($conn, $sqlac) or die("server_processing.php: get employees");
+						    $dataac = mysqli_fetch_array($reqac);
+							$Aircraft_model=$dataac['Fld_AC_Model'];
+							}
+							else $Aircraft_model="";
+							//Fin recuperation du nom du aircraft
+							
+							//recuperation du nom de la compagnie
+							if (!empty($row["Fld_Part_MFG"])){
+						    $sqlcn="SELECT Fld_Company_Name FROM tb_company where Fld_Company_ID=".$row["Fld_Part_MFG"];
+							$reqcn=mysqli_query($conn, $sqlcn) or die("server_processing.php: get employees");
+						    $datacn = mysqli_fetch_array($reqcn);
+							$companyname=$datacn['Fld_Company_Name'];
+							}
+							else $companyname="";
+							//Fin recuperation du nom de la compagnie
+							
+	$nestedData[] = "<a href='Part-Nbr.php?part_id=".$row['Fld_Part_ID']."'>".$row["Fld_Part_Nbr"]."</a>";
+	$nestedData[] = $row["alt_pn"];
+	$nestedData[] = htmlspecialchars($row["Fld_Part_Desc"]);
+	$nestedData[] = htmlspecialchars($companyname);
+	$nestedData[] = htmlspecialchars($Aircraft_model);
+	$nestedData[] = $row["Fld_Part_List_Price"];
+	$nestedData[] = $currency;
+	$nestedData[] = htmlspecialchars($row["Fld_Part_LP_Date"]);
+	$remarque=addslashes($row["Fld_Remark"]);
+	$nestedData[] = htmlspecialchars($remarque);
+	if($_SESSION['statut']=="SuperAdmin") $nestedData[] = "<a href='del_part.php?part_id=".$row['Fld_Part_ID']."' onClick=\"return(confirm('Etes vous sur ?'));\"><img src='images/bin-blue-full-icon.png' border='0' width='27'></a>";
+
+	$data[] = $nestedData;
+}
+// echo "totalData:".$totalData."<br>";
+// echo "totalFiltered:".$totalFiltered."<br>";
+// echo "data:".$data."<br>";
+$json_data = array(
+			"draw"            => intval( $requestData['draw'] ),   // for every request/draw by clientside , they send a number as a parameter, when they recieve a response/data they first check the draw number, so we are sending same number in draw. 
+			"recordsTotal"    => intval( $totalData ),  // total number of records
+			"recordsFiltered" => intval( $totalFiltered ), // total number of records after searching, if there is no searching then totalFiltered = totalData
+			"data"            => $data   // total data array
+			);
+
+echo json_encode($json_data);  // send data as json format
+
+?>
+
+

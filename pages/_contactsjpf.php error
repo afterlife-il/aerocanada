@@ -1,0 +1,115 @@
+						
+<?php
+
+//exemple code https://coderexample.com/datatable-demo-server-side-in-phpmysql-and-ajax/
+/* Database connection start */
+include_once "conf.php";
+include_once "page_titles.php";
+/* Database connection end */
+
+
+// storing  request (ie, get/post) global array to a variable  
+$requestData= $_REQUEST;
+
+$columns = array( 
+// datatable column index  => database column name
+	0 =>'id_tb_JPFleet', 
+	1 => 'Country',
+	2=> 'Airline',
+	3=> 'registration',
+	4=> 'type_of_aircraft',
+	5=> 'cn_fn',
+	6=> 'exreg',
+	7=> 'mfd',
+	8=> 'del',
+	9=> 'QT',
+	10=> 'Powered_by',
+	11=> 'mtow_kg',
+	12=> 'config',
+	13=> 'remarks',
+	14=> 'Head',
+	15=> 'Email',
+	16=> 'WEB',
+	17=> 'TEL',
+	18=> 'C20',
+	19=> 'C30',
+	20=> 'RR',
+	21=> 'PT6A',
+	22=> 'C20R',
+	23=> 'ALL_jpf',
+	24=> 'year'
+);
+
+// getting total number records without any search
+$sql = "SELECT * from tb_JPFleet";
+//echo $sql;
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalData = mysqli_num_rows($query);
+$totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
+
+$sql = "SELECT * ";
+$sql.=" FROM tb_JPFleet WHERE 1=1";
+if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
+	$sql.=" AND ( id_tb_JPFleet LIKE '%".$requestData['search']['value']."%' ";  
+	//$sql.=" OR Country LIKE '%".$requestData['search']['value']."%' ";
+	//$sql.=" OR Airline LIKE '%".$requestData['search']['value']."%' )";
+			//*******requete d'affichage de toutes les colonnes d'une table
+			$sql2 = "SHOW COLUMNS from tb_JPFleet";
+			$query2=mysqli_query($conn, $sql2) or die("server_processing.php: get employees");
+			while( $row2=mysqli_fetch_array($query2) ) {
+			$sql.=" OR ".$row2["Field"]." LIKE '%".$requestData['search']['value']."%' ";
+														}
+			//******requete d'affichage de toutes les colonnes d'une table
+	$sql.=" )";
+}
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
+$sql.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+
+
+/* $requestData['order'][0]['column'] contains colmun index, $requestData['order'][0]['dir'] contains order such as asc/desc  */	
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+
+$data = array();
+while( $row=mysqli_fetch_array($query) ) {  // preparing an array
+	$nestedData=array(); 
+
+	$nestedData[] = $row["id_tb_JPFleet"];
+	$nestedData[] = $row["Country"].$sql;
+	$nestedData[] = $row["Airline"];
+	$nestedData[] = $row["registration"];
+	$nestedData[] = $row["type_of_aircraft"];
+	$nestedData[] = $row["cn_fn"];
+	$nestedData[] = $row["exreg"];
+	$nestedData[] = $row["mfd"];
+	$nestedData[] = $row["del"];
+	$nestedData[] = $row["QT"];
+	$nestedData[] = $row["Powered_by"];
+	$nestedData[] = $row["mtow_kg"];
+	$nestedData[] = $row["config"];
+	$nestedData[] = $row["remarks"];
+	$nestedData[] = $row["Head"];
+	$nestedData[] = $row["Email"];
+	$nestedData[] = $row["WEB"];
+	$nestedData[] = $row["TEL"];
+	$nestedData[] = $row["C20"];
+	$nestedData[] = $row["C30"];
+	$nestedData[] = $row["RR"];
+	$nestedData[] = $row["PT6A"];
+	$nestedData[] = $row["C20R"];
+	$nestedData[] = $row["ALL_jpf"];
+	$nestedData[] = $row["year"];
+
+	$data[] = $nestedData;
+}
+
+$json_data = array(
+			"draw"            => intval( $requestData['draw'] ),   // for every request/draw by clientside , they send a number as a parameter, when they recieve a response/data they first check the draw number, so we are sending same number in draw. 
+			"recordsTotal"    => intval( $totalData ),  // total number of records
+			"recordsFiltered" => intval( $totalFiltered ), // total number of records after searching, if there is no searching then totalFiltered = totalData
+			"data"            => $data   // total data array
+			);
+
+echo json_encode($json_data);  // send data as json format
+
+?>

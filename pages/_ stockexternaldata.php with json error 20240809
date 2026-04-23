@@ -1,0 +1,149 @@
+						
+<?php
+
+//exemple code https://coderexample.com/datatable-demo-server-side-in-phpmysql-and-ajax/
+/* Database connection start */
+include_once "conf.php";
+include_once "page_titles.php";
+/* Database connection end */
+
+
+// storing  request (ie, get/post) global array to a variable  
+$requestData= $_REQUEST;
+
+$columns = array( 
+// datatable column index  => database column name
+
+ 0=>'Fld_Stock_externe_ID',
+ 1=>'Fld_Part_ID', 
+ 2=>'Fld_Part_SN', 
+ 3=>'Fld_Supplier_ID', 
+ 4=>'Fld_Entry_Date', 
+ 5=>'Fld_Part_Price', 
+ 6=>'Fld_Price_Currency_ID', 
+ 7=>'Fld_BAX_PO_Nbr', 
+ 8=>'Fld_Supplier_order_Date', 
+ 9=>'Fld_Supplier_Payment_Date', 
+ 10=>'Fld_Qty', 
+ 11=>'Fld_Condition_ID', 
+ 12=>'Fld_Release_ID', 
+ 13=>'Fld_Tag_Info_ID', 
+ 14=>'Fld_Tag_Date', 
+ 15=>'Fld_Traceability_ID', 
+ 16=>'Fld_Warehouse_Location', 
+ 17=>'Fld_Physical_Stock', 
+ 18=>'Fld_Owner_ID', 
+ 19=>'Fld_Stock_Location_ID', 
+ 20=>'Fld_Status_ID', 
+ 21=>'Fld_Status_Ind', 
+ 22=>'Fld_Status_Date', 
+ 23=>'Fld_Stock_Remark', 
+ 24=>'Fld_Shelf_Life_Limit', 
+ 25=>'Fld_Valeur_Comptable', 
+ 26=>'Fld_Valeur_Comptable_currency_Id', 
+ 27=>'Fld_Sales_Remark', 
+ 28=>'Fld_External_Location', 
+ 29=>'Fld_Sales_Remark_ID', 
+ 30=>'Fld_Warehouse_Location_ID', 
+ 31=>'Fld_OriginalUnit_Stock_ID', 
+ 32=>'Fld_Min_Qty', 
+ 33=>'Fld_Publish',
+ 34=>'status',
+ 35=>'Fld_AC_ID',
+ 36=>'Fld_Company_ID'
+);
+
+// getting total number records without any search
+$sql = "SELECT * from tbl_Stock_external";
+//echo $sql;
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalData = mysqli_num_rows($query);
+$totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
+//Table tbl_Parts :::: Fld_Part_ID  Fld_Part_Nbr  Fld_Part_Desc  Fld_Part_MFG  Fld_Part_MFG_Old  Fld_AC_ID  Fld_Old_LP  Fld_Part_List_Price  Fld_Part_Price_Currency_ID  Fld_Part_LP_Date  Fld_Remark status
+$sql = "SELECT tbl_Stock_external.*,tbl_Parts.* from tbl_Stock_external,tbl_Parts WHERE tbl_Stock_external.Fld_Part_ID=tbl_Parts.Fld_Part_ID";
+if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
+	$sql.=" AND (( tbl_Stock_external.Fld_Stock_externe_ID LIKE '%".$requestData['search']['value']."%' ";  
+
+			//*******requete d'affichage de toutes les colonnes d'une table
+			$sql2 = "SHOW COLUMNS from tbl_Stock_external";
+			$query2=mysqli_query($conn, $sql2) or die("server_processing.php: get employees");
+			while( $row2=mysqli_fetch_array($query2) ) {
+			$sql.=" OR tbl_Stock_external.".$row2["Field"]." LIKE '%".$requestData['search']['value']."%' ";
+														}
+			//******requete d'affichage de toutes les colonnes d'une table
+			$sql.=" )";
+			$sql.="OR (tbl_Parts.Fld_Part_Nbr LIKE '%".$requestData['search']['value']."%' OR tbl_Parts.Fld_Part_Desc LIKE '%".$requestData['search']['value']."%')";
+			$sql.=" )";
+}
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
+$sql.=" ORDER BY tbl_Stock_external.". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+
+//echo $sql;
+/* $requestData['order'][0]['column'] contains colmun index, $requestData['order'][0]['dir'] contains order such as asc/desc  */	
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+
+$data = array();
+while( $row=mysqli_fetch_array($query) ) {  // preparing an array
+	$nestedData=array(); 
+$nestedData[]=$row['Fld_Stock_externe_ID']; 
+$nestedData[]=$row['Fld_Part_Nbr'];
+$nestedData[]=$row['Fld_Part_Desc'];
+$nestedData[]=$row['Fld_Part_SN']; 
+$nestedData[]=$row['Fld_Supplier_ID']; 
+$nestedData[]=htmlspecialchars($row['Fld_Entry_Date']); 
+$nestedData[]=$row['Fld_Part_Price']; 
+$nestedData[]=$row['Fld_Price_Currency_ID']; 
+$nestedData[]=$row['Fld_BAX_PO_Nbr'];
+$nestedData[]=htmlspecialchars($row['Fld_Supplier_order_Date']);
+$nestedData[]=$row['Fld_Supplier_Payment_Date']; 
+$nestedData[]=$row['Fld_Qty']; 
+$nestedData[]=$row['Fld_Condition_ID']; 
+$nestedData[]=$row['Fld_Release_ID']; 
+$nestedData[]=$row['Fld_Tag_Info_ID']; 
+$nestedData[]=htmlspecialchars($row['Fld_Tag_Date']);
+$nestedData[]=$row['Fld_Traceability_ID']; 
+$nestedData[]=$row['Fld_Warehouse_Location']; 
+$nestedData[]=$row['Fld_Physical_Stock']; 
+$nestedData[]=$row['Fld_Owner_ID']; 
+$nestedData[]=$row['Fld_Stock_Location_ID']; 
+$nestedData[]=$row['Fld_Status_ID']; 
+$nestedData[]=htmlspecialchars($row['Fld_Status_Ind']); 
+$nestedData[]=htmlspecialchars($row['Fld_Status_Date']); 
+$nestedData[]=htmlspecialchars($row['Fld_Stock_Remark']); 
+$nestedData[]=htmlspecialchars($row['Fld_Shelf_Life_Limit']); 
+$nestedData[]=$row['Fld_Valeur_Comptable']; 
+$nestedData[]=$row['Fld_Valeur_Comptable_currency_Id']; 
+$nestedData[]=htmlspecialchars($row['Fld_Sales_Remark']);
+$nestedData[]=$row['Fld_External_Location'];
+$nestedData[]=$row['Fld_Sales_Remark_ID'];
+$nestedData[]=$row['Fld_Warehouse_Location_ID'];
+$nestedData[]=$row['Fld_OriginalUnit_Stock_ID'];
+$nestedData[]=$row['Fld_Min_Qty'];
+$nestedData[]=$row['Fld_Publish'];
+
+											//recuperation du nom de compagnie ********************
+											include_once "conf.php";
+include_once "page_titles.php";
+											$sqlrn="SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID='".$row['Fld_Company_ID']."'";
+											$reqrn = mysql2_query($sqlrn);
+											$datarn = mysqli_fetch_array($reqrn);
+											//Fin recuperation du nom de compagnie ********************
+$nestedData[]=$datarn["Fld_Company_Name"];
+
+
+	$data[] = $nestedData;
+}
+
+$json_data = array(
+			"draw"            => intval( $requestData['draw'] ),   // for every request/draw by clientside , they send a number as a parameter, when they recieve a response/data they first check the draw number, so we are sending same number in draw. 
+			"recordsTotal"    => intval( $totalData ),  // total number of records
+			"recordsFiltered" => intval( $totalFiltered ), // total number of records after searching, if there is no searching then totalFiltered = totalData
+			"data"            => $data   // total data array
+			);
+
+echo json_encode($json_data);  // send data as json format
+
+?>
+
+

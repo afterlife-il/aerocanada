@@ -1,0 +1,82 @@
+:root { --aci-topbar-h:56px; }
+
+/* Topbar au-dessus et visible */
+.navbar.navbar-fixed-top{ z-index:1030; }
+.navbar.navbar-default{ background:#be0831; }
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav>li>a{ color:#fff !important; }
+.navbar-default .navbar-toggle .icon-bar{ background:#fff; }
+
+/* Laisse un espace sous la topbar fixe */
+#wrapper{ padding-top:var(--aci-topbar-h); }
+
+/* Icônes et tableaux */
+table.dataTable td .fa, table.dataTable td a, table.dataTable td img{ vertical-align:middle; }
+table.dataTable td:last-child a{ display:inline-block; margin-right:6px; }
+
+/* Company – réglages desktop optionnels */
+#dataTables-example.is-desktop.dataTable{ table-layout:fixed; }
+#dataTables-example.is-desktop th:nth-child(1),
+#dataTables-example.is-desktop td:nth-child(1){ width:7ch!important; text-align:center; white-space:nowrap; }
+#dataTables-example.is-desktop th:nth-child(2),
+#dataTables-example.is-desktop td:nth-child(2){ width:200px!important; }
+#dataTables-example.is-desktop th:nth-child(3),
+#dataTables-example.is-desktop td:nth-child(3){ width:30ch!important; }
+#dataTables-example.is-desktop th:nth-child(4),
+#dataTables-example.is-desktop td:nth-child(4){ width:8ch!important; text-align:center; white-space:nowrap; }
+#dataTables-example.is-desktop th:nth-child(5),
+#dataTables-example.is-desktop td:nth-child(5){ width:18ch!important; text-align:center; white-space:nowrap; }
+#dataTables-example.is-desktop th:nth-child(6),
+#dataTables-example.is-desktop td:nth-child(6){ width:26ch!important; }
+#dataTables-example.is-desktop td:nth-child(7) a{ margin-right:8px; display:inline-block; }
+#dataTables-example td .dt-clip{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block; width:100%; }
+
+@media (max-width:767.98px){
+  #dataTables-example.is-phone th:nth-child(2),
+  #dataTables-example.is-phone td:nth-child(2){ display:none!important; }
+}
+
+/* Sidebar – fond gris + hover rouge */
+.navbar-static-side{ background:#f1f1f1 !important; }
+.sidebar .nav>li>a{ background:#f1f1f1 !important; color:#111 !important; border-bottom:1px solid #e5e5e5; }
+.sidebar .nav>li>a:hover,
+.sidebar .nav>li>a:focus{ background:#A7142A !important; color:#fff !important; }
+.sidebar .nav-second-level>li>a,
+.sidebar .nav-third-level>li>a{ background:#fafafa !important; color:#111 !important; border-bottom:1px solid #eee; }
+.sidebar .nav-second-level>li>a:hover,
+.sidebar .nav-third-level>li>a:hover{ background:#A7142A !important; color:#fff !important; }
+.sidebar .nav>li.active>a{ background:#ddd !important; color:#111 !important; }
+
+/* Mobile/Tablet : sidebar en overlay */
+@media (max-width:991.98px){
+  /* Le collapse rouge ne doit pas couvrir la page */
+  .navbar-default .navbar-collapse{ position:static; z-index:auto; background:#be0831; border:0; }
+
+  /* Sidebar overlay */
+  #aci-sidebar, .navbar-static-side{
+    position:fixed !important;
+    top:var(--aci-topbar-h);
+    left:-260px; width:260px;
+    height:calc(100vh - var(--aci-topbar-h));
+    overflow-y:auto;
+    background:#f1f1f1 !important;
+    z-index:1045; transition:left .25s ease;
+  }
+  body.menu-open #aci-sidebar, body.menu-open .navbar-static-side{ left:0; }
+
+  /* Backdrop uniquement en mobile */
+  .aci-backdrop{
+    display:none; pointer-events:none;
+    position:fixed; top:var(--aci-topbar-h); left:0; right:0; bottom:0;
+    background:rgba(0,0,0,.35); z-index:1025;
+  }
+  body.menu-open .aci-backdrop{ display:block; pointer-events:auto; }
+
+  /* Empêcher le collapse Bootstrap de masquer la nav gauche */
+  #aci-sidebar .sidebar-nav.navbar-collapse{
+    display:block !important; height:auto !important; overflow:visible !important; padding:0 !important;
+  }
+
+  /* Contenu pleine largeur */
+  #page-wrapper, #page-wrapper2{ margin:60px 0 0 0 !important; }
+}

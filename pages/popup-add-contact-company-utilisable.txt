@@ -1,0 +1,170 @@
+<a data-toggle="modal" data-target="#myModaladdcontactcomp" style="top: 4px;color:#fff;text-decoration: none;cursor: pointer;"><i style='margin-left:10px;top: 4px;font-size:23px;' class='fa fa-plus-circle '></i></a>
+
+
+<!--*************************************************************************************************************************************-->
+	<!--******************************************POPUP ADD A CONTACT TO THE COMPANY*********************************************************-->
+	
+	<script type="text/javascript">
+    $('#myModaladdcontactcomp').on('hidden.bs.modal', function (e) {
+        //get value from #myPopupInput and set the value to #myMainPageInput
+		//test roy
+			
+	
+		//Fin test roy
+    })
+</script>
+	
+	
+	<div class="modal fade" id="myModaladdcontactcomp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="myModalLabel">ADD A CONTACT</h4>
+            </div>
+
+			<div class="modal-body">
+                <div class="container-fluid">
+					<div class="row">
+						<div class="col-md-12">
+							<label for="Fld_Contact_Name" class="col-form-label">NAME:</label><br>
+							<input type="text" name="Fld_Contact_Name" id="Fld_Contact_Name" class="form-control">
+							<input type="hidden" name="idcompany" id="idcompany" value="<?php echo $id_company;?>">
+						</div>
+						
+					</div>	
+				</div>
+            </div>
+			
+			<div class="modal-body">
+                <div class="container-fluid">
+					<div class="row">
+						<div class="col-md-5">
+							<label for="Fld_Contact_Phone" class="col-form-label">PHONE:</label>
+							<input type="text" name="Fld_Contact_Phone" id="Fld_Contact_Phone" class="form-control">
+						</div>
+						<div class="col-md-2">
+						&nbsp;
+						</div>
+						<div class="col-md-5">
+							<label for="Fld_Contact_Phone2" class="col-form-label">PHONE2:</label>
+							<input class="form-control" name="Fld_Contact_Phone2" id="Fld_Contact_Phone2">
+						</div>
+					</div>	
+				</div>
+            </div>
+			
+			<div class="modal-body">
+                <div class="container-fluid">
+					<div class="row">
+						<div class="col-md-5">
+							<label for="Fld_Contact_Fax" class="col-form-label">FAX:</label>
+							<input type="text" name="Fld_Contact_Fax" id="Fld_Contact_Fax" class="form-control">
+						</div>
+						<div class="col-md-2">
+						&nbsp;
+						</div>
+						<div class="col-md-5">
+							<label for="Fld_Company_Mobile" class="col-form-label">MOBILE:</label>
+							<input class="form-control" name="Fld_Company_Mobile" id="Fld_Company_Mobile">
+						</div>
+					</div>	
+				</div>
+            </div>
+			
+            <div class="modal-body">
+                <div class="container-fluid">
+					<div class="row">
+						<div class="col-md-5">
+							<label for="Fld_Contact_Division_ID" class="col-form-label">DIVISION:</label><br>
+							<select class="form-control" name="Fld_Contact_Division_ID" ID="Fld_Contact_Division_ID"><option value="1" selected="">Sales</option><option value="2">Account</option><option value="3">Logistics / Shipping1</option><option value="5">Technical</option><option value="6">Purchasing</option><option value="7">AOG</option><option value="8">Customer Service Administrator</option><option value="9">Management</option><option value="10">Quality</option><option value="11">Sales Technical</option><option value="12">Shipping2</option><option value="13">***No Longer Valid***</option><option value="14">DROP SHIPMENT</option></select>
+						</div>
+						<div class="col-md-2">
+							
+						</div>
+						<div class="col-md-5">
+							<label for="Fld_Contact_Email" class="col-form-label">E-MAIL:</label>
+							<input type="text" name="Fld_Contact_Email" id="Fld_Contact_Email" class="form-control">
+						</div>
+						
+					</div>	
+				</div>
+            </div>
+			
+			<div class="modal-body">
+                <div class="container-fluid">
+					<div class="row">
+						<div class="col-md-5">
+							<label for="Fld_Contact_Title" class="col-form-label">TITLE:</label>
+							<input type="text" name="Fld_Contact_Title" id="Fld_Contact_Title" class="form-control">
+						</div>
+						<div class="col-md-2">
+						&nbsp;
+						</div>
+						<div class="col-md-5">
+						</div>
+					</div>	
+				</div>
+            </div>
+			
+			<div class="modal-body">
+                <div class="container-fluid">
+					<div class="row">
+						<div class="col-md-12">
+							<label for="Fld_Contact_Remark" class="col-form-label">REMARK:</label><br>
+							<input type="text" name="Fld_Contact_Remark" id="Fld_Contact_Remark" class="form-control">
+						</div>
+						
+					</div>	
+				</div>
+            </div>
+			
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+	<!--*************************************************************************************************************************************-->
+	<!--**************************************END POPUP ADD A CONTACT TO THE COMPANY*********************************************************-->
+	<!--*************************************************************************************************************************************-->
+	<!--*************************************************************************************************************************************-->
+	
+	
+	
+	
+	
+	<!--*****************************************************************************************************-->	
+<!--****************************************ADD CONTACT TO COMPANY POPUP*************************************-->
+
+	$('#myModaladdcontactcomp').on('click', '.btn-primary', function(){
+    var value = $('#Fld_Contact_Name').val();
+    var value2 = $('#Fld_Contact_Phone').val();
+    var value3 = $('#Fld_Contact_Phone2').val();
+    var value4 = $('#Fld_Contact_Fax').val();
+    var value5 = $('#Fld_Company_Mobile').val();
+    var value6 = $('#Fld_Contact_Division_ID').val();
+    var value7 = $('#Fld_Contact_Email').val();
+    var value8 = $('#Fld_Contact_Title').val();
+    var value9 = $('#Fld_Contact_Remark').val();
+    var value10 = $('#idcompany').val();
+	//enregistrer le nouveau pn dans la base 
+		 $.ajax({ url: 'add_client_company_popup.php',
+         data: {Fld_Contact_Name: value, Fld_Contact_Phone:value2, Fld_Contact_Phone2:value3, Fld_Contact_Fax:value4, Fld_Company_Mobile:value5, Fld_Contact_Division_ID:value6, Fld_Contact_Email:value7, Fld_Contact_Title:value8, Fld_Contact_Remark:value9, idcompany:value10},
+         type: 'get',
+         success: function(output) {
+                      // alert('test');
+         }
+});
+         //FIN enregistrer le nouvea pn dans la base 
+    $('#myModaladdcontactcomp').modal('hide');
+	document.location.reload();
+});
+
+<!--************************************END ADD CONTACT TO COMPANY POPUP*************************************-->
+<!--*****************************************************************************************************-->
+<!--*****************************************************************************************************-->

@@ -1,0 +1,49 @@
+<?php
+session_start();
+include_once "conf.php";
+include_once "page_titles.php";
+
+// Compat GET/POST
+$companyname  = isset($_GET['companyname'])  ? $_GET['companyname']  : ($_POST['companyname']  ?? '');
+$contactname  = isset($_GET['contactname'])  ? $_GET['contactname']  : ($_POST['contactname']  ?? '');
+$contactemail = isset($_GET['contactemail']) ? $_GET['contactemail'] : ($_POST['contactemail'] ?? '');
+$aci          = isset($_SESSION['id_utilisateur']) ? (int)$_SESSION['id_utilisateur'] : 0;
+
+if ($companyname === '') { http_response_code(400); echo "Missing companyname"; exit; }
+
+$esc = fn($s) => mysqli_real_escape_string($conn ?? $link, $s);
+
+// 1) Insert company (ID auto-incrément)
+$sql1 = "INSERT INTO tb_company (Fld_Company_Name, aci_contact)
+         VALUES ('".$esc($companyname)."', '$aci')";
+mysql2_query($sql1);
+
+// Récupérer le nouvel ID (selon la variable de connexion disponible)
+$cnx = isset($conn) ? $connection : (isset($link) ? $link : null);
+$lastid = mysqli_insert_id($cnx);
+
+// 2) Insert détails par défaut
+$sql2 = "INSERT INTO tbl_Company_Details
+         (Fld_Linked_ID, Fld_Company_ID, Fld_Company_Type_ID, Fld_Company_Country, Fld_Company_City,
+          Fld_Company_State, Fld_Company_Street, Fld_Company_ZipCode, Fld_Company_Fax, Fld_Company_Phone,
+          Fld_Company_Email, Fld_Company_Score, Fld_Company_BAX_Contact, Fld_Remark, Fld_VAT_Nbr,
+          Fld_Date_Of_First_Contact, Fld_Company_Address_Type, UTC_timezone, title_address)
+         VALUES ('', '$lastid', '', 'NO COUNTRY', 'NO CITY', '', 'No address', '', '', '', '',
+                 '', '$aci', 'No remark', '', '', '', '', '')";
+mysql2_query($sql2);
+
+// 3) Optionnel : créer aussi un premier contact si fourni
+if ($contactname !== '') {
+  $today = date("Y-m-d");
+  $sql3 = "INSERT INTO tb_company_contact
+           (Fld_Linked_ID, Fld_Company_ID, Company_Old_Id, Fld_Contact_Name,
+            Fld_Contact_Phone, Fld_Contact_Phone2, Fld_Contact_Fax, Fld_Company_Mobile,
+            Fld_Contact_Division_ID, Fld_Contact_Email, Fld_Contact_Title, Fld_Contact_Remark,
+            status, aci_contact, entry_date)
+           VALUES
+           ('', '$lastid', '', '".$esc($contactname)."', '', '', '', '',
+            '', '".$esc($contactemail)."', '', '', 'available', '$aci', '$today')";
+  mysql2_query($sql3);
+}
+
+echo "OK";

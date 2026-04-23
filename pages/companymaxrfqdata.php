@@ -1,0 +1,115 @@
+<?php
+session_start();
+//****tbl_RFQ_1****ID Fld_RFQ_ID  Fld_Qty  Fld_Part_ID  Fld_Observation  Fld_Customer_ID date  Fld_RFQ_Type_ID  Fld_Priority_ID  Employee_ID  id_company_contact  Fld_Payment_Term_ID  Fld_Condition_ID pn_rfq description_rfq		
+
+//exemple code https://coderexample.com/datatable-demo-server-side-in-phpmysql-and-ajax/
+/* Database connection start */
+$servername = "localhost";
+$username = "aerocanada-indus";
+$password = "0Ewb9o~9";
+$dbname = "aerocanada";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname) or die("Connection failed: " . mysqli_connect_error());
+
+/* Database connection end */
+
+
+// storing  request (ie, get/post) global array to a variable  
+$requestData= $_REQUEST;
+
+$columns = array( 
+// datatable column index  => database column name
+	0 =>'ID', 
+	1 => 'Fld_RFQ_ID',
+	2=> 'Fld_Qty',
+	3=> 'Fld_Part_ID',
+	4=> 'Fld_Observation',
+	5=> 'Fld_Customer_ID',
+	6=> 'date',
+    7=> 'Fld_RFQ_Type_ID',
+	8=> 'Fld_Priority_ID',
+	9=> 'Employee_ID',
+	10=> 'id_company_contact',
+	11=> 'Fld_Payment_Term_ID',
+	12=> 'Fld_Condition_ID',
+	13=> 'pn_rfq',
+	14=> 'description_rfq'
+);
+
+// getting total number records without any search
+$sql = "SELECT Fld_Customer_ID,count(*) as compte FROM tbl_RFQ_1 where Fld_RFQ_ID>'2017-00-00-000000' GROUP BY Fld_Customer_ID ORDER BY compte DESC";
+//echo $sql;
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalData = mysqli_num_rows($query);
+$totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
+
+$sql = "SELECT Fld_Customer_ID,count(*) as compte FROM tbl_RFQ_1 where Fld_RFQ_ID>'2017-00-00-000000'";
+if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
+	$sql.=" AND ( tbl_RFQ_1.ID LIKE '%".$requestData['search']['value']."%' ";  
+			//*******requete d'affichage de toutes les colonnes d'une table
+			$sql2 = "SHOW COLUMNS from tbl_RFQ_1";
+			$query2=mysqli_query($conn, $sql2) or die("server_processing.php: get employees");
+			while( $row2=mysqli_fetch_array($query2) ) 
+			{
+			$sql.=" OR tbl_RFQ_1.".$row2["Field"]." LIKE '%".$requestData['search']['value']."%' ";										
+			}
+			//******requete d'affichage de toutes les colonnes d'une table
+	$sql.=")";
+	
+}
+$sql.=" GROUP BY pn_rfq ORDER BY count(*) DESC";
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+$totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
+// $sql.=" ORDER BY tbl_RFQ_1.". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+
+$sql.=" LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+	
+$query=mysqli_query($conn, $sql) or die("server_processing.php: get employees");
+
+$data = array();
+while( $row=mysqli_fetch_array($query) ) {  // preparing an array
+	$nestedData=array(); 
+											include_once "conf.php";
+include_once "page_titles.php";
+											
+										
+					//****tbl_RFQ_1****ID Fld_RFQ_ID  Fld_Qty  Fld_Part_ID  Fld_Observation  Fld_Customer_ID date  Fld_RFQ_Type_ID  Fld_Priority_ID  Employee_ID  id_company_contact  Fld_Payment_Term_ID  Fld_Condition_ID  pn_rfq description_rfq				
+				if((!empty($row["pn_rfq"]))&&($row["pn_rfq"]!='pntest23')){
+
+													//recuperation de la description pn 
+													$sqldesfrompn="SELECT Fld_Part_Desc FROM tbl_Parts where Fld_Part_Nbr like '%".$row['pn_rfq']."%'";
+													
+													$reqdesfrompn = mysql2_query($sqldesfrompn);
+													$datadesfrompn = mysqli_fetch_array($reqdesfrompn);
+													//Fin recuperation de la description pn 
+													//recuperation de la date derniere visite
+													$sqldatelv="SELECT max(Fld_RFQ_ID) as datemax FROM tbl_RFQ_1 where pn_rfq like '%".$row['pn_rfq']."%'";
+													
+													$reqdatelv = mysql2_query($sqldatelv);
+													$datadatelv = mysqli_fetch_array($reqdatelv);
+													$rest = substr($datadatelv['datemax'], 0, 10);
+													//recuperation de la date derniere visite
+		$pn = urlencode($row['pn_rfq']);
+		$nestedData[] = "<a href='Part-Nbr.php?pn={$pn}'>" . htmlspecialchars($row['pn_rfq'], ENT_QUOTES, 'UTF-8') . "</a>";
+		$nestedData[] = htmlspecialchars($datadesfrompn['Fld_Part_Desc'] ?? '', ENT_QUOTES, 'UTF-8');
+		$nestedData[] = htmlspecialchars($row['compte'] ?? '', ENT_QUOTES, 'UTF-8');
+		$nestedData[] = htmlspecialchars($rest ?? '', ENT_QUOTES, 'UTF-8');
+
+
+
+	$data[] = $nestedData;
+				}
+}
+
+$json_data = array(
+			"draw"            => intval( $requestData['draw'] ),   // for every request/draw by clientside , they send a number as a parameter, when they recieve a response/data they first check the draw number, so we are sending same number in draw. 
+			"recordsTotal"    => intval( $totalData ),  // total number of records
+			"recordsFiltered" => intval( $totalFiltered ), // total number of records after searching, if there is no searching then totalFiltered = totalData
+			"data"            => $data   // total data array
+			);
+
+echo json_encode($json_data);  // send data as json format
+
+?>
+
+

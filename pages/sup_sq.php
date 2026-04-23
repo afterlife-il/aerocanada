@@ -1,0 +1,13 @@
+<?php
+session_start();
+include_once "conf.php";
+include_once "page_titles.php";
+
+
+require('../classes/sq.class.php');
+$objet=new sq();
+$donnee = $objet->del_sq();
+
+echo "<META http-equiv=\"refresh\" content=\"0;URL=suppliers_quote.php\">";
+
+?>

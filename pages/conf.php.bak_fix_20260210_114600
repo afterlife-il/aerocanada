@@ -1,0 +1,84 @@
+<?php
+// Production: ne pas afficher les erreurs à l'écran
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+// Masquer notices/warnings/deprecated
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
+$debug_mode = false; // Mettez à "true" pour activer le debug ou "false" pour désactiver
+
+// SERVEUR SQL
+$sql_serveur = "localhost:3306";
+
+// LOGIN SQL
+$sql_user = "aerocanada-indus";
+
+// MOT DE PASSE SQL
+$sql_passwd = "F66x%jo4!";
+
+// NOM DE LA BASE DE DONNÉES
+$sql_bdd = "aerocanada";
+
+// REDIRECTION VERS UNE PAGE ERREUR AU CAS OÙ LE LOGIN ET MOT DE PASSE SONT INVALIDES
+$url_erreur = "erreur.htm";
+
+// CONNEXION MYSQL
+$db_link = @mysqli_connect($sql_serveur, $sql_user, $sql_passwd, $sql_bdd);
+$conn = $db_link;
+
+if (!$db_link) {
+    if ($debug_mode) {
+        echo "Connexion impossible à la base de données <b>$sql_bdd</b> sur le serveur <b>$sql_serveur</b><br>Vérifiez les paramètres du fichier conf.php";
+    }
+    exit;
+}
+
+mysqli_set_charset($db_link, "utf8mb4");
+
+// Fonction mysql2_query mise à jour
+function mysql2_query($sql) {
+    global $db_link, $debug_mode;
+
+    // Vérifier si la requête est vide
+    if (empty($sql)) {
+        if ($debug_mode) {
+            die("Erreur : La requête SQL est vide.");
+        } else {
+            die("Erreur : Impossible d'exécuter la requête.");
+        }
+    }
+
+    // Afficher la requête pour débogage uniquement si debug_mode est activé
+    if ($debug_mode) {
+        echo "Requête SQL exécutée : " . htmlspecialchars($sql) . "<br>";
+    }
+
+    // Exécuter la requête
+    $result = mysqli_query($db_link, $sql);
+
+    // Si la requête échoue, afficher l'erreur et la requête si debug_mode est activé
+    if (!$result) {
+        if ($debug_mode) {
+            die("Erreur SQL : " . mysqli_error($db_link) . " dans la requête : " . htmlspecialchars($sql));
+        } else {
+            die("Erreur SQL : Une erreur s'est produite.");
+        }
+    }
+    return $result;
+}
+
+// Fonction d'échappement des données
+function escape_data($data) {
+    global $db_link;
+    return mysqli_real_escape_string($db_link, $data);
+}
+
+function mysql2_insert_id() {
+    global $db_link;
+    return mysqli_insert_id($db_link);
+}
+
+function money_format($fmt, $str) {
+    return $str;
+}
+?>
