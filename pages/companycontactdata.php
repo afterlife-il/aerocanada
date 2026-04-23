@@ -1,14 +1,15 @@
-						
 <?php
+session_start();
+header('Content-Type: application/json; charset=utf-8');
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
 
+if (!isset($_SESSION['conectroy']) || $_SESSION['conectroy'] !== "parfait") {
+    echo json_encode(["draw"=>0,"recordsTotal"=>0,"recordsFiltered"=>0,"data"=>[]]);
+    exit;
+}
 
-
-//exemple code https://coderexample.com/datatable-demo-server-side-in-phpmysql-and-ajax/
-/* Database connection start */
 include_once "conf.php";
 include_once "page_titles.php";
-/* Database connection end */
 
 
 // storing  request (ie, get/post) global array to a variable  

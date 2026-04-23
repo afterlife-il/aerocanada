@@ -27,14 +27,14 @@ if (function_exists('log_error')) {
 if (function_exists('safe_redirect')) {
     $company_id = $_POST['Fld_Company_ID'] ?? '';
     if (!empty($company_id)) {
-        safe_redirect("detailcompany.php?Fld_Company_ID=$company_id");
+        safe_redirect("company.php?Fld_Company_ID=$company_id&details2=1");
     } else {
         safe_redirect('company_contact.php');
     }
 } else {
     $company_id = $_POST['Fld_Company_ID'] ?? '';
     if (!empty($company_id)) {
-        echo "<META http-equiv=\"refresh\" content=\"0;URL=detailcompany.php?Fld_Company_ID=$company_id\">";
+        echo "<META http-equiv=\"refresh\" content=\"0;URL=company.php?Fld_Company_ID=$company_id&details2=1\">";
     } else {
         echo "<META http-equiv=\"refresh\" content=\"0;URL=company_contact.php\">";
     }

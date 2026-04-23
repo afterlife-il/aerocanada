@@ -1,16 +1,13 @@
-						
 <?php
+session_start();
+header('Content-Type: application/json; charset=utf-8');
 
-//exemple code https://coderexample.com/datatable-demo-server-side-in-phpmysql-and-ajax/
-/* Database connection start */
-$servername = "localhost";
-$username = "aerocanada-indus";
-$password = "0Ewb9o~9";
-$dbname = "aerocanada";
+if (!isset($_SESSION['conectroy']) || $_SESSION['conectroy'] !== "parfait") {
+    echo json_encode(["draw"=>0,"recordsTotal"=>0,"recordsFiltered"=>0,"data"=>[]]);
+    exit;
+}
 
-$conn = mysqli_connect($servername, $username, $password, $dbname) or die("Connection failed: " . mysqli_connect_error());
-
-/* Database connection end */
+include_once "conf.php";
 
 
 // storing  request (ie, get/post) global array to a variable  
@@ -83,7 +80,7 @@ while( $row=mysqli_fetch_array($query) ) {  // preparing an array
 	
 											//recuperation du nom de la division	
 											 //*******tbl_Division*********Fld_Division_ID    Fld_Division_Text
-											$sqldiv="SELECT * FROM tbl_Division where Fld_Division_ID=".$data['Fld_Contact_Division_ID'];
+											$sqldiv="SELECT * FROM tbl_Division where Fld_Division_ID=".(int)$row['Fld_Contact_Division_ID'];
 											
 											//echo $sqldiv;
 											$reqemp = mysql2_query($sqldiv);

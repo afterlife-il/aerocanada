@@ -1,12 +1,14 @@
 <?php
-header('Content-Type: application/json');
-
-// Afficher les erreurs PHP
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', 0);
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 session_start();
 
-// Inclure le fichier de configuration pour la connexion à la base de données
+if (!isset($_SESSION['conectroy']) || $_SESSION['conectroy'] !== "parfait") {
+    echo json_encode(["draw"=>0,"recordsTotal"=>0,"recordsFiltered"=>0,"data"=>[]]);
+    exit;
+}
+
 include "conf.php";
 
 // Stocker les requêtes globales (GET/POST) dans une variable

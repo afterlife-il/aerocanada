@@ -1,16 +1,13 @@
-						
 <?php
+session_start();
+header('Content-Type: application/json; charset=utf-8');
 
-//exemple code https://coderexample.com/datatable-demo-server-side-in-phpmysql-and-ajax/
-/* Database connection start */
-$servername = "localhost";
-$username = "aerocanada-indus";
-$password = "0Ewb9o~9";
-$dbname = "aerocanada";
+if (!isset($_SESSION['conectroy']) || $_SESSION['conectroy'] !== "parfait") {
+    echo json_encode(["draw"=>0,"recordsTotal"=>0,"recordsFiltered"=>0,"data"=>[]]);
+    exit;
+}
 
-$conn = mysqli_connect($servername, $username, $password, $dbname) or die("Connection failed: " . mysqli_connect_error());
-
-/* Database connection end */
+include_once "conf.php";
 // ***tbl_price_list*** id  CMM_Reference  pn  Description  brand  model  Sales_Unit  Lead_Time_Days  MOQ  Unit_price  Currency  id_company
 
 // storing  request (ie, get/post) global array to a variable  

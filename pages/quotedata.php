@@ -1,9 +1,16 @@
 <?php
 session_start();
+header('Content-Type: application/json; charset=utf-8');
+
+if (!isset($_SESSION['conectroy']) || $_SESSION['conectroy'] !== "parfait") {
+    echo json_encode(["draw"=>0,"recordsTotal"=>0,"recordsFiltered"=>0,"data"=>[]]);
+    exit;
+}
+
 include_once "conf.php";
 include_once "page_titles.php";
 
-// Storing request (ie, get/post) global array to a variable  
+// Storing request (ie, get/post) global array to a variable
 $requestData = $_REQUEST;
 
 $columns = array(
