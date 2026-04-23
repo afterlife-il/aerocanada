@@ -1,11 +1,9 @@
 <?php
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 session_start();
 include_once "confphp7.php";
-
 
 // Redirection immédiate si l'utilisateur est déjà connecté
 if (isset($_SESSION['conectroy']) && $_SESSION['conectroy'] === "parfait") {
@@ -28,17 +26,21 @@ if ($conectroy === "parfait" && !empty($email) && !empty($password)) {
     $result = mysqli_stmt_get_result($stmt);
 
     if ($user = mysqli_fetch_assoc($result)) {
+        // Regenerate session ID to prevent session fixation
+        session_regenerate_id(true);
+
         // Connexion réussie : création des variables de session
         $_SESSION["conectroy"] = "parfait";
         $_SESSION["nom_utilisateur"] = $user["Employee_Name"];
         $_SESSION["id_utilisateur"] = $user["Employee_ID"];
+        $_SESSION["user_id"] = $user["Employee_ID"]; // alias for compatibility
         $_SESSION["statut"] = $user["statut"];
         $_SESSION["leftmenu"] = "open";
 
         header("Location: parts.php");
         exit;
     } else {
-        $erreur = "❌ Login ou mot de passe incorrect.";
+        $erreur = "Login ou mot de passe incorrect.";
     }
 
     mysqli_stmt_close($stmt);

@@ -1,17 +1,8 @@
 <?php
 session_start();
 
-//if (!isset($_SESSION['user_id'])) {
-//    $_SESSION['user_id'] = $user['id'];  // Vérifie bien que cette ligne existe
-//}
-file_put_contents("/tmp/session_login_test.txt", json_encode($_SESSION) . "\n", FILE_APPEND);
-
-$_SESSION['user_id'] = $user['id']; // Vérifie que cette ligne est bien exécutée
-echo json_encode(["message" => "Connexion réussie", "session_data" => $_SESSION]);
-
 include_once "conf.php";
 include_once "page_titles.php";
-// include_once "confphp7.php";
 require('../classes/users.class.php');
 
 if ((!empty($_POST['email_form'])) && (!empty($_POST['pw_form']))) {
@@ -56,9 +47,7 @@ if ((!empty($_POST['email_form'])) && (!empty($_POST['pw_form']))) {
 			
             // ✅ Vérification après connexion
             echo json_encode([
-                "message" => "Connexion réussie",
-                "session_id" => session_id(),
-                "session_data" => $_SESSION
+                "message" => "Connexion réussie"
             ]);
             exit;
         }
