@@ -61,12 +61,18 @@ public function verif_login($email, $pw)
 
 	public function add_user()
 	{
+		 $hashed = password_hash($_POST['pw'], PASSWORD_BCRYPT);
 		 $requete = mysql2_query("INSERT INTO tbl_Employee (`Employee_ID`,`Employee_Name`, `Fld_Contact_Id`, `pw`, `email`, `statut`, `position`, `tel`, `mobile`, `skype`, `pwgmaero`)
-		 VALUES ('','".$_POST['Employee_Name']."','','".$_POST['pw']."','".$_POST['email']."','".$_POST['statut']."','".$_POST['position']."','".$_POST['tel']."','".$_POST['mobile']."','".$_POST['skype']."','".$_POST['pwgmaero']."');");
+		 VALUES ('','".$_POST['Employee_Name']."','','".$hashed."','".$_POST['email']."','".$_POST['statut']."','".$_POST['position']."','".$_POST['tel']."','".$_POST['mobile']."','".$_POST['skype']."','".$_POST['pwgmaero']."');");
 	}
 	public function modif_user()
 	{
-		 $sql="update tbl_Employee set Employee_Name='".$_POST['Employee_Name']."',email='".$_POST['email']."',pw='".$_POST['pw']."',statut='".$_POST['statut']."',position='".$_POST['position']."',tel='".$_POST['tel']."',mobile='".$_POST['mobile']."',skype='".$_POST['skype']."',pwgmaero='".$_POST['pwgmaero']."' where Employee_ID='".$_POST['Employee_ID']."'";
+		$pw_sql = "";
+		if (!empty($_POST['pw'])) {
+			$hashed = password_hash($_POST['pw'], PASSWORD_BCRYPT);
+			$pw_sql = "pw='".$hashed."',";
+		}
+		$sql="update tbl_Employee set Employee_Name='".$_POST['Employee_Name']."',email='".$_POST['email']."',".$pw_sql."statut='".$_POST['statut']."',position='".$_POST['position']."',tel='".$_POST['tel']."',mobile='".$_POST['mobile']."',skype='".$_POST['skype']."',pwgmaero='".$_POST['pwgmaero']."' where Employee_ID='".$_POST['Employee_ID']."'";
 		$query=mysql2_query($sql);
 	}
 	public function del_user($Employee_ID)

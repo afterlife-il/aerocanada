@@ -46,7 +46,7 @@ if(0<$nbrows){
 					echo "<td><input class=\"form-control\" name=\"pwgmaero\" id=\"pwgmaero\" placeholder=\"MDP Gmail\" value=\"".$data['pwgmaero']."\"></td>";
 					echo "<td><input class=\"form-control\" name=\"skype\" id=\"skype\" placeholder=\"Skype\" value=\"".$data['skype']."\"></td>";
 					echo "<td><input class=\"form-control\" name=\"position\" id=\"position\" placeholder=\"Position\" value=\"".$data['position']."\"></td>";
-					echo "<td><input class=\"form-control\" name=\"pw\" id=\"pw\" placeholder=\"pw\" value=\"".$data['pw']."\"></td>";
+					echo "<td><input class=\"form-control\" name=\"pw\" id=\"pw\" placeholder=\"Enter new password (leave blank to keep current)\"></td>";
 					echo "<td><select class=\"form-control\" name=\"statut\" id=\"statut\"><option value=''>-- Choose --</option><option value='SuperAdmin'";
 					if ($data['statut']=='SuperAdmin') echo "selected";
 					echo ">SuperAdmin</option><option value='Admin'";

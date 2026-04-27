@@ -60,31 +60,6 @@ require('../classes/users.class.php');
 
  
 
-        <!-- Navigation -->
-		<!--OLD MODIF ROY navbar-static-top-->
-        <nav class="navbar navbar-default navbar-fixed-top" role="navigation" style="margin-bottom: 0">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="index.html"></a>
-            </div>
-            <!-- /.navbar-header -->
-            <?php
-		//ajout le menu du haut
-		include "top_menu.php";
-	   ?>
-            <!-- /.navbar-top-links -->
-
-        <?php
-		//ajout le menu de gauche
-		if($_SESSION['leftmenu']=='open') include "left_menu.php";
-	   ?>
-            <!-- /.navbar-static-side -->
-        </nav>
           <div id="<?php echo (isset($_SESSION['leftmenu']) && $_SESSION['leftmenu']=='open') ? 'page-wrapper' : 'page-wrapper2'; ?>">
 
             <div class="row">
@@ -108,7 +83,7 @@ require('../classes/users.class.php');
 
                             <div class="table-responsive">
 							<form action='validation_users.php' method="post">
-                                <table class="table" table-striped table-bordered table-hover" id="mytable">
+                                <table class="table table-striped table-bordered table-hover" id="mytable">
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -135,7 +110,8 @@ require('../classes/users.class.php');
 									$z++;
 									$varsuivante=$z+1;
 								
-                                       echo "<tr class=\"odd gradeX\" id=\"row_".$dataemp["Employee_ID"]."\"><td>".$dataemp['Employee_ID']."</td><td>".$dataemp['Employee_Name']."</td><td>".$dataemp['pw']."</td><td>".$dataemp['tel']."</td><td>".$dataemp['mobile']."</td>
+                                       $pw_display = (substr($dataemp['pw'], 0, 4) === '$2y$' || substr($dataemp['pw'], 0, 4) === '$2a$') ? '••••••••' : $dataemp['pw'];
+                                       echo "<tr class=\"odd gradeX\" id=\"row_".$dataemp["Employee_ID"]."\"><td>".$dataemp['Employee_ID']."</td><td>".$dataemp['Employee_Name']."</td><td>".$pw_display."</td><td>".$dataemp['tel']."</td><td>".$dataemp['mobile']."</td>
 									   <td>".$dataemp['email']."</td><td>".$dataemp['skype']."</td><td>".$dataemp['position']."</td><td>".$dataemp['statut']."</td><td>".$dataemp['pwgmaero']."<input type=\"hidden\" name=\"nbusers\" id=\"nbusers\" value=\"".$z."\"></td>";
 									   echo "<td><a href=\"javascript:modif_company(".$dataemp["Employee_ID"].")\"><i style=\"margin-left:10px;position: relative;top: 4px;font-size:23px;\" class=\"fa  fa-pencil-square-o\"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href='javascript:supp_user(".$dataemp["Employee_ID"].",".$z.")' onClick=\"return(confirm('Etes vous sur ?'));\"><img src='images/bin-blue-full-icon.png' border='0' width='27'></a></td>";
 									   echo "</tr>";
