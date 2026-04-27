@@ -3424,16 +3424,23 @@ function OnButton6()
 
 <script>
 $(function() {
-  // company
-  $('input.companyid').bind('typeahead:select', function(ev, suggestion) {
-    // si suggestion = { id: 123, value: "ACME" }
-    $('#Fld_Customer_ID').val(suggestion.id || suggestion.Fld_Company_ID || '');
+  // OEM company — update hidden Fld_Part_MFG on selection
+  // typeahead 0.9.3 fires 'typeahead:selected' (not 'typeahead:select')
+  // datum.value = "ID,CompanyName" from list-company.php
+  $('input.companyidforoem').bind('typeahead:selected typeahead:autocompleted', function(ev, datum) {
+    var companyId = datum.value.split(',')[0];
+    $('input[name="Fld_Part_MFG"]').val(companyId);
+  });
+
+  // company (other sections)
+  $('input.companyid').bind('typeahead:selected typeahead:autocompleted', function(ev, datum) {
+    var companyId = datum.value.split(',')[0];
+    $('#Fld_Customer_ID').val(companyId);
   });
 
   // PN
-  $('input.pnid').bind('typeahead:select', function(ev, suggestion) {
-    // suggestion = { id: 104113, value: "1712507C" } par ex.
-    $('#Fld_Part_ID_hidden').val(suggestion.id || suggestion.Fld_Part_ID || '');
+  $('input.pnid').bind('typeahead:selected typeahead:autocompleted', function(ev, datum) {
+    $('#Fld_Part_ID_hidden').val(datum.value.split(',')[0]);
   });
 });
 </script>

@@ -21,7 +21,14 @@ if ((!empty($_POST['email_form'])) && (!empty($_POST['pw_form']))) {
             $statut_bdd = $reponse['statut'];
         }
 
-        if (($email_form == $email_bdd) && ($pw_form == $pw_bdd)) {
+        $pw_match = false;
+        if (substr($pw_bdd, 0, 4) === '$2y$' || substr($pw_bdd, 0, 4) === '$2a$') {
+            $pw_match = password_verify($pw_form, $pw_bdd);
+        } else {
+            $pw_match = ($pw_form === $pw_bdd);
+        }
+
+        if (($email_form == $email_bdd) && $pw_match) {
             $_SESSION['conectroy'] = "parfait";
             $_SESSION['nom_utilisateur'] = $Employee_Name_bdd;
             $_SESSION['id_utilisateur'] = $Employee_ID_bdd;

@@ -50,8 +50,7 @@ public function verif_login($email, $pw)
     // Requête SQL avec normalisation (si besoin tu peux aussi forcer en BDD)
     $dbconn = $GLOBALS['db_link'] ?? $GLOBALS['link'] ?? $GLOBALS['conn'];
     $query = "SELECT * FROM tbl_Employee
-              WHERE LOWER(TRIM(email)) = '".mysqli_real_escape_string($dbconn, $email)."'
-              AND TRIM(pw) = '".mysqli_real_escape_string($dbconn, $pw)."'";
+              WHERE LOWER(TRIM(email)) = '".mysqli_real_escape_string($dbconn, $email)."'";
 
     $result = mysql2_query($query);
     while ($tab = mysqli_fetch_array($result, MYSQLI_BOTH)) {

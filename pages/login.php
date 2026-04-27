@@ -19,21 +19,30 @@ $conectroy = $_POST["conectroy"] ?? '';
 // Si le formulaire a été soumis
 if ($conectroy === "parfait" && !empty($email) && !empty($password)) {
 
-    // Préparation de la requête sécurisée
-    $stmt = mysqli_prepare($link, "SELECT * FROM tbl_Employee WHERE email = ? AND pw = ?");
-    mysqli_stmt_bind_param($stmt, "ss", $email, $password);
+    // Look up user by email only, then verify password separately
+    $stmt = mysqli_prepare($link, "SELECT * FROM tbl_Employee WHERE email = ?");
+    mysqli_stmt_bind_param($stmt, "s", $email);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 
-    if ($user = mysqli_fetch_assoc($result)) {
-        // Regenerate session ID to prevent session fixation
+    $user = mysqli_fetch_assoc($result);
+    $authenticated = false;
+
+    if ($user && !empty($user['pw'])) {
+        if (substr($user['pw'], 0, 4) === '$2y$' || substr($user['pw'], 0, 4) === '$2a$') {
+            $authenticated = password_verify($password, $user['pw']);
+        } else {
+            $authenticated = ($password === $user['pw']);
+        }
+    }
+
+    if ($authenticated) {
         session_regenerate_id(true);
 
-        // Connexion réussie : création des variables de session
         $_SESSION["conectroy"] = "parfait";
         $_SESSION["nom_utilisateur"] = $user["Employee_Name"];
         $_SESSION["id_utilisateur"] = $user["Employee_ID"];
-        $_SESSION["user_id"] = $user["Employee_ID"]; // alias for compatibility
+        $_SESSION["user_id"] = $user["Employee_ID"];
         $_SESSION["statut"] = $user["statut"];
         $_SESSION["leftmenu"] = "open";
 
