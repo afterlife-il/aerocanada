@@ -31,7 +31,14 @@ elseif (!empty($_GET['part_id'])) {
 
     if ($result && ($row = mysqli_fetch_assoc($result))) {
         $pn = urlencode($row['Fld_Part_Nbr']);
-        header("Location: Part-Nbr.php?pn=$pn");
+        $redirect = "Part-Nbr.php?pn=$pn";
+        $preserve = ['RFQ_ID'];
+        foreach ($preserve as $key) {
+            if (!empty($_GET[$key])) {
+                $redirect .= '&' . $key . '=' . urlencode($_GET[$key]);
+            }
+        }
+        header("Location: $redirect");
         exit();
     } else {
         die("Erreur : Part ID introuvable.");
@@ -259,7 +266,7 @@ if (empty($_GET['part_id']) && !empty($_GET['pn'])) {
 											$dataemp = mysqli_fetch_array($reqemp);
 					                        //Fin recuperation des type de compagnie
 											?>
-											<input type="text" name="companyidforoem" id="companyidforoem" class="companyidforoem" placeholder="<?php echo $dataemp['Fld_Company_Name'];?>" >
+											<input type="text" name="companyidforoem" id="companyidforoem" class="companyidforoem" value="<?php echo !empty($dataemp['Fld_Company_Name']) ? $data['Fld_Part_MFG'] . ',' . $dataemp['Fld_Company_Name'] : '';?>" placeholder="Select OEM" >
                                         </div>
 										
 									</div>
@@ -3424,23 +3431,16 @@ function OnButton6()
 
 <script>
 $(function() {
-  // OEM company — update hidden Fld_Part_MFG on selection
-  // typeahead 0.9.3 fires 'typeahead:selected' (not 'typeahead:select')
-  // datum.value = "ID,CompanyName" from list-company.php
-  $('input.companyidforoem').bind('typeahead:selected typeahead:autocompleted', function(ev, datum) {
-    var companyId = datum.value.split(',')[0];
-    $('input[name="Fld_Part_MFG"]').val(companyId);
-  });
-
-  // company (other sections)
-  $('input.companyid').bind('typeahead:selected typeahead:autocompleted', function(ev, datum) {
-    var companyId = datum.value.split(',')[0];
-    $('#Fld_Customer_ID').val(companyId);
+  // company
+  $('input.companyid').bind('typeahead:select', function(ev, suggestion) {
+    // si suggestion = { id: 123, value: "ACME" }
+    $('#Fld_Customer_ID').val(suggestion.id || suggestion.Fld_Company_ID || '');
   });
 
   // PN
-  $('input.pnid').bind('typeahead:selected typeahead:autocompleted', function(ev, datum) {
-    $('#Fld_Part_ID_hidden').val(datum.value.split(',')[0]);
+  $('input.pnid').bind('typeahead:select', function(ev, suggestion) {
+    // suggestion = { id: 104113, value: "1712507C" } par ex.
+    $('#Fld_Part_ID_hidden').val(suggestion.id || suggestion.Fld_Part_ID || '');
   });
 });
 </script>
