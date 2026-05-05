@@ -109,6 +109,13 @@ if($_SESSION['conectroy']=="parfait"){
         
 		<?php 
 		//****tbl_RFQ_2******ID  Fld_RFQ_ID  Fld_Supplier_ID  Fld_Qty  Fld_Condition_ID  Fld_Payment_Term_ID  Fld_Delivery  Fld_Price  Fld_Price_Max  Fld_Price_Min  Fld_Currency_ID  Fld_Traceability_ID  Fld_Tag_Info_ID  Fld_Tag_Date  Fld_Release_ID  Fld_Part_ID  Fld_Remark  Fld_IsBeen_Chosen  Fld_Current_Date  Fld_Qty_Received  Fld_Part_SN  Fld_Supplier_Contact_ID  Fld_Date_RecevdEnd_REP
+		$ctxRfqId = $_GET['Fld_RFQ_ID'] ?? '';
+		$ctxRfqLineId = (int)($_GET['id_tbl_rfq1'] ?? 0);
+		$ctxPartId = (int)($_GET['Fld_Part_ID'] ?? 0);
+		$ctxPn = $_GET['pn_rfq'] ?? '';
+		$ctxDesc = $_GET['description_rfq'] ?? '';
+		$ctxQty = $_GET['Fld_Qty'] ?? '';
+		$ctxConditionId = (int)($_GET['Fld_Condition_ID'] ?? 0);
 		?>
           <div id="<?php echo (isset($_SESSION['leftmenu']) && $_SESSION['leftmenu']=='open') ? 'page-wrapper' : 'page-wrapper2'; ?>">
 
@@ -129,8 +136,8 @@ if($_SESSION['conectroy']=="parfait"){
 						<?php $today = date("Y-m-d");?>
 						<input type="hidden" name="Fld_Current_Date" value="<?php echo $today;?>">
 						<input type="hidden" name="aci_contact" value="<?php echo $_SESSION['id_utilisateur'];?>">
-						<input type="hidden" name="Fld_Part_ID" id="Fld_Part_ID" value="">
-						<input type="hidden" name="id_tbl_rfq1" id="id_tbl_rfq1" value="">
+						<input type="hidden" name="Fld_Part_ID" id="Fld_Part_ID" value="<?php echo $ctxPartId;?>">
+						<input type="hidden" name="id_tbl_rfq1" id="id_tbl_rfq1" value="<?php echo $ctxRfqLineId;?>">
 <div class="panel-body">
     <!-- zone pour le contenu AJAX du pré-remplissage -->
     <div id="blocaddsq" style="display:none">
@@ -143,21 +150,21 @@ if($_SESSION['conectroy']=="parfait"){
   <div class="col-sm-3">
     <div class="form-group">
       <label>RFQ ID</label>
-      <input class="form-control" name="Fld_RFQ_ID" value="<?php echo date("Y-m-d-His"); ?>">
+      <input class="form-control" name="Fld_RFQ_ID" value="<?php echo htmlspecialchars($ctxRfqId !== '' ? $ctxRfqId : date("Y-m-d-His"), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
   </div>
 
   <div class="col-sm-3">
     <div class="form-group">
       <label>PN</label>
-      <input class="form-control pnid" name="pn_rfq" id="pn_rfq" placeholder="Enter PN">
+      <input class="form-control pnid" name="pn_rfq" id="pn_rfq" placeholder="Enter PN" value="<?php echo htmlspecialchars($ctxPn, ENT_QUOTES, 'UTF-8'); ?>">
     </div>
   </div>
 
   <div class="col-sm-6">
     <div class="form-group">
       <label>DESCRIPTION</label>
-      <input class="form-control" name="description_rfq" id="description_rfq" placeholder="Auto / manual">
+      <input class="form-control" name="description_rfq" id="description_rfq" placeholder="Auto / manual" value="<?php echo htmlspecialchars($ctxDesc, ENT_QUOTES, 'UTF-8'); ?>">
     </div>
   </div>
 </div>
@@ -193,7 +200,7 @@ if($_SESSION['conectroy']=="parfait"){
     <div class="col-sm-2">
       <div class="form-group">
         <label>QTY</label>
-        <input class="form-control" name="Fld_Qty">
+        <input class="form-control" name="Fld_Qty" value="<?php echo htmlspecialchars($ctxQty, ENT_QUOTES, 'UTF-8'); ?>">
       </div>
     </div>
 
@@ -205,7 +212,9 @@ if($_SESSION['conectroy']=="parfait"){
           $sqldiv="SELECT DISTINCT(Fld_Condition_Text), Fld_Condition_ID FROM tbl_Condition ORDER BY Fld_Condition_Text";
           $reqemp = mysql2_query($sqldiv);
           while($datadiv = mysqli_fetch_array($reqemp)){
-            echo "<option value='".$datadiv['Fld_Condition_ID']."'>".$datadiv['Fld_Condition_Text']."</option>";
+            echo "<option value='".$datadiv['Fld_Condition_ID']."'";
+            if($ctxConditionId > 0 && $ctxConditionId == $datadiv['Fld_Condition_ID']) echo " selected";
+            echo ">".$datadiv['Fld_Condition_Text']."</option>";
           }
           ?>
         </select>
@@ -320,14 +329,14 @@ if($_SESSION['conectroy']=="parfait"){
   <div class="row">
     <div class="col-sm-4">
       <div class="form-group">
-        <label>QTY RECEIVED</label>
+        <label>QTY RECEIVED (REPAIR ONLY - OPTIONAL)</label>
         <input class="form-control" name="Fld_Qty_Received">
       </div>
     </div>
 
     <div class="col-sm-4">
       <div class="form-group">
-        <label>DATE RECEVED END REP</label>
+        <label>DATE RECEIVED END REP (REPAIR ONLY - OPTIONAL)</label>
         <input class="form-control" name="Fld_Date_RecevdEnd_REP" placeholder="JJ/MM/AAAA">
       </div>
     </div>
@@ -356,7 +365,11 @@ if($_SESSION['conectroy']=="parfait"){
     </thead>
     <tbody>
       <?php
-      $sql="SELECT distinct(Fld_RFQ_ID),Fld_Customer_ID,Employee_ID FROM tbl_RFQ_1 order by ID desc LIMIT 0,100";
+      $sql="SELECT Fld_RFQ_ID, MAX(Fld_Customer_ID) AS Fld_Customer_ID, MAX(Employee_ID) AS Employee_ID, MAX(ID) AS last_id
+            FROM tbl_RFQ_1
+            GROUP BY Fld_RFQ_ID
+            ORDER BY last_id DESC
+            LIMIT 0,100";
       $req = mysql2_query($sql);
       while ($data = mysqli_fetch_array($req)) {
         $sqlrn="SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID=".$data['Fld_Customer_ID'];
@@ -523,6 +536,16 @@ if (!$.fn.typeahead) {
     name: 'Fld_Part_Nbr',
     id:   'Fld_Part_ID',
     remote: 'list-pn-select.php?query=%QUERY'
+  });
+
+  $('input.pnid').on('typeahead:selected typeahead:autocompleted typeahead:select', function(ev, suggestion) {
+    var value = (suggestion && (suggestion.value || suggestion.Fld_Part_Nbr)) ? (suggestion.value || suggestion.Fld_Part_Nbr) : this.value;
+    var pieces = (value || '').split(',');
+    if (pieces.length > 1) {
+      $('#Fld_Part_ID').val($.trim(pieces[1]));
+    } else if (suggestion && (suggestion.id || suggestion.Fld_Part_ID || suggestion.label)) {
+      $('#Fld_Part_ID').val(suggestion.id || suggestion.Fld_Part_ID || suggestion.label);
+    }
   });
 }
 

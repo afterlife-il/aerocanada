@@ -27,6 +27,12 @@ class sq
 			return 0;
 		}
 
+		$pnParts = explode(",", $pn);
+		if (isset($pnParts[1]) && (int)trim($pnParts[1]) > 0) {
+			return (int)trim($pnParts[1]);
+		}
+		$pn = trim($pnParts[0]);
+
 		$pn = addslashes($pn);
 		$req = mysql2_query("SELECT Fld_Part_ID FROM tbl_Parts WHERE Fld_Part_Nbr='".$pn."' ORDER BY Fld_Part_ID DESC LIMIT 1");
 		if ($req && mysqli_num_rows($req) > 0) {
@@ -35,6 +41,12 @@ class sq
 		}
 
 		return 0;
+	}
+
+	private function hasColumn($table, $column)
+	{
+		$req = mysql2_query("SHOW COLUMNS FROM `".$table."` LIKE '".addslashes($column)."'");
+		return $req && mysqli_num_rows($req) > 0;
 	}
 
 	public function affichage_sq()
@@ -64,10 +76,13 @@ class sq
 
 		 $Fld_Part_ID = $this->resolvePartId();
 		 $Fld_Supplier_Contact_ID = $this->post('Fld_Supplier_Contact_ID', $this->post('id_company_contact'));
+		 $id_tbl_rfq1 = (int)$this->post('id_tbl_rfq1', 0);
+		 $hasRfqLineColumn = $this->hasColumn('tbl_RFQ_2', 'id_tbl_rfq1');
 		 
 		 $existingId = 0;
 		 if ($Fld_RFQ_ID !== '' && $Fld_Supplier_ID !== '' && $Fld_Part_ID > 0) {
-		 	$check = mysql2_query("SELECT ID FROM tbl_RFQ_2 WHERE Fld_RFQ_ID='".addslashes($Fld_RFQ_ID)."' AND Fld_Supplier_ID='".addslashes($Fld_Supplier_ID)."' AND Fld_Part_ID='".$Fld_Part_ID."' ORDER BY ID DESC LIMIT 1");
+		 	$whereRfqLine = ($hasRfqLineColumn && $id_tbl_rfq1 > 0) ? " AND id_tbl_rfq1='".$id_tbl_rfq1."'" : "";
+		 	$check = mysql2_query("SELECT ID FROM tbl_RFQ_2 WHERE Fld_RFQ_ID='".addslashes($Fld_RFQ_ID)."' AND Fld_Supplier_ID='".addslashes($Fld_Supplier_ID)."' AND Fld_Part_ID='".$Fld_Part_ID."'".$whereRfqLine." ORDER BY ID DESC LIMIT 1");
 		 	if ($check && mysqli_num_rows($check) > 0) {
 		 		$row = mysqli_fetch_array($check);
 		 		$existingId = (int)$row['ID'];
@@ -76,8 +91,14 @@ class sq
 
 		 if ($existingId > 0) {
 		 	$req="UPDATE `tbl_RFQ_2` SET Fld_Qty='".$this->post('Fld_Qty')."', Fld_Condition_ID='".$this->post('Fld_Condition_ID')."', Fld_Payment_Term_ID='".$this->post('Fld_Payment_Term_ID')."', Fld_Delivery='".$this->post('Fld_Delivery')."', Fld_Price='".$this->post('Fld_Price')."', Fld_Price_Max='".$this->post('Fld_Price_Max')."', Fld_Price_Min='".$this->post('Fld_Price_Min')."', Fld_Currency_ID='".$this->post('Fld_Price_Currency_ID')."', Fld_Traceability_ID='".$Fld_Traceability_ID."', Fld_Tag_Info_ID='".$Fld_Tag_Info_ID."', Fld_Tag_Date='".$this->post('Fld_Tag_Date')."', Fld_Release_ID='".$this->post('Fld_Release_ID')."', Fld_Remark='".$this->post('Fld_Remark')."', Fld_Current_Date='".$this->post('Fld_Current_Date')."', Fld_Qty_Received='".$this->post('Fld_Qty_Received')."', Fld_Part_SN='".$this->post('Fld_Part_SN')."', Fld_Supplier_Contact_ID='".$Fld_Supplier_Contact_ID."', Fld_Date_RecevdEnd_REP='".$this->post('Fld_Date_RecevdEnd_REP')."', lead_time='".$this->post('lead_time')."', aci_contact='".$this->post('aci_contact')."' WHERE ID='".$existingId."'";
+		 	if ($hasRfqLineColumn && $id_tbl_rfq1 > 0) {
+		 		$req = str_replace(" WHERE ID=", ", id_tbl_rfq1='".$id_tbl_rfq1."' WHERE ID=", $req);
+		 	}
 		 } else {
 		 	$req="INSERT INTO `tbl_RFQ_2` (`ID`, `Fld_RFQ_ID`, `Fld_Supplier_ID`, `Fld_Qty`, `Fld_Condition_ID`, `Fld_Payment_Term_ID`, `Fld_Delivery`, `Fld_Price`, `Fld_Price_Max`, `Fld_Price_Min`, `Fld_Currency_ID`, `Fld_Traceability_ID`, `Fld_Tag_Info_ID`, `Fld_Tag_Date`, `Fld_Release_ID`, `Fld_Part_ID`, `Fld_Remark`, `Fld_IsBeen_Chosen`, `Fld_Current_Date`, `Fld_Qty_Received`, `Fld_Part_SN`, `Fld_Supplier_Contact_ID`, `Fld_Date_RecevdEnd_REP`, `lead_time`, `aci_contact`) VALUES ('', '".$Fld_RFQ_ID."', '".$Fld_Supplier_ID."', '".$this->post('Fld_Qty')."', '".$this->post('Fld_Condition_ID')."', '".$this->post('Fld_Payment_Term_ID')."', '".$this->post('Fld_Delivery')."', '".$this->post('Fld_Price')."', '".$this->post('Fld_Price_Max')."', '".$this->post('Fld_Price_Min')."', '".$this->post('Fld_Price_Currency_ID')."', '".$Fld_Traceability_ID."', '".$Fld_Tag_Info_ID."', '".$this->post('Fld_Tag_Date')."', '".$this->post('Fld_Release_ID')."', '".$Fld_Part_ID."', '".$this->post('Fld_Remark')."', '', '".$this->post('Fld_Current_Date')."', '".$this->post('Fld_Qty_Received')."', '".$this->post('Fld_Part_SN')."', '".$Fld_Supplier_Contact_ID."', '".$this->post('Fld_Date_RecevdEnd_REP')."', '".$this->post('lead_time')."', '".$this->post('aci_contact')."');";
+		 	if ($hasRfqLineColumn && $id_tbl_rfq1 > 0) {
+		 		$req="INSERT INTO `tbl_RFQ_2` (`ID`, `Fld_RFQ_ID`, `Fld_Supplier_ID`, `Fld_Qty`, `Fld_Condition_ID`, `Fld_Payment_Term_ID`, `Fld_Delivery`, `Fld_Price`, `Fld_Price_Max`, `Fld_Price_Min`, `Fld_Currency_ID`, `Fld_Traceability_ID`, `Fld_Tag_Info_ID`, `Fld_Tag_Date`, `Fld_Release_ID`, `Fld_Part_ID`, `Fld_Remark`, `Fld_IsBeen_Chosen`, `Fld_Current_Date`, `Fld_Qty_Received`, `Fld_Part_SN`, `Fld_Supplier_Contact_ID`, `Fld_Date_RecevdEnd_REP`, `lead_time`, `aci_contact`, `id_tbl_rfq1`) VALUES ('', '".$Fld_RFQ_ID."', '".$Fld_Supplier_ID."', '".$this->post('Fld_Qty')."', '".$this->post('Fld_Condition_ID')."', '".$this->post('Fld_Payment_Term_ID')."', '".$this->post('Fld_Delivery')."', '".$this->post('Fld_Price')."', '".$this->post('Fld_Price_Max')."', '".$this->post('Fld_Price_Min')."', '".$this->post('Fld_Price_Currency_ID')."', '".$Fld_Traceability_ID."', '".$Fld_Tag_Info_ID."', '".$this->post('Fld_Tag_Date')."', '".$this->post('Fld_Release_ID')."', '".$Fld_Part_ID."', '".$this->post('Fld_Remark')."', '', '".$this->post('Fld_Current_Date')."', '".$this->post('Fld_Qty_Received')."', '".$this->post('Fld_Part_SN')."', '".$Fld_Supplier_Contact_ID."', '".$this->post('Fld_Date_RecevdEnd_REP')."', '".$this->post('lead_time')."', '".$this->post('aci_contact')."', '".$id_tbl_rfq1."');";
+		 	}
 		 }
 		 // echo $req;
 		 $requete = mysql2_query($req);

@@ -291,6 +291,13 @@ if($_SESSION['conectroy']=="parfait"){
 											$reqrn = mysql2_query($sqlrn);
 											$datarn = mysqli_fetch_array($reqrn);
 											//Fin recuperation PN********************
+											$addSqUrl = "add_suppliers_quote.php?Fld_RFQ_ID=".urlencode($data['Fld_RFQ_ID'])
+												."&id_tbl_rfq1=".(int)$data2["ID"]
+												."&Fld_Part_ID=".(int)$data2["Fld_Part_ID"]
+												."&pn_rfq=".urlencode($datarn["Fld_Part_Nbr"])
+												."&description_rfq=".urlencode($datarn["Fld_Part_Desc"])
+												."&Fld_Qty=".urlencode($data2["Fld_Qty"])
+												."&Fld_Condition_ID=".(int)$data2["Fld_Condition_ID"];
 											?>
 											<input class="form-control" name="pnid<?php echo $z;?>" id="pnid<?php echo $z;?>" value="<?php echo $datarn["Fld_Part_Nbr"];?>, <?php echo $data2['Fld_Part_ID'];?>">
 											<!--<input type="text" name="pnid<?php //echo $z;?>" id="pnid<?php //echo $z;?>" class="pnid" value="<?php //echo $datarn["Fld_Part_Nbr"];?>, <?php //echo $data2['Fld_Part_ID'];?>">-->
@@ -502,6 +509,31 @@ if($_SESSION['conectroy']=="parfait"){
                                     </div>
 									<div class="col-lg-2">
 									<br><br>
+									  <a class="btn btn-xs btn-primary" href="<?php echo htmlspecialchars($addSqUrl, ENT_QUOTES, 'UTF-8');?>"><i class="fa fa-plus"></i> Add Supplier Quote</a>
+									  <br>
+									  <?php
+									  $sqlsqhist="SELECT r2.ID, r2.Fld_Price, r2.Fld_Currency_ID, r2.lead_time, s.Fld_Company_Name, cur.Fld_Currency_Text
+									    FROM tbl_RFQ_2 r2
+									    LEFT JOIN tb_company s ON r2.Fld_Supplier_ID=s.Fld_Company_ID
+									    LEFT JOIN tbl_Currency cur ON r2.Fld_Currency_ID=cur.Fld_Currency_ID
+									    WHERE r2.Fld_RFQ_ID='".addslashes($data['Fld_RFQ_ID'])."' AND r2.Fld_Part_ID='".(int)$data2["Fld_Part_ID"]."'
+									    ORDER BY r2.ID DESC LIMIT 5";
+									  $reqsqhist=mysql2_query($sqlsqhist);
+									  if($reqsqhist && mysqli_num_rows($reqsqhist)>0){
+									    echo '<div style="font-size:11px;margin-top:5px;">SQ history:<br>';
+									    while($datasqhist=mysqli_fetch_array($reqsqhist)){
+									      echo '<a href="modif_suppliers_quote.php?ID='.(int)$datasqhist['ID'].'">'
+									        .htmlspecialchars($datasqhist['Fld_Company_Name'] ?? '', ENT_QUOTES, 'UTF-8')
+									        .' '
+									        .htmlspecialchars($datasqhist['Fld_Price'] ?? '', ENT_QUOTES, 'UTF-8')
+									        .' '
+									        .htmlspecialchars($datasqhist['Fld_Currency_Text'] ?? '', ENT_QUOTES, 'UTF-8')
+									        .'</a><br>';
+									    }
+									    echo '</div>';
+									  }
+									  ?>
+									  <br>
 									  <a href="copy_rfq.php?ID=<?php echo $data2["ID"];?>&Fld_RFQ_ID=<?php echo $_GET['Fld_RFQ_ID'];?>"><i class="fa fa-copy" width="30px"></i> DUPLICATE THIS PN</a>
 									  <br>
 									  <a href="remove_rfq.php?ID=<?php echo $data2["ID"];?>" onClick="return(confirm('Etes vous sur ?'));"><span class="glyphicon glyphicon-remove"></span>REMOVE THIS PN </a>
