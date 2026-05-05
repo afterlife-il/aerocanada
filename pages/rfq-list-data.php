@@ -67,16 +67,22 @@ if ($searchValue !== '') {
     $sql_filtered = "
         SELECT COUNT(DISTINCT r.Fld_RFQ_ID) AS cnt
         FROM tbl_RFQ_1 r
+        INNER JOIN (
+            SELECT Fld_RFQ_ID, MIN(ID) AS min_id
+            FROM tbl_RFQ_1
+            GROUP BY Fld_RFQ_ID
+        ) hdr ON hdr.Fld_RFQ_ID = r.Fld_RFQ_ID
+        INNER JOIN tbl_RFQ_1 rh ON rh.ID = hdr.min_id
         LEFT JOIN tb_company c
-               ON c.Fld_Company_ID = r.Fld_Customer_ID
+               ON c.Fld_Company_ID = rh.Fld_Customer_ID
         LEFT JOIN tb_company_contact cc
-               ON cc.id_company_contact = r.id_company_contact
+               ON cc.id_company_contact = rh.id_company_contact
         LEFT JOIN tbl_RFQ_Type t
-               ON t.Fld_RFQ_Type_ID = r.Fld_RFQ_Type_ID
+               ON t.Fld_RFQ_Type_ID = rh.Fld_RFQ_Type_ID
         LEFT JOIN tbl_Priority p
-               ON p.Fld_Priority_ID = r.Fld_Priority_ID
+               ON p.Fld_Priority_ID = rh.Fld_Priority_ID
         LEFT JOIN tbl_Employee e
-               ON e.Employee_ID = r.Employee_ID
+               ON e.Employee_ID = rh.Employee_ID
         $where
     ";
     $res_filtered = mysqli_query($conn, $sql_filtered);
@@ -99,16 +105,22 @@ $sql_data = "
         e.Employee_Name           AS sales_contact,
         COUNT(*)                  AS pn_count
     FROM tbl_RFQ_1 r
+    INNER JOIN (
+        SELECT Fld_RFQ_ID, MIN(ID) AS min_id
+        FROM tbl_RFQ_1
+        GROUP BY Fld_RFQ_ID
+    ) hdr ON hdr.Fld_RFQ_ID = r.Fld_RFQ_ID
+    INNER JOIN tbl_RFQ_1 rh ON rh.ID = hdr.min_id
     LEFT JOIN tb_company c
-           ON c.Fld_Company_ID = r.Fld_Customer_ID
+           ON c.Fld_Company_ID = rh.Fld_Customer_ID
     LEFT JOIN tb_company_contact cc
-           ON cc.id_company_contact = r.id_company_contact
+           ON cc.id_company_contact = rh.id_company_contact
     LEFT JOIN tbl_RFQ_Type t
-           ON t.Fld_RFQ_Type_ID = r.Fld_RFQ_Type_ID
+           ON t.Fld_RFQ_Type_ID = rh.Fld_RFQ_Type_ID
     LEFT JOIN tbl_Priority p
-           ON p.Fld_Priority_ID = r.Fld_Priority_ID
+           ON p.Fld_Priority_ID = rh.Fld_Priority_ID
     LEFT JOIN tbl_Employee e
-           ON e.Employee_ID = r.Employee_ID
+           ON e.Employee_ID = rh.Employee_ID
     $where
     GROUP BY r.Fld_RFQ_ID
     ORDER BY r.Fld_RFQ_ID DESC

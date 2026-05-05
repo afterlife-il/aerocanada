@@ -268,8 +268,8 @@ if ($_SESSION['conectroy'] == "parfait") {
 									        if (!empty($_POST['companyid'])) {
 									            $input_company_value = $_POST['companyid'];
 									        } elseif ($companyidrecup > 0 && $company_name_to_show !== '') {
-									            // format "Nom,ID" comme dans les autres pages
-									            $input_company_value = $company_name_to_show . ',' . $companyidrecup;
+									            // format "ID,Nom" — matches list-company.php typeahead
+									            $input_company_value = $companyidrecup . ',' . $company_name_to_show;
 									        } else {
 									            $input_company_value = '';
 									        }
