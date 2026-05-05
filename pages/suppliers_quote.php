@@ -181,6 +181,7 @@ $(function () {
     order: [[0, 'desc']],                 // tri par RFQ ID normalisé (côté serveur)
     pageLength: 25,
     columns: [
+      { visible: false, searchable: false }, // 0 _id
       null, // 0 RFQ ID
       null, // 1 PN
       null, // 2 SN

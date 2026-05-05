@@ -129,6 +129,8 @@ if($_SESSION['conectroy']=="parfait"){
 						<?php $today = date("Y-m-d");?>
 						<input type="hidden" name="Fld_Current_Date" value="<?php echo $today;?>">
 						<input type="hidden" name="aci_contact" value="<?php echo $_SESSION['id_utilisateur'];?>">
+						<input type="hidden" name="Fld_Part_ID" id="Fld_Part_ID" value="">
+						<input type="hidden" name="id_tbl_rfq1" id="id_tbl_rfq1" value="">
 <div class="panel-body">
     <!-- zone pour le contenu AJAX du pré-remplissage -->
     <div id="blocaddsq" style="display:none">
@@ -431,15 +433,27 @@ if($_SESSION['conectroy']=="parfait"){
 <script>
 (function(){
   /* Définir les fonctions GLOBALES en premier (quoi qu'il arrive) */
-  window.addsqfromrfqid = function(Fld_RFQ_ID, id, pn_rfq, descOpt){
+  window.addsqfromrfqid = function(Fld_RFQ_ID, id, pn_rfq, descOpt, partId, qty, conditionId){
     var rfqInput = document.querySelector('input[name="Fld_RFQ_ID"]');
     if (rfqInput) rfqInput.value = Fld_RFQ_ID;
+
+    var rfqLineInput = document.getElementById('id_tbl_rfq1');
+    if (rfqLineInput) rfqLineInput.value = id || '';
+
+    var partInput = document.getElementById('Fld_Part_ID');
+    if (partInput) partInput.value = partId || '';
 
     var pnInput = document.getElementById('pn_rfq');
     if (pnInput) pnInput.value = pn_rfq || '';
 
     var descInput = document.getElementById('description_rfq');
     if (descInput) descInput.value = descOpt || '';
+
+    var qtyInput = document.querySelector('input[name="Fld_Qty"]');
+    if (qtyInput) qtyInput.value = qty || '';
+
+    var conditionInput = document.querySelector('select[name="Fld_Condition_ID"]');
+    if (conditionInput && conditionId) conditionInput.value = conditionId;
 
     try { document.getElementById('wrapper').scrollIntoView({behavior:'smooth'}); } catch(e){}
     return false; // empêche le lien de naviguer
@@ -450,7 +464,7 @@ $(document).on('click', '.js-add-sq', function (e) {
   e.preventDefault();
   // dataset fonctionne sur <a> et <button>
   var d = this.dataset;
-  return window.addsqfromrfqid(d.rfq || '', d.id || '', d.pn || '', d.desc || '');
+  return window.addsqfromrfqid(d.rfq || '', d.id || '', d.pn || '', d.desc || '', d.partId || '', d.qty || '', d.conditionId || '');
 });
 
   window.pluspn = function(id){

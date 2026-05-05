@@ -56,6 +56,26 @@ $columns = [
   15 => 'r2.ID'
 ];
 
+$columns = [
+  0  => 'r2.ID',
+  1  => 'rfq_sort',
+  2  => 'p.Fld_Part_Nbr',
+  3  => 'r2.Fld_Part_SN',
+  4  => 's.Fld_Company_Name',
+  5  => 'cc.Fld_Contact_Name',
+  6  => 'r2.Fld_Qty',
+  7  => 'r2.Fld_Condition_ID',
+  8  => 'r2.Fld_Price',
+  9  => 'cur.Fld_Currency_Text',
+  10 => 'r2.lead_time',
+  11 => 'rel.Fld_Release_Text',
+  12 => 'tag.Fld_Company_Name',
+  13 => 'r2.Fld_Tag_Date',
+  14 => 'r2.Fld_Traceability_ID',
+  15 => 'r2.Fld_Remark',
+  16 => 'r2.ID'
+];
+
 /* Totaux */
 $resTot = mysqli_query($conn, "SELECT COUNT(*) AS c FROM tbl_RFQ_2");
 $totalData = $resTot ? (int)mysqli_fetch_assoc($resTot)['c'] : 0;
@@ -214,6 +234,7 @@ while ($r = mysqli_fetch_assoc($q)) {
     '<a href="modif_suppliers_quote.php?ID='.$r['ID'].'" title="Edit"><i class="fa fa-pencil"></i></a> '.
     '<a href="sup_sq.php?ID='.$r['ID'].'" class="text-danger js-del-sq" title="Delete"><i class="fa fa-trash"></i></a>'; // 15 Actions
 
+  array_unshift($row, (int)$r['ID']);
   $data[] = $row;
 }
 
