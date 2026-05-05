@@ -95,7 +95,7 @@ if($_SESSION['conectroy']=="parfait"){
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <a href="https://aerocanada-industries.com/pages/add_suppliers_quote.php">  <img src="images/add.png" width="30"> ADD A SUPPLIERS QUOTE</a>
+                            <a href="add_suppliers_quote.php">  <img src="images/add.png" width="30"> ADD A SUPPLIERS QUOTE</a>
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
