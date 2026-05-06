@@ -48,41 +48,12 @@ if($_SESSION['conectroy']=="parfait"){
 <body>
     <div id="wrapper">
   <nav class="navbar navbar-default navbar-fixed-top" role="navigation" style="margin-bottom:0">
-    <?php include "top_menu.php"; ?>                       <!-- barre rouge -->
+    <?php include "top_menu.php"; ?>
     <?php if(isset($_SESSION['leftmenu']) && $_SESSION['leftmenu']=='open') include "left_menu.php"; ?>
   </nav>
+  <?php include "after_nav.php"; ?>
 
- 
-   
-
-        <!-- Navigation -->
-        <nav class="navbar navbar-default navbar-fixed-top" role="navigation" style="margin-bottom: 0">
-            <div class="navbar-header">
-              <!--
-  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-    <span class="sr-only">Toggle navigation</span>
-    <span class="icon-bar"></span>
-    <span class="icon-bar"></span>
-    <span class="icon-bar"></span>
-  </button>
-  -->
-                <a class="navbar-brand" href="index.html"></a>
-            </div>
-            <!-- /.navbar-header -->
-
-            <?php
-		//ajout le menu du haut
-		include "top_menu.php";
-	   ?>
-            <!-- /.navbar-top-links -->
-
-        <?php
-		//ajout le menu de gauche
-		if($_SESSION['leftmenu']=='open') include "left_menu.php";
-	   ?>
-            <!-- /.navbar-static-side -->
-        </nav>
-         <div id="<?php echo (isset($_SESSION['leftmenu']) && $_SESSION['leftmenu']=='open') ? 'page-wrapper' : 'page-wrapper2'; ?>">
+  <div id="<?php echo (isset($_SESSION['leftmenu']) && $_SESSION['leftmenu']=='open') ? 'page-wrapper' : 'page-wrapper2'; ?>">
 
             <div class="row">
                 <div class="col-lg-12">

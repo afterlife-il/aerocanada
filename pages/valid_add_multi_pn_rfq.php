@@ -57,10 +57,11 @@ if ($_SESSION['conectroy'] == "parfait") {
     $rfq_id_sql = addslashes($rfq_id);
 
     $sqlHeader = "
-        SELECT 
+        SELECT
             r.Fld_Customer_ID,
             r.id_company_contact,
             r.date,
+            r.Fld_RFQ_Type_ID,
             c.Fld_Company_Name,
             cc.Fld_Contact_Name
         FROM tbl_RFQ_1 r
@@ -72,12 +73,14 @@ if ($_SESSION['conectroy'] == "parfait") {
         LIMIT 1
     ";
     $reqHeader = mysql2_query($sqlHeader);
+    $rfq_type_id_selected = '';
     if ($reqHeader && $header = mysqli_fetch_array($reqHeader)) {
         $company_id   = (int)$header['Fld_Customer_ID'];
         $contact_id   = (int)$header['id_company_contact'];
         $company_name = $header['Fld_Company_Name'];
         $contact_name = $header['Fld_Contact_Name'];
         $rfq_date     = $header['date'];
+        $rfq_type_id_selected = $header['Fld_RFQ_Type_ID'] ?? '';
     }
     ?>
 <!DOCTYPE html>
@@ -184,7 +187,7 @@ if ($_SESSION['conectroy'] == "parfait") {
                                                 $reqrfqt = mysql2_query($sqlrfqt);
                                                 while($datarfqt = mysqli_fetch_array($reqrfqt)){
                                                     echo "<option value='".$datarfqt['Fld_RFQ_Type_ID']."'";
-                                                    if(isset($_POST['Fld_RFQ_Type_ID']) && $datarfqt['Fld_RFQ_Type_ID']==$_POST['Fld_RFQ_Type_ID']) echo " selected";
+                                                    if ((string)$datarfqt['Fld_RFQ_Type_ID'] === (string)($_POST['Fld_RFQ_Type_ID'] ?? $rfq_type_id_selected)) echo " selected";
                                                     echo ">".$datarfqt['Fld_RFQ_Type_Text']."</option>";
                                                 }
                                                 ?>
@@ -464,13 +467,12 @@ if ($_SESSION['conectroy'] == "parfait") {
                             <table width="100%" class="table table-striped table-bordered table-hover" id="dataTablespnrfq">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
                                         <th>PN</th>
                                         <th>DESCRIPTION</th>
                                         <th>QTY</th>
                                         <th>CONDITION</th>
                                         <th>REMARKS</th>
-                                        <th></th>
+                                        <th style="min-width:320px">ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -478,22 +480,53 @@ if ($_SESSION['conectroy'] == "parfait") {
                                     $z=0;
                                     while($dataPriority = mysqli_fetch_array($reqPriority)) {
                                         $z++;
-                                        // condition text
-                                        $sqlrc  = "SELECT Fld_Condition_Text FROM tbl_Condition WHERE Fld_Condition_ID='".$dataPriority['Fld_Condition_ID']."'";
+                                        $lineId = (int)$dataPriority['ID'];
+                                        $linePn = htmlspecialchars($dataPriority['pn_rfq'] ?? '');
+                                        $lineDesc = htmlspecialchars($dataPriority['description_rfq'] ?? '');
+                                        $lineQty = htmlspecialchars($dataPriority['Fld_Qty'] ?? '');
+                                        $lineCondId = (int)$dataPriority['Fld_Condition_ID'];
+                                        $linePartId = (int)$dataPriority['Fld_Part_ID'];
+                                        $lineObs = htmlspecialchars($dataPriority['Fld_Observation'] ?? '');
+
+                                        $sqlrc  = "SELECT Fld_Condition_Text FROM tbl_Condition WHERE Fld_Condition_ID='".$lineCondId."'";
                                         $reqrc  = mysql2_query($sqlrc);
                                         $datarc = ($reqrc ? mysqli_fetch_array($reqrc) : array('Fld_Condition_Text' => ''));
+                                        $condText = htmlspecialchars($datarc['Fld_Condition_Text'] ?? '');
 
-                                        echo "<tr class=\"odd gradeX\" id=\"row_".$dataPriority['ID']."\">";
-                                        echo "<td>".$dataPriority['ID']."</td>";
-                                        echo "<td>".$dataPriority['pn_rfq']."</td>";
-                                        echo "<td>".$dataPriority['description_rfq']."</td>";
-                                        echo "<td>".$dataPriority['Fld_Qty']."</td>";
-                                        echo "<td>".$datarc['Fld_Condition_Text']."</td>";
-                                        echo "<td>".$dataPriority['Fld_Observation']."</td>";
-                                        echo "<td><a href='javascript:sup_pn_rfq(".$dataPriority['ID'].",".$z.")' onClick=\"return(confirm('Etes vous sur ?'));\"><button type='button' class='btn btn-success'>DEL</button></a></td>";
+                                        // Count existing supplier quotes for this line
+                                        $sqlSqCount = "SELECT COUNT(*) AS c FROM tbl_RFQ_2 WHERE Fld_RFQ_ID='".addslashes($rfq_id)."' AND Fld_Part_ID='".$linePartId."'";
+                                        $reqSqCount = mysql2_query($sqlSqCount);
+                                        $sqCount = ($reqSqCount && $rowSq = mysqli_fetch_assoc($reqSqCount)) ? (int)$rowSq['c'] : 0;
+
+                                        echo "<tr id=\"row_".$lineId."\">";
+                                        echo "<td><strong>".$linePn."</strong></td>";
+                                        echo "<td>".$lineDesc."</td>";
+                                        echo "<td>".$lineQty."</td>";
+                                        echo "<td>".$condText."</td>";
+                                        echo "<td>".$lineObs."</td>";
+                                        echo "<td>";
+                                        // Action buttons
+                                        $addSqUrl = "add_suppliers_quote.php?Fld_RFQ_ID=".urlencode($rfq_id)
+                                            ."&id_tbl_rfq1=".$lineId
+                                            ."&Fld_Part_ID=".$linePartId
+                                            ."&pn_rfq=".urlencode($dataPriority['pn_rfq'] ?? '')
+                                            ."&description_rfq=".urlencode($dataPriority['description_rfq'] ?? '')
+                                            ."&Fld_Qty=".urlencode($dataPriority['Fld_Qty'] ?? '')
+                                            ."&Fld_Condition_ID=".$lineCondId;
+
+                                        echo "<a href='".$addSqUrl."' class='btn btn-xs btn-primary' title='Add Supplier Quote'><i class='fa fa-plus'></i> Add SQ</a> ";
+                                        echo "<button type='button' class='btn btn-xs btn-info js-view-sq' data-rfq='".htmlspecialchars($rfq_id)."' data-part-id='".$linePartId."' data-pn='".$linePn."' title='View Supplier Quotes'><i class='fa fa-list'></i> SQ";
+                                        if ($sqCount > 0) echo " <span class='badge'>".$sqCount."</span>";
+                                        echo "</button> ";
+                                        echo "<button type='button' class='btn btn-xs btn-default js-view-stock' data-part-id='".$linePartId."' data-pn='".$linePn."' title='View Stock'><i class='fa fa-database'></i> Stock</button> ";
+                                        echo "<a href='javascript:sup_pn_rfq(".$lineId.",".$z.")' onclick=\"return confirm('Delete this PN line?');\" class='btn btn-xs btn-danger' title='Delete'><i class='fa fa-trash'></i></a>";
+                                        echo "</td>";
                                         echo "</tr>";
+
+                                        // Expandable row for SQ details
+                                        echo "<tr style='display:none' id='sq_detail_".$lineId."'><td colspan='6'><div id='sq_content_".$lineId."'></div></td></tr>";
                                     }
-                                    ?>  
+                                    ?>
                                 </tbody>
                             </table>
                         </div>
@@ -555,7 +588,54 @@ if ($_SESSION['conectroy'] == "parfait") {
     <script type="text/javascript">
     $(document).ready(function() {
         $('#dataTablespnrfq').DataTable({
-            responsive: true
+            responsive: true,
+            paging: false,
+            searching: false,
+            info: false,
+            ordering: false
+        });
+
+        // View Supplier Quotes for a PN line
+        $(document).on('click', '.js-view-sq', function(){
+          var btn = $(this);
+          var rfq = btn.data('rfq');
+          var partId = btn.data('part-id');
+          var pn = btn.data('pn');
+          var row = btn.closest('tr');
+          var detailRow = row.next('tr[id^="sq_detail_"]');
+
+          if (detailRow.is(':visible')) {
+            detailRow.hide();
+            return;
+          }
+          var contentDiv = detailRow.find('div');
+          contentDiv.html('<p><i class="fa fa-spinner fa-spin"></i> Loading...</p>');
+          detailRow.show();
+
+          $.get('rfq_line_sq.php', {rfq_id: rfq, part_id: partId, pn: pn}, function(html){
+            contentDiv.html(html);
+          }).fail(function(){ contentDiv.html('<p class="text-danger">Error loading data.</p>'); });
+        });
+
+        // View Stock for a PN
+        $(document).on('click', '.js-view-stock', function(){
+          var btn = $(this);
+          var partId = btn.data('part-id');
+          var pn = btn.data('pn');
+          var row = btn.closest('tr');
+          var detailRow = row.next('tr[id^="sq_detail_"]');
+
+          if (detailRow.is(':visible') && detailRow.find('.stock-data').length) {
+            detailRow.hide();
+            return;
+          }
+          var contentDiv = detailRow.find('div');
+          contentDiv.html('<p><i class="fa fa-spinner fa-spin"></i> Loading stock...</p>');
+          detailRow.show();
+
+          $.get('rfq_line_stock.php', {part_id: partId, pn: pn}, function(html){
+            contentDiv.html(html);
+          }).fail(function(){ contentDiv.html('<p class="text-danger">Error loading stock.</p>'); });
         });
 
         // POPUP ADD PN

@@ -132,6 +132,7 @@ $baseSql = "
   LEFT JOIN tbl_Release rel        ON r2.Fld_Release_ID          = rel.Fld_Release_ID
   LEFT JOIN tbl_Currency cur       ON r2.Fld_Currency_ID         = cur.Fld_Currency_ID
   LEFT JOIN tb_company tag         ON r2.Fld_Tag_Info_ID         = tag.Fld_Company_ID
+  LEFT JOIN tbl_Condition cond     ON r2.Fld_Condition_ID        = cond.Fld_Condition_ID
   WHERE 1=1
 ";
 
@@ -191,7 +192,8 @@ $sql = "
     cc.Fld_Contact_Name,
     rel.Fld_Release_Text,
     tag.Fld_Company_Name AS Tag_Info_Name,
-    cur.Fld_Currency_Text
+    cur.Fld_Currency_Text,
+    cond.Fld_Condition_Text
   $baseSql
   ORDER BY
     ".($orderCol === 'rfq_sort' ? "rfq_sort $dir, r2.ID $dir" : "$orderCol $dir, r2.ID $dir")."
@@ -221,14 +223,20 @@ while ($r = mysqli_fetch_assoc($q)) {
   $row[] = htmlspecialchars($r['Supplier_Name'] ?? '');                               // 3 Supplier
   $row[] = htmlspecialchars($r['Fld_Contact_Name'] ?? '');                            // 4 Contact
   $row[] = htmlspecialchars($r['Fld_Qty'] ?? '');                                     // 5 Qty
-  $row[] = htmlspecialchars($r['Fld_Condition_ID'] ?? '');                            // 6 Condition (ID)
+  $row[] = htmlspecialchars($r['Fld_Condition_Text'] ?? '');                           // 6 Condition
   $row[] = $priceFormatted;                                                           // 7 PRICE
   $row[] = htmlspecialchars($r['Fld_Currency_Text'] ?? '');                           // 8 $/€
   $row[] = htmlspecialchars($r['lead_time'] ?? '');                                   // 9 Lead time
   $row[] = htmlspecialchars($r['Fld_Release_Text'] ?? '');                            // 10 Release
   $row[] = htmlspecialchars($r['Tag_Info_Name'] ?? '');                               // 11 Tag info
   $row[] = htmlspecialchars($r['Fld_Tag_Date'] ?? '');                                // 12 Tag date
-  $row[] = htmlspecialchars($r['Fld_Traceability_ID'] ?? '');                         // 13 Traced to
+  // Resolve traceability company name
+  $traceName = '';
+  if (!empty($r['Fld_Traceability_ID'])) {
+    $sqlTr = mysqli_query($conn, "SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID=".(int)$r['Fld_Traceability_ID']);
+    if ($sqlTr && $trRow = mysqli_fetch_assoc($sqlTr)) $traceName = $trRow['Fld_Company_Name'];
+  }
+  $row[] = htmlspecialchars($traceName);                                               // 13 Traced to
   $row[] = htmlspecialchars($r['Fld_Remark'] ?? '');                                  // 14 Sales remarks
   $row[] =
     '<a href="modif_suppliers_quote.php?ID='.$r['ID'].'" title="Edit"><i class="fa fa-pencil"></i></a> '.

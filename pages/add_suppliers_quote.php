@@ -447,6 +447,7 @@ if($_SESSION['conectroy']=="parfait"){
 (function(){
   /* Définir les fonctions GLOBALES en premier (quoi qu'il arrive) */
   window.addsqfromrfqid = function(Fld_RFQ_ID, id, pn_rfq, descOpt, partId, qty, conditionId){
+    // Set RFQ line context
     var rfqInput = document.querySelector('input[name="Fld_RFQ_ID"]');
     if (rfqInput) rfqInput.value = Fld_RFQ_ID;
 
@@ -468,8 +469,31 @@ if($_SESSION['conectroy']=="parfait"){
     var conditionInput = document.querySelector('select[name="Fld_Condition_ID"]');
     if (conditionInput && conditionId) conditionInput.value = conditionId;
 
+    // Clear stale supplier/pricing fields from previous selection
+    $('#companyid').val('');
+    $('#Fld_Supplier_Contact_ID').val('');
+    $('input[name="Fld_Part_SN"]').val('');
+    $('input[name="lead_time"]').val('');
+    $('input[name="Fld_Delivery"]').val('');
+    $('input[name="Fld_Price"]').val('');
+    $('select[name="Fld_Price_Currency_ID"]').prop('selectedIndex', 0);
+    $('select[name="Fld_Payment_Term_ID"]').prop('selectedIndex', 0);
+    $('select[name="Fld_Release_ID"]').prop('selectedIndex', 0);
+    $('#companyidtaginfo').val('');
+    $('input[name="Fld_Tag_Date"]').val('');
+    $('#companyidtreacability').val('');
+    $('textarea[name="Fld_Remark"]').val('');
+    $('input[name="Fld_Qty_Received"]').val('');
+    $('input[name="Fld_Date_RecevdEnd_REP"]').val('');
+
+    // Reset contact dropdown
+    var contactSel = document.getElementById('Fld_Supplier_Contact_ID');
+    if (contactSel) {
+      contactSel.innerHTML = '<option value="">-- Select contact --</option>';
+    }
+
     try { document.getElementById('wrapper').scrollIntoView({behavior:'smooth'}); } catch(e){}
-    return false; // empêche le lien de naviguer
+    return false;
   };
 
 // Click délégué sur les liens/boutons injectés par pluspn.php
