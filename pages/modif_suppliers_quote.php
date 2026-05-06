@@ -67,7 +67,27 @@ if($_SESSION['conectroy']=="parfait"){
     <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
     <link href="../dist/css/aci-overrides.css" rel="stylesheet">
     <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-    <style>.tt-dropdown-menu, .tt-menu, .typeahead.dropdown-menu { z-index: 3000; }</style>
+    <style>
+      .tt-dropdown-menu, .tt-menu, .typeahead.dropdown-menu {
+        z-index: 3000;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 4px 10px rgba(0,0,0,.15);
+        width: 100%;
+      }
+      .tt-suggestion {
+        color: #333;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+      .tt-suggestion.tt-is-under-cursor,
+      .tt-suggestion.tt-cursor,
+      .tt-suggestion:hover {
+        background: #337ab7;
+        color: #fff;
+      }
+    </style>
 </head>
 <body>
     <div id="wrapper">

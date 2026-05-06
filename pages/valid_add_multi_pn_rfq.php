@@ -520,11 +520,9 @@ if ($_SESSION['conectroy'] == "parfait") {
                                         echo "</button> ";
                                         echo "<button type='button' class='btn btn-xs btn-default js-view-stock' data-line-id='".$lineId."' data-part-id='".$linePartId."' data-pn='".$linePn."' title='View Stock'><i class='fa fa-database'></i> Stock</button> ";
                                         echo "<a href='javascript:sup_pn_rfq(".$lineId.",".$z.")' onclick=\"return confirm('Delete this PN line?');\" class='btn btn-xs btn-danger' title='Delete'><i class='fa fa-trash'></i></a>";
+                                        echo "<div style='display:none; margin-top:8px; min-width:720px;' id='sq_detail_".$lineId."'><div id='sq_content_".$lineId."'></div></div>";
                                         echo "</td>";
                                         echo "</tr>";
-
-                                        // Expandable row for SQ details
-                                        echo "<tr style='display:none' id='sq_detail_".$lineId."'><td colspan='6'><div id='sq_content_".$lineId."'></div></td></tr>";
                                     }
                                     ?>
                                 </tbody>
@@ -602,19 +600,20 @@ if ($_SESSION['conectroy'] == "parfait") {
           var partId = btn.data('part-id');
           var pn = btn.data('pn');
           var lineId = btn.data('line-id');
-          var detailRow = $('#sq_detail_' + lineId);
+          var detailBox = $('#sq_detail_' + lineId);
+          console.log('View SQ click', {rfq_id: rfq, line_id: lineId, part_id: partId, pn: pn, target: detailBox.length});
 
-          if (detailRow.is(':visible')) {
-            detailRow.hide();
+          if (detailBox.is(':visible') && detailBox.data('source') === 'sq') {
+            detailBox.hide();
             return;
           }
           var contentDiv = $('#sq_content_' + lineId);
           contentDiv.html('<p><i class="fa fa-spinner fa-spin"></i> Loading...</p>');
-          detailRow.show();
+          detailBox.data('source', 'sq').show();
 
           $.get('rfq_line_sq.php', {rfq_id: rfq, line_id: lineId, part_id: partId, pn: pn}, function(html){
             contentDiv.html(html);
-          }).fail(function(){ contentDiv.html('<p class="text-danger">Error loading data.</p>'); });
+          }).fail(function(xhr){ console.log('View SQ ajax failed', xhr.status, xhr.responseText); contentDiv.html('<p class="text-danger">Error loading data.</p>'); });
         });
 
         // View Stock for a PN
@@ -623,19 +622,20 @@ if ($_SESSION['conectroy'] == "parfait") {
           var partId = btn.data('part-id');
           var pn = btn.data('pn');
           var lineId = btn.data('line-id');
-          var detailRow = $('#sq_detail_' + lineId);
+          var detailBox = $('#sq_detail_' + lineId);
+          console.log('View Stock click', {line_id: lineId, part_id: partId, pn: pn, target: detailBox.length});
 
-          if (detailRow.is(':visible') && detailRow.find('.stock-data').length) {
-            detailRow.hide();
+          if (detailBox.is(':visible') && detailBox.data('source') === 'stock') {
+            detailBox.hide();
             return;
           }
           var contentDiv = $('#sq_content_' + lineId);
           contentDiv.html('<p><i class="fa fa-spinner fa-spin"></i> Loading stock...</p>');
-          detailRow.show();
+          detailBox.data('source', 'stock').show();
 
           $.get('rfq_line_stock.php', {line_id: lineId, part_id: partId, pn: pn}, function(html){
             contentDiv.html(html);
-          }).fail(function(){ contentDiv.html('<p class="text-danger">Error loading stock.</p>'); });
+          }).fail(function(xhr){ console.log('View Stock ajax failed', xhr.status, xhr.responseText); contentDiv.html('<p class="text-danger">Error loading stock.</p>'); });
         });
 
         $(document).on('click', '.js-use-sq-source', function(){

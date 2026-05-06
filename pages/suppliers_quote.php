@@ -73,7 +73,7 @@ if($_SESSION['conectroy']=="parfait"){
                             <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
                       <thead>
                         <tr>
-                          <th style="display:none">_id</th>      <!-- colonne cachée pour trier sur l'ID -->
+                          <th>_id</th>      <!-- colonne cachée par DataTables pour trier sur l'ID -->
                           <th>RFQ ID</th>
                           <th>PN</th>
                           <th>SN</th>

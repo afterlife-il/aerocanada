@@ -50,7 +50,25 @@ if($_SESSION['conectroy']=="parfait"){
 
 <style>
 /* s'assure que la liste des suggestions passe au-dessus des panels/modals */
-.tt-dropdown-menu, .tt-menu, .typeahead.dropdown-menu { z-index: 3000; }
+.tt-dropdown-menu, .tt-menu, .typeahead.dropdown-menu {
+  z-index: 3000;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.15);
+  width: 100%;
+}
+.tt-suggestion {
+  color: #333;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.tt-suggestion.tt-is-under-cursor,
+.tt-suggestion.tt-cursor,
+.tt-suggestion:hover {
+  background: #337ab7;
+  color: #fff;
+}
 </style>
 
 
@@ -538,39 +556,22 @@ $(document).on('click', '.js-add-sq', function (e) {
     // DataTables
     if ($.fn.DataTable){ $('#mytable').DataTable({ responsive:true }); }
 
-// --- Auto-complétion (nom OU ID) ---
-if (!$.fn.typeahead) {
-  console.warn('typeahead.js introuvable: vérifie le chemin ../js/typeahead.js');
-} else {
-  function bindCompanyTA(sel){
-    $(sel).typeahead({
-      name: sel.replace('#', '') + '_company',
-      id:   'Fld_Company_ID',
-      valueKey: 'value',
+    // Auto-completion: same working pattern as modif_suppliers_quote.php
+    $('input.companyid').typeahead({
+      name: 'Fld_Company_Name',
       remote: 'list-company.php?query=%QUERY'
     });
-  }
-
-  // SUPPLIERS / TAG INFO / TRACEABILITY
-  bindCompanyTA('#companyid');
-  bindCompanyTA('#companyidtaginfo');
-  bindCompanyTA('#companyidtreacability');
-
-  // PN (comme avant)
-  $('input.pnid').typeahead({
+    $('input.companyidtaginfo').typeahead({
+      name: 'Fld_Company_Name',
+      remote: 'list-company.php?query=%QUERY'
+    });
+    $('input.companyidtreacability').typeahead({
+      name: 'Fld_Company_Name',
+      remote: 'list-company.php?query=%QUERY'
+    });
+    $('input.pnid').typeahead({
     name: 'Fld_Part_Nbr',
-    id:   'Fld_Part_ID',
-    valueKey: 'value',
     remote: 'list-pn-select.php?query=%QUERY'
-  });
-
-  $('#companyid,#companyidtaginfo,#companyidtreacability').on('typeahead:selected typeahead:autocompleted typeahead:select', function(ev, suggestion) {
-    if (suggestion && suggestion.value) {
-      $(this).val(suggestion.value);
-    }
-    if (this.id === 'companyid') {
-      window.setTimeout(function(){ window.majtarea(); }, 50);
-    }
   });
 
   $('input.pnid').on('typeahead:selected typeahead:autocompleted typeahead:select', function(ev, suggestion) {
@@ -582,10 +583,15 @@ if (!$.fn.typeahead) {
       $('#Fld_Part_ID').val(suggestion.id || suggestion.Fld_Part_ID || suggestion.label);
     }
   });
-}
 
 // Rafraîchir la liste des contacts quand le fournisseur change
-$('#companyid').on('blur change', function(){ window.majtarea(); });
+$('#companyid').on('blur typeahead:selected typeahead:autocompleted', function(){
+  var company = $(this).val();
+  if (!company) return;
+  $.get('contactnamefromcompany-sq.php', {id: company}, function(html){
+    $('#divcontactname').html(html);
+  });
+});
 
 // (facultatif) petit log pour vérifier que les requêtes partent bien
 $(document).ajaxSend(function(e, xhr, opts){
