@@ -515,10 +515,10 @@ if ($_SESSION['conectroy'] == "parfait") {
                                             ."&Fld_Condition_ID=".$lineCondId;
 
                                         echo "<a href='".$addSqUrl."' class='btn btn-xs btn-primary' title='Add Supplier Quote'><i class='fa fa-plus'></i> Add SQ</a> ";
-                                        echo "<button type='button' class='btn btn-xs btn-info js-view-sq' data-rfq='".htmlspecialchars($rfq_id)."' data-part-id='".$linePartId."' data-pn='".$linePn."' title='View Supplier Quotes'><i class='fa fa-list'></i> SQ";
+                                        echo "<button type='button' class='btn btn-xs btn-info js-view-sq' data-line-id='".$lineId."' data-rfq='".htmlspecialchars($rfq_id)."' data-part-id='".$linePartId."' data-pn='".$linePn."' title='View Supplier Quotes'><i class='fa fa-list'></i> SQ";
                                         if ($sqCount > 0) echo " <span class='badge'>".$sqCount."</span>";
                                         echo "</button> ";
-                                        echo "<button type='button' class='btn btn-xs btn-default js-view-stock' data-part-id='".$linePartId."' data-pn='".$linePn."' title='View Stock'><i class='fa fa-database'></i> Stock</button> ";
+                                        echo "<button type='button' class='btn btn-xs btn-default js-view-stock' data-line-id='".$lineId."' data-part-id='".$linePartId."' data-pn='".$linePn."' title='View Stock'><i class='fa fa-database'></i> Stock</button> ";
                                         echo "<a href='javascript:sup_pn_rfq(".$lineId.",".$z.")' onclick=\"return confirm('Delete this PN line?');\" class='btn btn-xs btn-danger' title='Delete'><i class='fa fa-trash'></i></a>";
                                         echo "</td>";
                                         echo "</tr>";
@@ -601,18 +601,18 @@ if ($_SESSION['conectroy'] == "parfait") {
           var rfq = btn.data('rfq');
           var partId = btn.data('part-id');
           var pn = btn.data('pn');
-          var row = btn.closest('tr');
-          var detailRow = row.next('tr[id^="sq_detail_"]');
+          var lineId = btn.data('line-id');
+          var detailRow = $('#sq_detail_' + lineId);
 
           if (detailRow.is(':visible')) {
             detailRow.hide();
             return;
           }
-          var contentDiv = detailRow.find('div');
+          var contentDiv = $('#sq_content_' + lineId);
           contentDiv.html('<p><i class="fa fa-spinner fa-spin"></i> Loading...</p>');
           detailRow.show();
 
-          $.get('rfq_line_sq.php', {rfq_id: rfq, part_id: partId, pn: pn}, function(html){
+          $.get('rfq_line_sq.php', {rfq_id: rfq, line_id: lineId, part_id: partId, pn: pn}, function(html){
             contentDiv.html(html);
           }).fail(function(){ contentDiv.html('<p class="text-danger">Error loading data.</p>'); });
         });
@@ -622,20 +622,34 @@ if ($_SESSION['conectroy'] == "parfait") {
           var btn = $(this);
           var partId = btn.data('part-id');
           var pn = btn.data('pn');
-          var row = btn.closest('tr');
-          var detailRow = row.next('tr[id^="sq_detail_"]');
+          var lineId = btn.data('line-id');
+          var detailRow = $('#sq_detail_' + lineId);
 
           if (detailRow.is(':visible') && detailRow.find('.stock-data').length) {
             detailRow.hide();
             return;
           }
-          var contentDiv = detailRow.find('div');
+          var contentDiv = $('#sq_content_' + lineId);
           contentDiv.html('<p><i class="fa fa-spinner fa-spin"></i> Loading stock...</p>');
           detailRow.show();
 
-          $.get('rfq_line_stock.php', {part_id: partId, pn: pn}, function(html){
+          $.get('rfq_line_stock.php', {line_id: lineId, part_id: partId, pn: pn}, function(html){
             contentDiv.html(html);
           }).fail(function(){ contentDiv.html('<p class="text-danger">Error loading stock.</p>'); });
+        });
+
+        $(document).on('click', '.js-use-sq-source', function(){
+          var btn = $(this);
+          var msg = 'Selected SQ source: ' + (btn.data('supplier') || '') + ' ' + (btn.data('price') || '') + ' ' + (btn.data('currency') || '');
+          btn.closest('div[id^="sq_content_"]').find('.js-source-choice').remove();
+          btn.closest('div[id^="sq_content_"]').prepend('<div class="alert alert-success js-source-choice" style="margin:8px 0">'+msg+'</div>');
+        });
+
+        $(document).on('click', '.js-use-stock-source', function(){
+          var btn = $(this);
+          var msg = 'Selected stock source: ' + (btn.data('pn') || '') + ' ' + (btn.data('condition') || '') + ' ' + (btn.data('location') || '');
+          btn.closest('div[id^="sq_content_"]').find('.js-source-choice').remove();
+          btn.closest('div[id^="sq_content_"]').prepend('<div class="alert alert-success js-source-choice" style="margin:8px 0">'+msg+'</div>');
         });
 
         // POPUP ADD PN

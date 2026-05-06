@@ -544,8 +544,9 @@ if (!$.fn.typeahead) {
 } else {
   function bindCompanyTA(sel){
     $(sel).typeahead({
-      name: 'Fld_Company_Name',
+      name: sel.replace('#', '') + '_company',
       id:   'Fld_Company_ID',
+      valueKey: 'value',
       remote: 'list-company.php?query=%QUERY'
     });
   }
@@ -559,7 +560,17 @@ if (!$.fn.typeahead) {
   $('input.pnid').typeahead({
     name: 'Fld_Part_Nbr',
     id:   'Fld_Part_ID',
+    valueKey: 'value',
     remote: 'list-pn-select.php?query=%QUERY'
+  });
+
+  $('#companyid,#companyidtaginfo,#companyidtreacability').on('typeahead:selected typeahead:autocompleted typeahead:select', function(ev, suggestion) {
+    if (suggestion && suggestion.value) {
+      $(this).val(suggestion.value);
+    }
+    if (this.id === 'companyid') {
+      window.setTimeout(function(){ window.majtarea(); }, 50);
+    }
   });
 
   $('input.pnid').on('typeahead:selected typeahead:autocompleted typeahead:select', function(ev, suggestion) {
@@ -574,7 +585,7 @@ if (!$.fn.typeahead) {
 }
 
 // Rafraîchir la liste des contacts quand le fournisseur change
-$('#companyid').on('blur typeahead:selected typeahead:autocompleted', majtarea);
+$('#companyid').on('blur change', function(){ window.majtarea(); });
 
 // (facultatif) petit log pour vérifier que les requêtes partent bien
 $(document).ajaxSend(function(e, xhr, opts){

@@ -6,6 +6,7 @@ include_once "page_titles.php";
 if (!isset($_SESSION['conectroy']) || $_SESSION['conectroy'] !== "parfait") { exit; }
 
 $rfqId = isset($_GET['rfq_id']) ? trim($_GET['rfq_id']) : '';
+$lineId = (int)($_GET['line_id'] ?? 0);
 $partId = (int)($_GET['part_id'] ?? 0);
 
 if ($rfqId === '' && $partId === 0) {
@@ -15,7 +16,9 @@ if ($rfqId === '' && $partId === 0) {
 
 $where = "WHERE 1=1";
 if ($rfqId !== '') $where .= " AND r2.Fld_RFQ_ID='".addslashes($rfqId)."'";
+if ($lineId > 0) $where .= " AND (r2.id_tbl_rfq1='".$lineId."' OR r2.id_tbl_rfq1 IS NULL)";
 if ($partId > 0) $where .= " AND r2.Fld_Part_ID='".$partId."'";
+$where .= " AND r2.Fld_Supplier_ID IS NOT NULL AND r2.Fld_Supplier_ID <> '' AND r2.Fld_Supplier_ID <> '0'";
 
 $sql = "SELECT r2.*,
         s.Fld_Company_Name AS supplier_name,
@@ -42,7 +45,7 @@ if ($count == 0) {
 
 echo "<table class='table table-condensed table-bordered' style='margin:8px 0; font-size:12px; background:#f9f9f9'>";
 echo "<thead style='background:#eee'><tr>";
-echo "<th>Supplier</th><th>Contact</th><th>Qty</th><th>Condition</th><th>Price</th><th>Currency</th><th>Lead Time</th><th>Release</th><th>Date</th><th></th>";
+echo "<th>Supplier</th><th>Contact</th><th>Qty</th><th>Condition</th><th>Price</th><th>Currency</th><th>Lead Time</th><th>Release</th><th>Date</th><th>Action</th>";
 echo "</tr></thead><tbody>";
 
 while ($r = mysqli_fetch_assoc($req)) {
@@ -57,7 +60,14 @@ while ($r = mysqli_fetch_assoc($req)) {
     echo "<td>".htmlspecialchars($r['lead_time'] ?? '')."</td>";
     echo "<td>".htmlspecialchars($r['Fld_Release_Text'] ?? '')."</td>";
     echo "<td>".htmlspecialchars($r['Fld_Current_Date'] ?? '')."</td>";
-    echo "<td><a href='modif_suppliers_quote.php?ID=".(int)$r['ID']."' class='btn btn-xs btn-default'><i class='fa fa-pencil'></i></a></td>";
+    $supplierAttr = htmlspecialchars($r['supplier_name'] ?? '', ENT_QUOTES);
+    $priceAttr = htmlspecialchars($r['Fld_Price'] ?? '', ENT_QUOTES);
+    $currencyAttr = htmlspecialchars($r['Fld_Currency_Text'] ?? '', ENT_QUOTES);
+    $leadTimeAttr = htmlspecialchars($r['lead_time'] ?? '', ENT_QUOTES);
+    echo "<td>";
+    echo "<button type='button' class='btn btn-xs btn-success js-use-sq-source' data-quote-id='".(int)$r['ID']."' data-supplier='".$supplierAttr."' data-price='".$priceAttr."' data-currency='".$currencyAttr."' data-lead-time='".$leadTimeAttr."'>Use this SQ</button> ";
+    echo "<a href='modif_suppliers_quote.php?ID=".(int)$r['ID']."' class='btn btn-xs btn-default'><i class='fa fa-pencil'></i></a>";
+    echo "</td>";
     echo "</tr>";
 }
 echo "</tbody></table>";
