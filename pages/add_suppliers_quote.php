@@ -70,6 +70,15 @@ if($_SESSION['conectroy']=="parfait"){
   max-height: 260px;
   overflow-y: auto;
 }
+.twitter-typeahead {
+  display: block !important;
+  width: 100%;
+}
+.twitter-typeahead .form-control,
+.twitter-typeahead .tt-hint,
+.twitter-typeahead .tt-input {
+  width: 100%;
+}
 .tt-suggestion.tt-is-under-cursor,
 .tt-suggestion.tt-cursor,
 .tt-suggestion:hover {
@@ -588,15 +597,29 @@ $(document).on('click', '.js-add-sq', function (e) {
       remote: 'list-pn-select.php?query=%QUERY'
     });
 
-  $('input.pnid').on('typeahead:selected typeahead:autocompleted typeahead:select', function(ev, suggestion) {
-    var value = (suggestion && (suggestion.value || suggestion.Fld_Part_Nbr)) ? (suggestion.value || suggestion.Fld_Part_Nbr) : this.value;
-    var pieces = (value || '').split(',');
-    if (pieces.length > 1) {
-      $('#Fld_Part_ID').val($.trim(pieces[1]));
-    } else if (suggestion && (suggestion.id || suggestion.Fld_Part_ID || suggestion.label)) {
-      $('#Fld_Part_ID').val(suggestion.id || suggestion.Fld_Part_ID || suggestion.label);
+    function loadPnDescription(value) {
+      var pieces = (value || '').split(',');
+      if (pieces.length > 1) {
+        $('#Fld_Part_ID').val($.trim(pieces[1]));
+        $('#pn_rfq').val($.trim(pieces[0]));
+      }
+      if (!value) return;
+      $.get('descriptionfrompn.php', {id: value}, function(html){
+        var desc = $('<div>').html(html).find('input[name^="description"]').val();
+        if (typeof desc !== 'undefined') {
+          $('#description_rfq').val(desc);
+        }
+      });
     }
-  });
+
+    $('input.pnid').on('typeahead:selected typeahead:autocompleted', function(ev, suggestion) {
+      var value = (suggestion && (suggestion.value || suggestion.Fld_Part_Nbr)) ? (suggestion.value || suggestion.Fld_Part_Nbr) : this.value;
+      loadPnDescription(value);
+    });
+
+    $('#pn_rfq').on('blur', function(){
+      loadPnDescription(this.value);
+    });
 
     $('input.companyid').on('blur typeahead:selected typeahead:autocompleted', function(){
       console.log('Add SQ supplier contact refresh', $(this).val());
@@ -604,7 +627,7 @@ $(document).on('click', '.js-add-sq', function (e) {
       if (contactSel) {
         contactSel.innerHTML = '<option value="">-- Select contact --</option>';
       }
-      majtarea();
+      window.setTimeout(function(){ majtarea(); }, 50);
     });
 
     // DataTables must not block typeahead init if RFQ expansion rows contain colspan.
