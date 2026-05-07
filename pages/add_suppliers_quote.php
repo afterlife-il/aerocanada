@@ -621,13 +621,38 @@ $(document).on('click', '.js-add-sq', function (e) {
       loadPnDescription(this.value);
     });
 
-    $('input.companyid').on('blur typeahead:selected typeahead:autocompleted', function(){
-      console.log('Add SQ supplier contact refresh', $(this).val());
-      var contactSel = document.getElementById('Fld_Supplier_Contact_ID');
-      if (contactSel) {
-        contactSel.innerHTML = '<option value="">-- Select contact --</option>';
-      }
-      window.setTimeout(function(){ majtarea(); }, 50);
+    function supplierCompanyId(value) {
+      return $.trim((value || '').split(',')[0]);
+    }
+
+    function resetSupplierContactDropdown() {
+      var html = '<div class="form-group" id="divcontactname">'
+        + '<label>SUPPLIERS CONTACT NAME</label>'
+        + '<select class="form-control" name="Fld_Supplier_Contact_ID" id="Fld_Supplier_Contact_ID">'
+        + '<option value="">-- Select contact --</option>'
+        + '</select></div>';
+      $('#divcontactname').replaceWith(html);
+    }
+
+    window.loadSqSupplierContacts = function(value) {
+      var companyId = supplierCompanyId(value || $('#companyid').val());
+      console.log('Add SQ supplier contact refresh', companyId);
+      resetSupplierContactDropdown();
+      if (!companyId) return;
+      $.get('contactnamefromcompany-sq.php', {id: companyId}, function(html){
+        $('#divcontactname').replaceWith(html);
+      });
+    };
+
+    $('input.companyid').on('typeahead:selected typeahead:autocompleted', function(ev, suggestion){
+      var value = (suggestion && suggestion.value) ? suggestion.value : $(this).val();
+      if (value) $(this).val(value);
+      window.loadSqSupplierContacts(value);
+    });
+
+    $('input.companyid').on('blur', function(){
+      var input = this;
+      window.setTimeout(function(){ window.loadSqSupplierContacts(input.value); }, 50);
     });
 
     // DataTables must not block typeahead init if RFQ expansion rows contain colspan.
@@ -672,7 +697,8 @@ $(document).ajaxSend(function(e, xhr, opts){
   window.majtarea = function(){
     var bloc = document.getElementById('bloccontactname');
     if (bloc) bloc.style.display = 'inline';
-    var company = (document.getElementById('companyid')||{}).value || '';
+    var companyRaw = (document.getElementById('companyid')||{}).value || '';
+    var company = (companyRaw.split(',')[0] || '').replace(/^\s+|\s+$/g, '');
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "contactnamefromcompany-sq.php?id="+encodeURIComponent(company), true);
     xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
