@@ -63,6 +63,13 @@ if($_SESSION['conectroy']=="parfait"){
   padding: 6px 10px;
   cursor: pointer;
 }
+.tt-suggestion p {
+  margin: 0;
+}
+.tt-dropdown-menu {
+  max-height: 260px;
+  overflow-y: auto;
+}
 .tt-suggestion.tt-is-under-cursor,
 .tt-suggestion.tt-cursor,
 .tt-suggestion:hover {
@@ -556,19 +563,30 @@ $(document).on('click', '.js-add-sq', function (e) {
     // DataTables
     if ($.fn.DataTable){ $('#mytable').DataTable({ responsive:true }); }
 
-    // Auto-completion: same working pattern as modif_suppliers_quote.php
-    $('input.companyid').typeahead({
-      name: 'Fld_Company_Name',
-      remote: 'list-company.php?query=%QUERY'
-    });
-    $('input.companyidtaginfo').typeahead({
-      name: 'Fld_Company_Name',
-      remote: 'list-company.php?query=%QUERY'
-    });
-    $('input.companyidtreacability').typeahead({
-      name: 'Fld_Company_Name',
-      remote: 'list-company.php?query=%QUERY'
-    });
+    function companyTypeaheadOptions(name) {
+      return {
+        name: name,
+        valueKey: 'value',
+        remote: 'list-company.php?query=%QUERY',
+        template: function(datum) {
+          return '<p>' + $('<div>').text(datum.label || datum.value || '').html() + '</p>';
+        }
+      };
+    }
+
+    function bindCompanyTypeahead(selector, name) {
+      var input = $(selector);
+      input.typeahead(companyTypeaheadOptions(name));
+      input.on('typeahead:selected typeahead:autocompleted', function(ev, suggestion) {
+        if (suggestion && suggestion.value) {
+          $(this).val(suggestion.value);
+        }
+      });
+    }
+
+    bindCompanyTypeahead('input.companyid', 'supplier_company');
+    bindCompanyTypeahead('input.companyidtaginfo', 'tag_info_company');
+    bindCompanyTypeahead('input.companyidtreacability', 'traceability_company');
     $('input.pnid').typeahead({
     name: 'Fld_Part_Nbr',
     remote: 'list-pn-select.php?query=%QUERY'
@@ -584,14 +602,26 @@ $(document).on('click', '.js-add-sq', function (e) {
     }
   });
 
-// Rafraîchir la liste des contacts quand le fournisseur change
-$('#companyid').on('blur typeahead:selected typeahead:autocompleted', function(){
-  var company = $(this).val();
-  if (!company) return;
-  $.get('contactnamefromcompany-sq.php', {id: company}, function(html){
-    $('#divcontactname').html(html);
-  });
-});
+    function clearSupplierContact() {
+      $('#divcontactname').replaceWith('<div class="form-group" id="divcontactname"><label>SUPPLIERS CONTACT NAME</label><select class="form-control" name="Fld_Supplier_Contact_ID" id="Fld_Supplier_Contact_ID"><option value="">-- Select contact --</option></select></div>');
+    }
+
+    function refreshSupplierContacts() {
+      var company = $('#companyid').val();
+      clearSupplierContact();
+      if (!company) return;
+      $.get('contactnamefromcompany-sq.php', {id: company}, function(html){
+        $('#divcontactname').replaceWith(html);
+      });
+    }
+
+    $('#companyid').on('typeahead:selected typeahead:autocompleted', function(ev, suggestion){
+      if (suggestion && suggestion.value) {
+        $(this).val(suggestion.value);
+      }
+      refreshSupplierContacts();
+    });
+    $('#companyid').on('change blur', refreshSupplierContacts);
 
 // (facultatif) petit log pour vérifier que les requêtes partent bien
 $(document).ajaxSend(function(e, xhr, opts){
@@ -635,7 +665,9 @@ $(document).ajaxSend(function(e, xhr, opts){
     xhr.onreadystatechange = function(){
       if (xhr.readyState === 4){
         var tgt = document.getElementById('divcontactname');
-        if (tgt) tgt.innerHTML = xhr.responseText || '';
+        if (tgt && xhr.responseText) {
+          $(tgt).replaceWith(xhr.responseText);
+        }
       }
     };
     xhr.send("company="+encodeURIComponent(company));

@@ -640,14 +640,14 @@ if ($_SESSION['conectroy'] == "parfait") {
 
         $(document).on('click', '.js-use-sq-source', function(){
           var btn = $(this);
-          var msg = 'Selected SQ source: ' + (btn.data('supplier') || '') + ' ' + (btn.data('price') || '') + ' ' + (btn.data('currency') || '');
+          var msg = 'Selected SQ source: ' + (btn.data('supplier') || '') + ' | Price: ' + (btn.data('price') || '') + ' ' + (btn.data('currency') || '') + ' | Lead time: ' + (btn.data('lead-time') || '');
           btn.closest('div[id^="sq_content_"]').find('.js-source-choice').remove();
           btn.closest('div[id^="sq_content_"]').prepend('<div class="alert alert-success js-source-choice" style="margin:8px 0">'+msg+'</div>');
         });
 
         $(document).on('click', '.js-use-stock-source', function(){
           var btn = $(this);
-          var msg = 'Selected stock source: ' + (btn.data('pn') || '') + ' ' + (btn.data('condition') || '') + ' ' + (btn.data('location') || '');
+          var msg = 'Selected stock source: ' + (btn.data('pn') || '') + ' | Qty: ' + (btn.data('qty') || '') + ' | Condition: ' + (btn.data('condition') || '') + ' | Location: ' + (btn.data('location') || '');
           btn.closest('div[id^="sq_content_"]').find('.js-source-choice').remove();
           btn.closest('div[id^="sq_content_"]').prepend('<div class="alert alert-success js-source-choice" style="margin:8px 0">'+msg+'</div>');
         });

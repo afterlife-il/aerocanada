@@ -25,13 +25,17 @@ $sql = "SELECT r2.*,
         cc.Fld_Contact_Name AS contact_name,
         cond.Fld_Condition_Text,
         cur.Fld_Currency_Text,
-        rel.Fld_Release_Text
+        rel.Fld_Release_Text,
+        tag.Fld_Company_Name AS tag_info_name,
+        trace.Fld_Company_Name AS traceability_name
     FROM tbl_RFQ_2 r2
     LEFT JOIN tb_company s ON r2.Fld_Supplier_ID = s.Fld_Company_ID
     LEFT JOIN tb_company_contact cc ON r2.Fld_Supplier_Contact_ID = cc.id_company_contact
     LEFT JOIN tbl_Condition cond ON r2.Fld_Condition_ID = cond.Fld_Condition_ID
     LEFT JOIN tbl_Currency cur ON r2.Fld_Currency_ID = cur.Fld_Currency_ID
     LEFT JOIN tbl_Release rel ON r2.Fld_Release_ID = rel.Fld_Release_ID
+    LEFT JOIN tb_company tag ON r2.Fld_Tag_Info_ID = tag.Fld_Company_ID
+    LEFT JOIN tb_company trace ON r2.Fld_Traceability_ID = trace.Fld_Company_ID
     $where
     ORDER BY r2.ID DESC";
 
@@ -43,9 +47,10 @@ if ($count == 0) {
     exit;
 }
 
+echo "<div class='text-muted' style='margin-top:8px'>".$count." supplier quote".($count > 1 ? "s" : "")." found.</div>";
 echo "<table class='table table-condensed table-bordered' style='margin:8px 0; font-size:12px; background:#f9f9f9'>";
 echo "<thead style='background:#eee'><tr>";
-echo "<th>Supplier</th><th>Contact</th><th>Qty</th><th>Condition</th><th>Price</th><th>Currency</th><th>Lead Time</th><th>Release</th><th>Date</th><th>Action</th>";
+echo "<th>Supplier</th><th>Contact</th><th>Qty</th><th>Condition</th><th>Price</th><th>Currency</th><th>Lead Time</th><th>Release</th><th>Tag Info</th><th>Traceability</th><th>Remarks</th><th>Date</th><th>Action</th>";
 echo "</tr></thead><tbody>";
 
 while ($r = mysqli_fetch_assoc($req)) {
@@ -59,13 +64,17 @@ while ($r = mysqli_fetch_assoc($req)) {
     echo "<td>".htmlspecialchars($r['Fld_Currency_Text'] ?? '')."</td>";
     echo "<td>".htmlspecialchars($r['lead_time'] ?? '')."</td>";
     echo "<td>".htmlspecialchars($r['Fld_Release_Text'] ?? '')."</td>";
+    echo "<td>".htmlspecialchars($r['tag_info_name'] ?? '')."</td>";
+    echo "<td>".htmlspecialchars($r['traceability_name'] ?? '')."</td>";
+    echo "<td>".htmlspecialchars($r['Fld_Remark'] ?? '')."</td>";
     echo "<td>".htmlspecialchars($r['Fld_Current_Date'] ?? '')."</td>";
     $supplierAttr = htmlspecialchars($r['supplier_name'] ?? '', ENT_QUOTES);
     $priceAttr = htmlspecialchars($r['Fld_Price'] ?? '', ENT_QUOTES);
     $currencyAttr = htmlspecialchars($r['Fld_Currency_Text'] ?? '', ENT_QUOTES);
     $leadTimeAttr = htmlspecialchars($r['lead_time'] ?? '', ENT_QUOTES);
+    $remarksAttr = htmlspecialchars($r['Fld_Remark'] ?? '', ENT_QUOTES);
     echo "<td>";
-    echo "<button type='button' class='btn btn-xs btn-success js-use-sq-source' data-quote-id='".(int)$r['ID']."' data-supplier='".$supplierAttr."' data-price='".$priceAttr."' data-currency='".$currencyAttr."' data-lead-time='".$leadTimeAttr."'>Use this SQ</button> ";
+    echo "<button type='button' class='btn btn-xs btn-success js-use-sq-source' data-quote-id='".(int)$r['ID']."' data-supplier='".$supplierAttr."' data-price='".$priceAttr."' data-currency='".$currencyAttr."' data-lead-time='".$leadTimeAttr."' data-remarks='".$remarksAttr."'>Use this SQ</button> ";
     echo "<a href='modif_suppliers_quote.php?ID=".(int)$r['ID']."' class='btn btn-xs btn-default'><i class='fa fa-pencil'></i></a>";
     echo "</td>";
     echo "</tr>";
