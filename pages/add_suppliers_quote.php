@@ -560,37 +560,33 @@ $(document).on('click', '.js-add-sq', function (e) {
 
   /* Initialisations protégées pour ne pas casser si un plugin manque */
   $(function(){
-    // DataTables
-    if ($.fn.DataTable){ $('#mytable').DataTable({ responsive:true }); }
-
-    function companyTypeaheadOptions(name) {
-      return {
-        name: name,
-        valueKey: 'value',
-        remote: 'list-company.php?query=%QUERY',
-        template: function(datum) {
-          return '<p>' + $('<div>').text(datum.label || datum.value || '').html() + '</p>';
-        }
-      };
-    }
-
-    function bindCompanyTypeahead(selector, name) {
-      var input = $(selector);
-      input.typeahead(companyTypeaheadOptions(name));
-      input.on('typeahead:selected typeahead:autocompleted', function(ev, suggestion) {
-        if (suggestion && suggestion.value) {
-          $(this).val(suggestion.value);
-        }
-      });
-    }
-
-    bindCompanyTypeahead('input.companyid', 'supplier_company');
-    bindCompanyTypeahead('input.companyidtaginfo', 'tag_info_company');
-    bindCompanyTypeahead('input.companyidtreacability', 'traceability_company');
+    // Auto-completion: exact old typeahead pattern used by working SQ/RFQ pages.
+    console.log('Add SQ typeahead init', {
+      company: $('input.companyid').length,
+      tag: $('input.companyidtaginfo').length,
+      traceability: $('input.companyidtreacability').length,
+      plugin: !!$.fn.typeahead
+    });
+    $('input.companyid').typeahead({
+      name: 'Fld_Company_Name',
+      id: 'Fld_Company_ID',
+      remote: 'list-company.php?query=%QUERY'
+    });
+    $('input.companyidtaginfo').typeahead({
+      name: 'Fld_Company_Name',
+      id: 'Fld_Company_ID',
+      remote: 'list-company.php?query=%QUERY'
+    });
+    $('input.companyidtreacability').typeahead({
+      name: 'Fld_Company_Name',
+      id: 'Fld_Company_ID',
+      remote: 'list-company.php?query=%QUERY'
+    });
     $('input.pnid').typeahead({
-    name: 'Fld_Part_Nbr',
-    remote: 'list-pn-select.php?query=%QUERY'
-  });
+      name: 'Fld_Part_Nbr',
+      id: 'Fld_Part_ID',
+      remote: 'list-pn-select.php?query=%QUERY'
+    });
 
   $('input.pnid').on('typeahead:selected typeahead:autocompleted typeahead:select', function(ev, suggestion) {
     var value = (suggestion && (suggestion.value || suggestion.Fld_Part_Nbr)) ? (suggestion.value || suggestion.Fld_Part_Nbr) : this.value;
@@ -602,26 +598,21 @@ $(document).on('click', '.js-add-sq', function (e) {
     }
   });
 
-    function clearSupplierContact() {
-      $('#divcontactname').replaceWith('<div class="form-group" id="divcontactname"><label>SUPPLIERS CONTACT NAME</label><select class="form-control" name="Fld_Supplier_Contact_ID" id="Fld_Supplier_Contact_ID"><option value="">-- Select contact --</option></select></div>');
-    }
-
-    function refreshSupplierContacts() {
-      var company = $('#companyid').val();
-      clearSupplierContact();
-      if (!company) return;
-      $.get('contactnamefromcompany-sq.php', {id: company}, function(html){
-        $('#divcontactname').replaceWith(html);
-      });
-    }
-
-    $('#companyid').on('typeahead:selected typeahead:autocompleted', function(ev, suggestion){
-      if (suggestion && suggestion.value) {
-        $(this).val(suggestion.value);
+    $('input.companyid').on('blur typeahead:selected typeahead:autocompleted', function(){
+      console.log('Add SQ supplier contact refresh', $(this).val());
+      var contactSel = document.getElementById('Fld_Supplier_Contact_ID');
+      if (contactSel) {
+        contactSel.innerHTML = '<option value="">-- Select contact --</option>';
       }
-      refreshSupplierContacts();
+      majtarea();
     });
-    $('#companyid').on('change blur', refreshSupplierContacts);
+
+    // DataTables must not block typeahead init if RFQ expansion rows contain colspan.
+    try {
+      if ($.fn.DataTable){ $('#mytable').DataTable({ responsive:true }); }
+    } catch (e) {
+      console.log('Add SQ RFQ selector DataTable init skipped', e);
+    }
 
 // (facultatif) petit log pour vérifier que les requêtes partent bien
 $(document).ajaxSend(function(e, xhr, opts){
