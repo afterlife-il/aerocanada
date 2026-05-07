@@ -621,38 +621,20 @@ $(document).on('click', '.js-add-sq', function (e) {
       loadPnDescription(this.value);
     });
 
-    function supplierCompanyId(value) {
-      return $.trim((value || '').split(',')[0]);
-    }
-
-    function resetSupplierContactDropdown() {
-      var html = '<div class="form-group" id="divcontactname">'
-        + '<label>SUPPLIERS CONTACT NAME</label>'
-        + '<select class="form-control" name="Fld_Supplier_Contact_ID" id="Fld_Supplier_Contact_ID">'
-        + '<option value="">-- Select contact --</option>'
-        + '</select></div>';
-      $('#divcontactname').replaceWith(html);
-    }
-
-    window.loadSqSupplierContacts = function(value) {
-      var companyId = supplierCompanyId(value || $('#companyid').val());
-      console.log('Add SQ supplier contact refresh', companyId);
-      resetSupplierContactDropdown();
-      if (!companyId) return;
-      $.get('contactnamefromcompany-sq.php', {id: companyId}, function(html){
-        $('#divcontactname').replaceWith(html);
-      });
-    };
-
-    $('input.companyid').on('typeahead:selected typeahead:autocompleted', function(ev, suggestion){
-      var value = (suggestion && suggestion.value) ? suggestion.value : $(this).val();
-      if (value) $(this).val(value);
-      window.loadSqSupplierContacts(value);
+    // Same company -> contact trigger pattern as add_rfq.php.
+    $('input.companyid').on('blur', function(){
+      majtarea('divcontactname');
     });
 
-    $('input.companyid').on('blur', function(){
-      var input = this;
-      window.setTimeout(function(){ window.loadSqSupplierContacts(input.value); }, 50);
+    $('input.companyid').on('keypress', function(e){
+      if (e.which === 13) {
+        e.preventDefault();
+        majtarea('divcontactname');
+      }
+    });
+
+    $('input.companyid').on('typeahead:selected typeahead:autocompleted', function(){
+      window.setTimeout(function(){ majtarea('divcontactname'); }, 50);
     });
 
     // DataTables must not block typeahead init if RFQ expansion rows contain colspan.
@@ -693,24 +675,33 @@ $(document).ajaxSend(function(e, xhr, opts){
     });
   });
 
-  /* Charge contacts fournisseur */
-  window.majtarea = function(){
+  /* Charge contacts fournisseur - copied from add_rfq.php pattern */
+  window.majtarea = function(id){
     var bloc = document.getElementById('bloccontactname');
+    var companyidval = document.getElementById('companyid').value;
     if (bloc) bloc.style.display = 'inline';
-    var companyRaw = (document.getElementById('companyid')||{}).value || '';
-    var company = (companyRaw.split(',')[0] || '').replace(/^\s+|\s+$/g, '');
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "contactnamefromcompany-sq.php?id="+encodeURIComponent(company), true);
+
+    var xhr = null;
+    if (window.XMLHttpRequest) {
+      xhr = new XMLHttpRequest();
+    } else if (window.ActiveXObject) {
+      xhr = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xhr.open("POST", "contactnamefromcompany-rfq.php?id="+companyidval, true);
     xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-    xhr.onreadystatechange = function(){
-      if (xhr.readyState === 4){
-        var tgt = document.getElementById('divcontactname');
-        if (tgt && xhr.responseText) {
-          $(tgt).replaceWith(xhr.responseText);
-        }
-      }
-    };
-    xhr.send("company="+encodeURIComponent(company));
+    xhr.onreadystatechange = function() { up_contact_name(xhr,id); };
+    xhr.send("id="+id);
+  };
+
+  window.up_contact_name = function(xhr,id){
+    if (xhr.readyState==4) {
+      document.getElementById('divcontactname').innerHTML='<div id="'+id+'" align="center">';
+      var resp2 = xhr.responseText;
+      document.getElementById('divcontactname').innerHTML+=resp2;
+      document.getElementById('divcontactname').innerHTML+='</div>';
+      $('#divcontactname select[name="id_company_contact"]').attr('name', 'Fld_Supplier_Contact_ID').attr('id', 'Fld_Supplier_Contact_ID');
+    }
   };
 })();
 </script>
