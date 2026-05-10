@@ -319,7 +319,11 @@ if($_SESSION['conectroy']=="parfait"){
 							          
 
                         <!-- /.panel-body -->
-									<div align="center"><button type="submit" class="btn btn-default">Validate</button>&nbsp;&nbsp;&nbsp;<a href="return_email_quote.php?ID=<?php echo $_GET['ID'];?>"><img width="80" src="images/email.png"></a></div>
+									<div align="center">
+										<button type="submit" class="btn btn-default">Validate</button>
+										&nbsp;&nbsp;&nbsp;
+										<button type="submit" name="send_quotation" value="1" class="btn btn-primary">SEND QUOTATION</button>
+									</div>
 						</form>
                     </div>
                     <!-- /.panel -->

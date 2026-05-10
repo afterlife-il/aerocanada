@@ -276,14 +276,13 @@ $message.= $passage_ligne."--".$boundary."--".$passage_ligne;
 /*Fin Generation de l'email pour client*/
 
 //affichage information pour validation 
-echo '<b>E-mail</b> : '.$mail.'<br><br>';
+echo '<b>E-mail</b> : <input class="form-control" name="clientemail" value="'.htmlspecialchars($mail, ENT_QUOTES, 'UTF-8').'"><br><br>';
 echo '<b>E-mail CC</b> : <input class="form-control" name="emailcc"><br>';
 
 echo '<div class="form-group"><label>Subject</label><input class="form-control" name="sujet" value="'.$sujet.'"></div>';
 echo $message_html;
 ?>	
 <input type="hidden" name="Fld_Contact_Name" value="<?php echo $Fld_Contact_Name;?>">
-<input type="hidden" name="clientemail" value="<?php echo $mail;?>">
 <textarea name="message_html2" style="height: 450px;" rows="10" height="450"><?php echo $message_html2;?></textarea>
 		<script>
 			CKEDITOR.replace( 'message_html2' );
