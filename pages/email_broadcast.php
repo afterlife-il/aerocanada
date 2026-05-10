@@ -109,6 +109,9 @@ if (!empty($_POST['actonrfq']) && $_POST['actonrfq'] == 'addrfqft') {
     <input type="hidden" name="Fld_Priority_ID"   value="<?php echo isset($_POST['Fld_Priority_ID']) ? $_POST['Fld_Priority_ID'] : ''; ?>">
     <input type="hidden" name="moq"               value="<?php echo isset($_POST['moq']) ? $_POST['moq'] : ''; ?>">
     <input type="hidden" name="Fld_Traceability_ID" value="<?php echo isset($_POST['Fld_Traceability_ID']) ? $_POST['Fld_Traceability_ID'] : ''; ?>">
+    <input type="hidden" name="idrfq1"            value="<?php echo isset($_POST['idrfq1']) ? (int)$_POST['idrfq1'] : ''; ?>">
+    <input type="hidden" name="selected_source_type" value="<?php echo isset($_POST['selected_source_type']) ? htmlspecialchars($_POST['selected_source_type'], ENT_QUOTES, 'UTF-8') : ''; ?>">
+    <input type="hidden" name="selected_source_id" value="<?php echo isset($_POST['selected_source_id']) ? (int)$_POST['selected_source_id'] : ''; ?>">
 
 <?php
 // Si pas de RFQ_ID => on affiche un message au lieu de casser la page
@@ -117,9 +120,14 @@ if (empty($_POST['Fld_RFQ_ID'])) {
 } else {
 
     $rfq_id = $_POST['Fld_RFQ_ID'];
+    $posted_idrfq1 = isset($_POST['idrfq1']) ? (int)$_POST['idrfq1'] : 0;
 
     // ==================== RECUPERATION INFO RFQ ====================
-    $sqlrfq  = "SELECT * FROM tbl_RFQ_1 WHERE Fld_RFQ_ID='" . addslashes($rfq_id) . "'";
+    if ($posted_idrfq1 > 0) {
+        $sqlrfq  = "SELECT * FROM tbl_RFQ_1 WHERE ID=" . $posted_idrfq1 . " AND Fld_RFQ_ID='" . addslashes($rfq_id) . "' LIMIT 1";
+    } else {
+        $sqlrfq  = "SELECT * FROM tbl_RFQ_1 WHERE Fld_RFQ_ID='" . addslashes($rfq_id) . "' ORDER BY ID DESC LIMIT 1";
+    }
     $reqrfq  = mysql2_query($sqlrfq);
     $datarfq = $reqrfq ? mysqli_fetch_array($reqrfq) : null;
 
@@ -287,7 +295,10 @@ Best Regards,<br>
             echo $message_html;
 ?>
     <input type="hidden" name="id_tbl_rfq1" value="<?php echo $id_tbl_rfq1; ?>">
+    <input type="hidden" name="idrfq1" value="<?php echo $id_tbl_rfq1; ?>">
     <input type="hidden" name="Fld_Contact_Name" value="<?php echo $Fld_Contact_Name; ?>">
+    <input type="hidden" name="selected_source_type" value="<?php echo isset($_POST['selected_source_type']) ? htmlspecialchars($_POST['selected_source_type'], ENT_QUOTES, 'UTF-8') : ''; ?>">
+    <input type="hidden" name="selected_source_id" value="<?php echo isset($_POST['selected_source_id']) ? (int)$_POST['selected_source_id'] : ''; ?>">
 
     <textarea name="message_html2" style="height: 450px;" rows="10"><?php echo $message_html2; ?></textarea>
     <script>

@@ -68,8 +68,12 @@ if ($_SESSION['conectroy'] == "parfait") {
                                 <thead>
                                     <tr>
                                         <th>RFQ ID</th>
-                                        <th>DATE</th>
+                                        <th>QUOTE DATE</th>
+                                        <th>SENT</th>
+                                        <th>SENT DATE</th>
                                         <th>CUSTOMER</th>
+                                        <th>CONTACT</th>
+                                        <th>EMAIL</th>
                                         <th>PN</th>
                                         <th>DESCRIPTION</th>
                                         <th>SN</th>
@@ -78,11 +82,7 @@ if ($_SESSION['conectroy'] == "parfait") {
                                         <th>PRICE</th>
                                         <th>$/€</th>
                                         <th>REMARK</th>
-                                        <th>TRACABILITY</th>
-                                        <th>TAG INFO</th>
-                                        <th>TAG DATE</th>
-                                        <th>RELEASE</th>
-                                        <th>MOQ</th>
+                                        <th>SOURCE</th>
                                         <th>LEAD TIME</th>
                                         <th>PRIORITY</th>
                                         <th>ACI770</th>

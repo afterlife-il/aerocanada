@@ -590,6 +590,61 @@ if ($nbmails > 0) {
     $debug_msgs[] = "Aucune adresse email client valide fournie (clientemail vide ou invalide).";
 }
 
+// ======================================================================
+// 5.b JOURNALISATION DE L'ENVOI SUR LA COTATION EXISTANTE (tbl_RFQ_3)
+// ======================================================================
+$onlyTrueLog = array_filter($send_results, function ($v) { return $v === true; });
+$allOkLog = (!empty($send_results) && count($onlyTrueLog) === count($send_results));
+$sendStatusLog = empty($send_results) ? 'NO_RECIPIENT' : ($allOkLog ? 'SENT' : 'ERROR');
+$sendMailFlag = $allOkLog ? 'YES' : 'NO';
+
+$quoteWhere = "Fld_RFQ_ID='" . mysqli_real_escape_string($conn, $Fld_RFQ_ID) . "'";
+if (!empty($_POST['id_tbl_rfq1'])) {
+    $quoteWhere .= " AND id_tbl_rfq1=" . (int)$_POST['id_tbl_rfq1'];
+} elseif (!empty($_POST['idrfq1'])) {
+    $quoteWhere .= " AND id_tbl_rfq1=" . (int)$_POST['idrfq1'];
+}
+if (!empty($_POST['part_id'])) {
+    $quoteWhere .= " AND Fld_Part_Id=" . (int)$_POST['part_id'];
+}
+
+$quoteLookup = mysql2_query("SELECT ID FROM tbl_RFQ_3 WHERE $quoteWhere ORDER BY ID DESC LIMIT 1");
+$quoteLogId = ($quoteLookup && $quoteLogRow = mysqli_fetch_assoc($quoteLookup)) ? (int)$quoteLogRow['ID'] : 0;
+
+if ($quoteLogId > 0) {
+    $sentTo = mysqli_real_escape_string($conn, implode(',', $listmails));
+    $sentCc = mysqli_real_escape_string($conn, implode(',', $listCC));
+    $sentSubject = mysqli_real_escape_string($conn, $sujet);
+    $sourceType = mysqli_real_escape_string($conn, $_POST['selected_source_type'] ?? '');
+    $sourceId = (int)($_POST['selected_source_id'] ?? 0);
+    $senderUserId = (int)($_SESSION['id_utilisateur'] ?? 0);
+    $statusSql = mysqli_real_escape_string($conn, $sendStatusLog);
+    $sendMailSql = mysqli_real_escape_string($conn, $sendMailFlag);
+
+    $sqlLog = "
+        UPDATE tbl_RFQ_3
+        SET
+            Fld_Send_Mail='$sendMailSql',
+            sent_to_email='$sentTo',
+            sent_cc_email='$sentCc',
+            sent_subject='$sentSubject',
+            sent_datetime=NOW(),
+            send_status='$statusSql',
+            sender_user_id=$senderUserId,
+            source_type='$sourceType',
+            source_id=$sourceId
+        WHERE ID=$quoteLogId
+        LIMIT 1
+    ";
+    if (!mysql2_query($sqlLog)) {
+        $debug_msgs[] = "Impossible de journaliser l'envoi quotation ID $quoteLogId : " . mysqli_error($conn);
+    } else {
+        $debug_msgs[] = "Envoi journalisé sur quotation ID $quoteLogId.";
+    }
+} else {
+    $debug_msgs[] = "Aucune ligne tbl_RFQ_3 trouvée pour journaliser cet envoi.";
+}
+
 
 // ======================================================================
 // 6. AFFICHAGE : DEBUG + RÉCAP + APERÇU EMAIL
