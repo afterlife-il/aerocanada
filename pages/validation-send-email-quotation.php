@@ -5,7 +5,7 @@ include_once "page_titles.php";
 
 if ($_SESSION['conectroy'] == "parfait") {
 
-    // Débug temporaire (tu peux remettre en commentaire quand tout sera bon)
+    // DÃƒÂ©bug temporaire (tu peux remettre en commentaire quand tout sera bon)
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
@@ -62,12 +62,12 @@ if ($_SESSION['conectroy'] == "parfait") {
 $debug_msgs = [];
 
 // ======================================================================
-// 1. RÉCUPÉRATION DES INFOS RFQ / CONTACT
+// 1. RÃƒâ€°CUPÃƒâ€°RATION DES INFOS RFQ / CONTACT
 // ======================================================================
 
-// RFQ ID est une chaîne du type 2025-11-18-112319 → surtout pas de (int)
+// RFQ ID est une chaÃƒÂ®ne du type 2025-11-18-112319 Ã¢â€ â€™ surtout pas de (int)
 $Fld_RFQ_ID = isset($_POST['Fld_RFQ_ID']) ? trim($_POST['Fld_RFQ_ID']) : '';
-$debug_msgs[] = "RFQ ID reçu : " . $Fld_RFQ_ID;
+$debug_msgs[] = "RFQ ID reÃƒÂ§u : " . $Fld_RFQ_ID;
 
 $datarfq          = null;
 $daterfq          = "";
@@ -76,7 +76,7 @@ $Fld_Contact_Name = "";
 $datar            = null;
 
 if ($Fld_RFQ_ID !== '') {
-    // On prend la DERNIÈRE ligne saisie pour ce RFQ (ORDER BY ID DESC)
+    // On prend la DERNIÃƒË†RE ligne saisie pour ce RFQ (ORDER BY ID DESC)
     $sqlrfq = "
         SELECT *
         FROM tbl_RFQ_1
@@ -103,14 +103,14 @@ if ($Fld_RFQ_ID !== '') {
             $Fld_Contact_Name = $datar['Fld_Contact_Name'];
         }
     } else {
-        $debug_msgs[] = "Aucune ligne trouvée dans tbl_RFQ_1 pour ce RFQ.";
+        $debug_msgs[] = "Aucune ligne trouvÃƒÂ©e dans tbl_RFQ_1 pour ce RFQ.";
     }
 } else {
-    $debug_msgs[] = "Attention : Fld_RFQ_ID manquant ou égal à 0.";
+    $debug_msgs[] = "Attention : Fld_RFQ_ID manquant ou ÃƒÂ©gal ÃƒÂ  0.";
 }
 
 // ======================================================================
-// 1.b DONNÉES VENANT DU FORM QUOTE
+// 1.b DONNÃƒâ€°ES VENANT DU FORM QUOTE
 // ======================================================================
 
 $Fld_Qty_recup   = isset($_POST["Fld_Qty"])   ? $_POST["Fld_Qty"]   : '';
@@ -118,17 +118,17 @@ $Fld_Price_recup = isset($_POST["Fld_Price"]) ? $_POST["Fld_Price"] : '';
 $Fld_Currency_ID = isset($_POST["FldCurrencyID"]) ? $_POST["FldCurrencyID"] : '1';
 
 // --------------------------------------------------
-// FORMATAGE PRIX POUR LE RÉSUMÉ
+// FORMATAGE PRIX POUR LE RÃƒâ€°SUMÃƒâ€°
 // --------------------------------------------------
 $raw_price = str_replace([' ', "\xc2\xa0"], '', $Fld_Price_recup); // supprime espaces / nbsp
-$raw_price = str_replace(',', '.', $raw_price);                    // au cas où
+$raw_price = str_replace(',', '.', $raw_price);                    // au cas oÃƒÂ¹
 $price_number = (float)$raw_price;
 
 $currencySymbol = '';
 switch ($Fld_Currency_ID) {
     case '1': $currencySymbol = '$'; break;      // USD
-    case '2': $currencySymbol = '€'; break;      // EUR
-    case '3': $currencySymbol = '£'; break;      // GBP
+    case '2': $currencySymbol = 'Ã¢â€šÂ¬'; break;      // EUR
+    case '3': $currencySymbol = 'Ã‚Â£'; break;      // GBP
     default:  $currencySymbol = '';  break;
 }
 
@@ -140,7 +140,7 @@ if ($price_number > 0) {
 }
 
 // --------------------------------------------------
-// EXTRACTION RFQ COMPLET + NOM CONTACT À PARTIR DU TEXTE EMAIL
+// EXTRACTION RFQ COMPLET + NOM CONTACT Ãƒâ‚¬ PARTIR DU TEXTE EMAIL
 // On essaie plusieurs noms de champs possibles pour le corps HTML
 // --------------------------------------------------
 $message_html2 = '';
@@ -149,13 +149,13 @@ $fields_possibles = ['message_html2', 'message_html', 'message2', 'message', 'me
 foreach ($fields_possibles as $fname) {
     if (isset($_POST[$fname]) && trim($_POST[$fname]) !== '') {
         $message_html2 = $_POST[$fname];
-        $debug_msgs[] = "Contenu email récupéré depuis le champ : " . $fname;
+        $debug_msgs[] = "Contenu email rÃƒÂ©cupÃƒÂ©rÃƒÂ© depuis le champ : " . $fname;
         break;
     }
 }
 
 if ($message_html2 === '') {
-    $debug_msgs[] = "Aucun contenu HTML d'email trouvé (tous les champs message_* sont vides).";
+    $debug_msgs[] = "Aucun contenu HTML d'email trouvÃƒÂ© (tous les champs message_* sont vides).";
 }
 
 $rfq_display     = $Fld_RFQ_ID;       // fallback
@@ -183,7 +183,7 @@ if ($mail == '') {
     $debug_msgs[] = "Email du contact client vide ou introuvable.";
 }
 
-// gestion du passage de ligne (gardé comme à l’origine même si on n’en a plus besoin)
+// gestion du passage de ligne (gardÃƒÂ© comme ÃƒÂ  lÃ¢â‚¬â„¢origine mÃƒÂªme si on nÃ¢â‚¬â„¢en a plus besoin)
 if (!preg_match("#^[a-z0-9._-]+@(hotmail|live|msn).[a-z]{2,4}$#i", $mail)) {
     $passage_ligne = "\r\n";
 } else {
@@ -202,7 +202,7 @@ $message_html  = "<!DOCTYPE html>
 <tbody>
 <tr style='height:100px'>
 <td style='padding:25px;border:1px solid #BE0831'>
-<img src='https://aerocanada-industries.com/pages/images/logo-aei-email.png' width='83' height='96'>
+<img src='https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png' width='83' height='96'>
 </td>
 </tr>
 <tr>
@@ -212,7 +212,7 @@ $message_html  = "<!DOCTYPE html>
 $message_html .= $message_html2;
 
 // ======================================================================
-// 2.b SIGNATURE EMPLOYÉ (tbl_Employee)
+// 2.b SIGNATURE EMPLOYÃƒâ€° (tbl_Employee)
 // ======================================================================
 $contactaci = $contactaci > 0 ? $contactaci : (int)$_SESSION['id_utilisateur'];
 $sqleaci    = "SELECT * FROM tbl_Employee WHERE Employee_ID = " . $contactaci;
@@ -220,7 +220,7 @@ $reqeaci    = mysql2_query($sqleaci);
 $dataeaci   = $reqeaci ? mysqli_fetch_array($reqeaci) : null;
 
 if (!$dataeaci) {
-    $debug_msgs[] = "Impossible de récupérer les infos de l'employé ACI770 (signature).";
+    $debug_msgs[] = "Impossible de rÃƒÂ©cupÃƒÂ©rer les infos de l'employÃƒÂ© ACI770 (signature).";
     $dataeaci = [
         'Employee_Name' => '',
         'position'      => '',
@@ -238,7 +238,7 @@ $message_html .= "
 <tr>
 <td width='108' valign='top' style='width:81pt;border-top:none;border-bottom:none;border-left:none;border-right:1pt solid windowtext;padding:0in 5.4pt'>
 <p align='center' style='margin-bottom:0.0001pt;text-align:center'>
-<img src='https://aerocanada-industries.com/pages/images/logo-aei-email.png' width='83' height='96'>
+<img src='https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png' width='83' height='96'>
 </p>
 </td>
 <td width='371' valign='top' style='width:278.55pt;border:none;padding:0in 5.4pt'>
@@ -264,16 +264,7 @@ $message_html .= "
 <span style='font-size:12.8px'>99, Prince Street, 7th Floor, Suite#701<br></span>
 <span style='font-size:12.8px'>Montreal QC H3C 2M7, Canada</span>
 </p>
-<p style='font-size:12.8px'>
-<img src='http://www.aerocanada.org/images/asa-36.png'><span>&nbsp;|&nbsp;</span>
-<img src='http://www.aerocanada.org/images/tac-36.png'><span>&nbsp;|&nbsp;</span>
-<img src='http://www.aerocanada.org/images/logo-nato-36.png'><span>&nbsp;|&nbsp;</span>
-<img src='http://www.aerocanada.org/images/logo-ungm-36.png'><span>&nbsp;|&nbsp;</span>
-<a href='https://www.facebook.com/AeroCanada-Industries-770-Inc-967017943346764/' target='_blank'>
-<img src='http://www.aerocanada.org/images/f_icon-36.png'></a><span>&nbsp;|&nbsp;</span>
-<a href='https://www.linkedin.com/company/3155360' target='_blank'>
-<img src='http://www.aerocanada.org/images/linkedin-36.png'></a><br>
-</p>
+
 <p style='margin-bottom:0.0001pt;line-height: 15px;'>
 <font size='1'>FAA AC00-56A |&nbsp;UNGM 256670 |&nbsp;NATO CAGE L06T4<br></font>
 <a href='http://www.aerocanada.org/index.php/fr/aero-canada-accueil/conditions-generales-de-vente' style='color:rgb(17,85,204);font-size:x-small' target='_blank'>Conditions Generales Vente</a>
@@ -291,8 +282,8 @@ $message_html .= "
 </tr>
 <tr>
 <td align='center' style='padding:25px;font-size:12px;border:1px solid #BE0831'>
-<a href='http://www.aerocanada.aero' target='_blank'>www.aerocanada.aero</a> • phone:
-<a href='tel:+15148006223' value='+15148006223' target='_blank'>+1 514 800 6223</a> • email
+<a href='http://www.aerocanada.aero' target='_blank'>www.aerocanada.aero</a> Ã¢â‚¬Â¢ phone:
+<a href='tel:+15148006223' value='+15148006223' target='_blank'>+1 514 800 6223</a> Ã¢â‚¬Â¢ email
 <a href='sales@aerocanada.org' value='sales@aerocanada.org' target='_blank'>sales@aerocanada.org</a>
 </td>
 </tr>
@@ -304,15 +295,15 @@ $message_html .= "
 $sujet = isset($_POST['sujet']) ? (string)$_POST['sujet'] : 'Quotation';
 
 // ======================================================================
-// 3. UPLOAD DES PIÈCES JOINTES
+// 3. UPLOAD DES PIÃƒË†CES JOINTES
 // ======================================================================
 
 $uploaddir = __DIR__ . '/uploads/';   // /var/www/.../pages/uploads/
 
-// si le dossier n'existe pas, on le crée
+// si le dossier n'existe pas, on le crÃƒÂ©e
 if (!is_dir($uploaddir)) {
     if (!mkdir($uploaddir, 0755, true)) {
-        $debug_msgs[] = "Impossible de créer le dossier d'uploads : " . $uploaddir;
+        $debug_msgs[] = "Impossible de crÃƒÂ©er le dossier d'uploads : " . $uploaddir;
     }
 }
 
@@ -328,7 +319,7 @@ function aci_upload_file($field_name, $uploaddir, &$debug_msgs)
         $debug_msgs[] = "Upload OK pour " . $field_name . " -> " . basename($uploadfile);
         return $uploadfile;
     } else {
-        $debug_msgs[] = "Échec upload pour " . $field_name;
+        $debug_msgs[] = "Ãƒâ€°chec upload pour " . $field_name;
         return "no";
     }
 }
@@ -338,7 +329,7 @@ $uploadfile2 = aci_upload_file('userfile2', $uploaddir, $debug_msgs);
 $uploadfile3 = aci_upload_file('userfile3', $uploaddir, $debug_msgs);
 
 // ======================================================================
-// 4. RÉCUP COMPTE GMAIL EMPLOYÉ + PHPMailer (version moderne)
+// 4. RÃƒâ€°CUP COMPTE GMAIL EMPLOYÃƒâ€° + PHPMailer (version moderne)
 // ======================================================================
 
 // PHPMailer 6.x (dans /pages/phpmailer6)
@@ -349,7 +340,7 @@ require_once __DIR__ . '/phpmailer6/Exception.php';
 // Classe users existante
 require('../classes/users.class.php');
 
-// utilisateur connecté
+// utilisateur connectÃƒÂ©
 $objet  = new users();
 $donnee = $objet->display_employee($_SESSION['id_utilisateur']);
 
@@ -364,7 +355,7 @@ foreach ($donnee as $dataemp) {
 }
 
 if ($emailemplo == '' || $pwgmaero == '') {
-    $debug_msgs[] = "Attention : email ou mot de passe Gmail (pwgmaero) de l'employé non défini.";
+    $debug_msgs[] = "Attention : email ou mot de passe Gmail (pwgmaero) de l'employÃƒÂ© non dÃƒÂ©fini.";
 }
 
 /**
@@ -384,7 +375,7 @@ function smtpMailer(
     $uploadfile3,
     &$debug_msgs
 ) {
-    // On utilise le namespace complet pour éviter les "use" en haut de fichier
+    // On utilise le namespace complet pour ÃƒÂ©viter les "use" en haut de fichier
     $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
 
     try {
@@ -396,18 +387,18 @@ function smtpMailer(
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
 
-        // Même réglage que ton ancien code : SSL sur 465
-        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS; // équivalent "ssl"
+        // MÃƒÂªme rÃƒÂ©glage que ton ancien code : SSL sur 465
+        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS; // ÃƒÂ©quivalent "ssl"
         $mail->Port       = 465;
 
         $mail->CharSet    = 'UTF-8';
-        $mail->Encoding   = 'base64'; // PHPMailer 6 gère bien ça
+        $mail->Encoding   = 'base64'; // PHPMailer 6 gÃƒÂ¨re bien ÃƒÂ§a
 
         // Identifiants SMTP (Gmail)
         $mail->Username   = $emailemplo;
         $mail->Password   = $pwgmaero;
 
-        // Expéditeur = employé
+        // ExpÃƒÂ©diteur = employÃƒÂ©
         $mail->setFrom($emailemplo, $employeeName);
         $mail->addReplyTo($emailemplo, $employeeName);
 
@@ -424,7 +415,7 @@ function smtpMailer(
                     $mail->addCC($ccAddr);
                 } else {
                     if ($ccAddr !== '') {
-                        $debug_msgs[] = "CC ignoré (email invalide) : " . htmlspecialchars($ccAddr);
+                        $debug_msgs[] = "CC ignorÃƒÂ© (email invalide) : " . htmlspecialchars($ccAddr);
                     }
                 }
             }
@@ -441,11 +432,11 @@ function smtpMailer(
 
         // Version texte (pour Outlook / mode "texte seul")
         $plain = (string)$body;
-        // <br> -> retour à la ligne
+        // <br> -> retour ÃƒÂ  la ligne
         $plain = preg_replace('#<\s*br\s*/?\s*>#i', "\n", $plain);
-        // </p> -> retour à la ligne
+        // </p> -> retour ÃƒÂ  la ligne
         $plain = preg_replace('#</\s*p\s*>#i', "\n", $plain);
-        // On enlève le reste du HTML
+        // On enlÃƒÂ¨ve le reste du HTML
         $plain = strip_tags($plain);
         // Compacte les espaces multiples
         $plain = preg_replace('/[ \t]+/', ' ', $plain);
@@ -454,7 +445,7 @@ function smtpMailer(
         $mail->AltBody = trim($plain);
 
         // =======================
-        // Pièces jointes
+        // PiÃƒÂ¨ces jointes
         // =======================
         $files = [$uploadfile, $uploadfile2, $uploadfile3];
 
@@ -476,11 +467,11 @@ function smtpMailer(
 
             if ($mime) {
                 $mail->addAttachment($path, basename($path), 'base64', $mime);
-                $debug_msgs[] = "Pièce jointe envoyée : " . basename($path) . " (" . $mime . ")";
+                $debug_msgs[] = "PiÃƒÂ¨ce jointe envoyÃƒÂ©e : " . basename($path) . " (" . $mime . ")";
             } else {
-                // Autres types → on laisse PHPMailer deviner
+                // Autres types Ã¢â€ â€™ on laisse PHPMailer deviner
                 $mail->addAttachment($path);
-                $debug_msgs[] = "Pièce jointe envoyée (MIME auto) : " . basename($path);
+                $debug_msgs[] = "PiÃƒÂ¨ce jointe envoyÃƒÂ©e (MIME auto) : " . basename($path);
             }
         }
 
@@ -505,7 +496,7 @@ function smtpMailer(
 $clientemail_raw = isset($_POST['clientemail']) ? $_POST['clientemail'] : '';
 $cc_raw = isset($_POST['emailcc']) ? $_POST['emailcc'] : '';
 
-// Emails en copie (CC) – on essaie plusieurs noms possibles au cas où
+// Emails en copie (CC) Ã¢â‚¬â€œ on essaie plusieurs noms possibles au cas oÃƒÂ¹
 $cc_raw = '';
 if (isset($_POST['emailcc'])) {
     $cc_raw = $_POST['emailcc'];
@@ -516,7 +507,7 @@ if (isset($_POST['emailcc'])) {
 }
 
 /**
- * Parse une chaîne d'emails séparés par virgule/espace/point-virgule
+ * Parse une chaÃƒÂ®ne d'emails sÃƒÂ©parÃƒÂ©s par virgule/espace/point-virgule
  * et retourne un tableau d'adresses valides.
  */
 function aci_parse_emails($raw, &$debug_msgs, $label = 'TO')
@@ -528,7 +519,7 @@ function aci_parse_emails($raw, &$debug_msgs, $label = 'TO')
         return $list;
     }
 
-    // On coupe d'abord sur les virgules / points-virgules (séparation classique des adresses)
+    // On coupe d'abord sur les virgules / points-virgules (sÃƒÂ©paration classique des adresses)
     $chunks = preg_split('/[;,]+/', $raw);
 
     foreach ($chunks as $chunk) {
@@ -537,7 +528,7 @@ function aci_parse_emails($raw, &$debug_msgs, $label = 'TO')
             continue;
         }
 
-        // Si on a un format "Nom <email@domaine.com>", on récupère juste ce qui est entre <>
+        // Si on a un format "Nom <email@domaine.com>", on rÃƒÂ©cupÃƒÂ¨re juste ce qui est entre <>
         if (preg_match('/<([^>]+)>/', $chunk, $m)) {
             $addr = trim($m[1]);
         } else {
@@ -547,7 +538,7 @@ function aci_parse_emails($raw, &$debug_msgs, $label = 'TO')
         if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
             $list[] = $addr;
         } else {
-            $debug_msgs[] = "Adresse email invalide ignorée dans $label : " . htmlspecialchars($chunk);
+            $debug_msgs[] = "Adresse email invalide ignorÃƒÂ©e dans $label : " . htmlspecialchars($chunk);
         }
     }
 
@@ -562,7 +553,7 @@ $listCC    = aci_parse_emails($cc_raw,        $debug_msgs, 'CC');
 // Fallback : si aucun TO mais au moins un CC, on utilise le 1er CC comme destinataire principal
 if (empty($listmails) && !empty($listCC)) {
     $listmails[] = array_shift($listCC); // retire le 1er CC et le met en TO
-    $debug_msgs[] = "Aucun TO fourni, premier CC utilisé comme destinataire principal.";
+    $debug_msgs[] = "Aucun TO fourni, premier CC utilisÃƒÂ© comme destinataire principal.";
 }
 
 $nbmails = count($listmails);
@@ -643,15 +634,15 @@ if ($quoteLogId > 0) {
     if (!mysql2_query($sqlLog)) {
         $debug_msgs[] = "Impossible de journaliser l'envoi quotation ID $quoteLogId : " . mysqli_error($conn);
     } else {
-        $debug_msgs[] = "Envoi journalisé sur quotation ID $quoteLogId.";
+        $debug_msgs[] = "Envoi journalisÃƒÂ© sur quotation ID $quoteLogId.";
     }
 } else {
-    $debug_msgs[] = "Aucune ligne tbl_RFQ_3 trouvée pour journaliser cet envoi.";
+    $debug_msgs[] = "Aucune ligne tbl_RFQ_3 trouvÃƒÂ©e pour journaliser cet envoi.";
 }
 
 
 // ======================================================================
-// 6. AFFICHAGE : DEBUG + RÉCAP + APERÇU EMAIL
+// 6. AFFICHAGE : DEBUG + RÃƒâ€°CAP + APERÃƒâ€¡U EMAIL
 // ======================================================================
 ?>
 
@@ -670,11 +661,11 @@ if ($quoteLogId > 0) {
     $allOk    = (count($onlyTrue) === count($send_results));
     ?>
     <div class="alert alert-<?php echo $allOk ? 'success' : 'warning'; ?>">
-        <strong>Résultat envoi email :</strong><br>
+        <strong>RÃƒÂ©sultat envoi email :</strong><br>
         <?php
         foreach ($send_results as $email => $res) {
             if ($res === true) {
-                echo htmlspecialchars($email) . " : envoyé avec succès.<br>";
+                echo htmlspecialchars($email) . " : envoyÃƒÂ© avec succÃƒÂ¨s.<br>";
             } else {
                 echo htmlspecialchars($email) . " : " . htmlspecialchars($res) . "<br>";
             }
@@ -683,13 +674,13 @@ if ($quoteLogId > 0) {
     </div>
 <?php else : ?>
     <div class="alert alert-warning">
-        Aucun email n'a été envoyé (voir section debug ci-dessus).
+        Aucun email n'a ÃƒÂ©tÃƒÂ© envoyÃƒÂ© (voir section debug ci-dessus).
     </div>
 <?php endif; ?>
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        <strong>Résumé de la cotation envoyée</strong>
+        <strong>RÃƒÂ©sumÃƒÂ© de la cotation envoyÃƒÂ©e</strong>
     </div>
     <div class="panel-body">
         <p><strong>RFQ :</strong> RFQ # <?php echo htmlspecialchars($rfq_display); ?></p>
@@ -697,9 +688,9 @@ if ($quoteLogId > 0) {
         <p><strong>Email(s) client :</strong> <?php echo htmlspecialchars($clientemail_raw); ?></p>
         <p><strong>CC :</strong> <?php echo htmlspecialchars($cc_raw); ?></p>
         <p><strong>Sujet :</strong> <?php echo htmlspecialchars($sujet); ?></p>
-        <p><strong>Qté :</strong> <?php echo htmlspecialchars($Fld_Qty_recup); ?> |
+        <p><strong>QtÃƒÂ© :</strong> <?php echo htmlspecialchars($Fld_Qty_recup); ?> |
            <strong>Prix :</strong> <?php echo htmlspecialchars($price_display); ?></p>
-        <p><strong>Pièces jointes :</strong>
+        <p><strong>PiÃƒÂ¨ces jointes :</strong>
             <?php
             $att = [];
             if ($uploadfile  != "no") $att[] = basename($uploadfile);
@@ -747,15 +738,15 @@ if ($sentQuotePn !== '') {
 ?>
 <div style="margin-bottom:15px;">
     <a href="<?php echo $back_url; ?>" class="btn btn-default">
-        ← Back to Part-Nbr
+        Ã¢â€ Â Back to Part-Nbr
     </a>
-    <!-- Cancel renvoie aussi sur le même PN, mais sans forcer le rechargement de l’email -->
+    <!-- Cancel renvoie aussi sur le mÃƒÂªme PN, mais sans forcer le rechargement de lÃ¢â‚¬â„¢email -->
     <a href="<?php echo $back_url; ?>" class="btn btn-default">
         Cancel / Go back
     </a>
 </div>
 
-<h3>Aperçu de l'email envoyé</h3>
+<h3>AperÃƒÂ§u de l'email envoyÃƒÂ©</h3>
 <div style="border:1px solid #ccc;padding:10px;background:#fff;margin-bottom:20px;">
     <?php echo $message_html; ?>
 </div>
@@ -763,10 +754,10 @@ if ($sentQuotePn !== '') {
 
 <?php
 // ======================================================================
-// 7. NETTOYAGE DES FICHIERS UPLOADÉS (dans le même dossier)
+// 7. NETTOYAGE DES FICHIERS UPLOADÃƒâ€°S (dans le mÃƒÂªme dossier)
 // ======================================================================
 
-// On supprime uniquement les fichiers réellement uploadés pour cette quotation
+// On supprime uniquement les fichiers rÃƒÂ©ellement uploadÃƒÂ©s pour cette quotation
 if ($uploadfile != "no" && is_file($uploadfile)) {
     unlink($uploadfile);
 }
