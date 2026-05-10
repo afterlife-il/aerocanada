@@ -61,6 +61,79 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
         );
     }
 
+    function sourceButton($label, $sourceType, $sourceId, $partId, $pn, $description, $qty, $conditionId, $conditionText, $price, $currencyId, $currencyText, $releaseId, $releaseText, $leadTime, $remarks, $supplier) {
+        return "<button type='button' class='btn btn-xs btn-success js-use-source'"
+            ." data-source-type='".qh($sourceType)."'"
+            ." data-source-id='".(int)$sourceId."'"
+            ." data-part-id='".(int)$partId."'"
+            ." data-pn='".qh($pn)."'"
+            ." data-description='".qh($description)."'"
+            ." data-qty='".qh($qty)."'"
+            ." data-condition-id='".qh($conditionId)."'"
+            ." data-condition='".qh($conditionText)."'"
+            ." data-price='".qh($price)."'"
+            ." data-currency-id='".qh($currencyId)."'"
+            ." data-currency='".qh($currencyText)."'"
+            ." data-release-id='".qh($releaseId)."'"
+            ." data-release='".qh($releaseText)."'"
+            ." data-lead-time='".qh($leadTime)."'"
+            ." data-remarks='".qh($remarks)."'"
+            ." data-supplier='".qh($supplier)."'>".qh($label)."</button>";
+    }
+
+    function renderSourceTable($title, $emptyText, $req, $sourceType, $partId, $pn, $description, $isSupplierQuote) {
+        echo "<h5>".qh($title)."</h5>";
+        if(!$req || mysqli_num_rows($req) === 0) {
+            echo "<div class='text-muted source-empty'>".qh($emptyText)."</div>";
+            return;
+        }
+
+        echo "<table class='table table-condensed table-bordered source-table'>";
+        echo "<thead><tr><th>Action</th><th>Supplier / Company</th><th>Qty</th><th>Condition</th><th>Price</th><th>Currency</th><th>Release</th><th>Delivery</th><th>Remarks</th></tr></thead><tbody>";
+        while($row = mysqli_fetch_array($req)) {
+            if($isSupplierQuote) {
+                $sourceId = $row['ID'];
+                $supplier = $row['supplier_name'];
+                $qty = $row['Fld_Qty'];
+                $conditionId = $row['Fld_Condition_ID'];
+                $conditionText = $row['Fld_Condition_Text'];
+                $price = $row['Fld_Price'];
+                $currencyId = $row['Fld_Currency_ID'];
+                $currencyText = $row['Fld_Currency_Text'];
+                $releaseId = $row['Fld_Release_ID'];
+                $releaseText = $row['Fld_Release_Text'];
+                $leadTime = $row['lead_time'];
+                $remarks = $row['Fld_Remark'];
+            } else {
+                $sourceId = $row['stock_id'];
+                $supplier = $row['supplier_name'];
+                $qty = $row['Fld_Qty'];
+                $conditionId = $row['Fld_Condition_ID'];
+                $conditionText = $row['Fld_Condition_Text'];
+                $price = $row['Fld_Part_Price'];
+                $currencyId = $row['Fld_Price_Currency_ID'];
+                $currencyText = $row['Fld_Currency_Text'];
+                $releaseId = $row['Fld_Release_ID'];
+                $releaseText = $row['Fld_Release_Text'];
+                $leadTime = trim(($row['Fld_Warehouse_Location'] ?? '').' '.($row['Fld_External_Location'] ?? ''));
+                $remarks = trim(($row['Fld_Stock_Remark'] ?? '').' '.($row['Fld_Sales_Remark'] ?? ''));
+            }
+
+            echo "<tr>";
+            echo "<td>".sourceButton('Use this source', $sourceType, $sourceId, $partId, $pn, $description, $qty, $conditionId, $conditionText, $price, $currencyId, $currencyText, $releaseId, $releaseText, $leadTime, $remarks, $supplier)."</td>";
+            echo "<td>".qh($supplier)."</td>";
+            echo "<td>".qh($qty)."</td>";
+            echo "<td>".qh($conditionText)."</td>";
+            echo "<td>".qh($price)."</td>";
+            echo "<td>".qh($currencyText)."</td>";
+            echo "<td>".qh($releaseText)."</td>";
+            echo "<td>".qh($leadTime)."</td>";
+            echo "<td>".qh($remarks)."</td>";
+            echo "</tr>";
+        }
+        echo "</tbody></table>";
+    }
+
     $sql = "SELECT q.*,
             p.Fld_Part_Nbr,
             p.Fld_Part_Desc,
@@ -112,6 +185,63 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
     }
 
     $source = sourceInfoForQuote($data['source_type'] ?? '', $data['source_id'] ?? 0);
+    $partId = (int)$data['Fld_Part_Id'];
+    $pn = $data['Fld_Part_Nbr'];
+    $description = $data['Fld_Part_Desc'];
+
+    $sqlAciStock = "SELECT s.Fld_Stock_ID AS stock_id,
+            s.Fld_Qty, s.Fld_Condition_ID, cond.Fld_Condition_Text,
+            s.Fld_Part_Price, s.Fld_Price_Currency_ID, cur.Fld_Currency_Text,
+            s.Fld_Release_ID, rel.Fld_Release_Text,
+            supplier.Fld_Company_Name AS supplier_name,
+            s.Fld_Warehouse_Location, '' AS Fld_External_Location,
+            s.Fld_Stock_Remark, s.Fld_Sales_Remark
+        FROM tbl_Stock s
+        LEFT JOIN tbl_Condition cond ON s.Fld_Condition_ID = cond.Fld_Condition_ID
+        LEFT JOIN tbl_Currency cur ON s.Fld_Price_Currency_ID = cur.Fld_Currency_ID
+        LEFT JOIN tbl_Release rel ON s.Fld_Release_ID = rel.Fld_Release_ID
+        LEFT JOIN tb_company supplier ON s.Fld_Supplier_ID = supplier.Fld_Company_ID
+        WHERE s.Fld_Part_ID='".$partId."'
+        ORDER BY s.Fld_Stock_ID DESC
+        LIMIT 50";
+    $reqAciStock = mysql2_query($sqlAciStock);
+
+    $sqlExternalStock = "SELECT se.Fld_Stock_externe_ID AS stock_id,
+            se.Fld_Qty, se.Fld_Condition_ID, cond.Fld_Condition_Text,
+            se.Fld_Part_Price, se.Fld_Price_Currency_ID, cur.Fld_Currency_Text,
+            se.Fld_Release_ID, rel.Fld_Release_Text,
+            COALESCE(company.Fld_Company_Name, supplier.Fld_Company_Name) AS supplier_name,
+            se.Fld_Warehouse_Location, se.Fld_External_Location,
+            se.Fld_Stock_Remark, se.Fld_Sales_Remark
+        FROM tbl_Stock_external se
+        LEFT JOIN tbl_Condition cond ON se.Fld_Condition_ID = cond.Fld_Condition_ID
+        LEFT JOIN tbl_Currency cur ON se.Fld_Price_Currency_ID = cur.Fld_Currency_ID
+        LEFT JOIN tbl_Release rel ON se.Fld_Release_ID = rel.Fld_Release_ID
+        LEFT JOIN tb_company supplier ON se.Fld_Supplier_ID = supplier.Fld_Company_ID
+        LEFT JOIN tb_company company ON se.Fld_Company_ID = company.Fld_Company_ID
+        WHERE se.Fld_Part_ID='".$partId."'
+        ORDER BY se.Fld_Stock_externe_ID DESC
+        LIMIT 50";
+    $reqExternalStock = mysql2_query($sqlExternalStock);
+
+    $sqlSupplierQuotes = "SELECT r2.ID,
+            r2.Fld_Qty, r2.Fld_Condition_ID, cond.Fld_Condition_Text,
+            r2.Fld_Price, r2.Fld_Currency_ID, cur.Fld_Currency_Text,
+            r2.Fld_Release_ID, rel.Fld_Release_Text,
+            supplier.Fld_Company_Name AS supplier_name,
+            r2.lead_time, r2.Fld_Remark
+        FROM tbl_RFQ_2 r2
+        LEFT JOIN tbl_Condition cond ON r2.Fld_Condition_ID = cond.Fld_Condition_ID
+        LEFT JOIN tbl_Currency cur ON r2.Fld_Currency_ID = cur.Fld_Currency_ID
+        LEFT JOIN tbl_Release rel ON r2.Fld_Release_ID = rel.Fld_Release_ID
+        LEFT JOIN tb_company supplier ON r2.Fld_Supplier_ID = supplier.Fld_Company_ID
+        WHERE r2.Fld_Part_ID='".$partId."'
+            AND r2.Fld_Supplier_ID IS NOT NULL
+            AND r2.Fld_Supplier_ID <> ''
+            AND r2.Fld_Supplier_ID <> '0'
+        ORDER BY r2.ID DESC
+        LIMIT 50";
+    $reqSupplierQuotes = mysql2_query($sqlSupplierQuotes);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -133,6 +263,10 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
         .quote-context dd { margin-left:135px; margin-bottom:6px; }
         .form-actions { text-align:right; padding:14px 0 4px; }
         textarea.form-control { min-height:92px; }
+        .source-table { font-size:12px; background:#fff; }
+        .source-table th { background:#eee; }
+        .source-empty { margin:0 0 10px; }
+        .source-summary { margin-top:8px; }
     </style>
 </head>
 <body>
@@ -174,6 +308,9 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
     <form method="post" action="valid_modif_quotation.php">
         <input type="hidden" name="ID" value="<?php echo (int)$data['ID']; ?>">
         <input type="hidden" name="clean_mode" value="1">
+        <input type="hidden" name="id_tbl_rfq1" value="<?php echo (int)$data['id_tbl_rfq1']; ?>">
+        <input type="hidden" name="source_type" id="source_type" value="<?php echo qh($data['source_type'] ?? ''); ?>">
+        <input type="hidden" name="source_id" id="source_id" value="<?php echo (int)($data['source_id'] ?? 0); ?>">
         <input type="hidden" name="Fld_RFQ_ID" value="<?php echo qh($data['Fld_RFQ_ID']); ?>">
         <input type="hidden" name="Fld_Quote_Date" value="<?php echo qh($data['Fld_Quote_Date']); ?>">
         <input type="hidden" name="Fld_Part_Id" value="<?php echo (int)$data['Fld_Part_Id']; ?>">
@@ -181,6 +318,47 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
         <input type="hidden" name="Fld_Tag_Info_ID" value="<?php echo qh($data['Fld_Tag_Info_ID']); ?>">
         <input type="hidden" name="Fld_Priority_ID" value="<?php echo qh($data['Fld_Priority_ID']); ?>">
         <input type="hidden" name="moq" value="<?php echo qh($data['moq']); ?>">
+
+        <div class="quote-card">
+            <h4>Customer Contact</h4>
+            <div class="row">
+                <div class="col-sm-5">
+                    <div class="form-group">
+                        <label>Contact</label>
+                        <select class="form-control" name="customer_contact_id">
+                            <?php
+                            $contactSql = "SELECT id_company_contact, Fld_Contact_Name, Fld_Contact_Email
+                                FROM tb_company_contact
+                                WHERE Fld_Company_ID='".(int)$data['Fld_Customer_ID']."'
+                                ORDER BY Fld_Contact_Name";
+                            $contactReq = mysql2_query($contactSql);
+                            while($contactRow = mysqli_fetch_array($contactReq)) {
+                                echo "<option value='".(int)$contactRow['id_company_contact']."'";
+                                if((int)$contactRow['id_company_contact'] === (int)$data['id_company_contact']) echo " selected";
+                                echo ">".qh($contactRow['Fld_Contact_Name'])." - ".qh($contactRow['Fld_Contact_Email'])."</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quote-card">
+            <h4>Available Sources</h4>
+            <div id="source-current" class="alert alert-info source-summary">
+                Current source:
+                <strong><?php echo qh($source['type'] ?: 'None'); ?></strong>
+                <?php if(!empty($data['source_id'])) echo '#'.(int)$data['source_id']; ?>
+                <?php if(!empty($source['supplier'])) echo ' | '.qh($source['supplier']); ?>
+                <?php if(!empty($source['price'])) echo ' | '.qh($source['price']).' '.qh($source['currency']); ?>
+            </div>
+            <?php
+                renderSourceTable('ACI770 Stock', 'No ACI770 stock found.', $reqAciStock, 'STOCK-ACI770', $partId, $pn, $description, false);
+                renderSourceTable('External Stock', 'No External stock found.', $reqExternalStock, 'STOCK-External', $partId, $pn, $description, false);
+                renderSourceTable('Supplier Quotes', 'No supplier quotes found.', $reqSupplierQuotes, 'SQ', $partId, $pn, $description, true);
+            ?>
+        </div>
 
         <div class="quote-card">
             <h4>Quote Data</h4>
@@ -260,6 +438,38 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
         </div>
     </form>
 </div>
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script>
+$(document).on('click', '.js-use-source', function(){
+    var btn = $(this);
+    var qty = btn.data('qty');
+    var conditionId = btn.data('condition-id');
+    var price = btn.data('price');
+    var currencyId = btn.data('currency-id');
+    var releaseId = btn.data('release-id');
+    var leadTime = btn.data('lead-time');
+    var remarks = btn.data('remarks');
+    var sourceType = btn.data('source-type');
+    var sourceId = btn.data('source-id');
+    var supplier = btn.data('supplier') || '';
+    var currency = btn.data('currency') || '';
+
+    $('#source_type').val(sourceType);
+    $('#source_id').val(sourceId);
+    $('input[name="Fld_Qty"]').val(qty);
+    $('select[name="Fld_Condition"]').val(String(conditionId));
+    $('input[name="Fld_Price"]').val(price);
+    $('select[name="Fld_Currency_ID"]').val(String(currencyId));
+    $('select[name="Fld_Release_ID"]').val(String(releaseId));
+    $('input[name="lead_time"]').val(leadTime);
+    $('textarea[name="Fld_Remark"]').val(remarks);
+
+    $('#source-current').removeClass('alert-info').addClass('alert-success')
+        .html('Selected source: <strong>' + $('<div>').text(sourceType).html() + '</strong> #' + sourceId
+            + (supplier ? ' | ' + $('<div>').text(supplier).html() : '')
+            + (price ? ' | ' + $('<div>').text(price + ' ' + currency).html() : ''));
+});
+</script>
 </body>
 </html>
 <?php
