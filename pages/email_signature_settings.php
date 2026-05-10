@@ -33,13 +33,13 @@ $keys = array(
 
 $saved = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $updatedBy = isset($_SESSION['Employee_ID']) ? (int)$_SESSION['Employee_ID'] : 0;
+    $updatedBy = aci_email_current_user_id();
     foreach ($keys as $key) {
         $value = $_POST[$key] ?? '';
         $safeKey = escape_data($key);
         $safeValue = mysqli_real_escape_string($db_link, (string)$value);
-        mysql2_query("INSERT INTO tbl_Email_Settings (setting_key, setting_value, updated_by, updated_at)
-            VALUES ('".$safeKey."', '".$safeValue."', '".$updatedBy."', NOW())
+        mysql2_query("INSERT INTO tbl_Email_Settings (user_id, setting_key, setting_value, updated_by, updated_at)
+            VALUES ('".$updatedBy."', '".$safeKey."', '".$safeValue."', '".$updatedBy."', NOW())
             ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at)");
     }
     $saved = true;

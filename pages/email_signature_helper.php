@@ -19,17 +19,26 @@ function aci_email_default_settings($employee = array()) {
     );
 }
 
-function aci_email_settings() {
-    static $settings = null;
-    if ($settings !== null) return $settings;
+function aci_email_current_user_id() {
+    if (isset($_SESSION['id_utilisateur'])) return (int)$_SESSION['id_utilisateur'];
+    if (isset($_SESSION['Employee_ID'])) return (int)$_SESSION['Employee_ID'];
+    return 0;
+}
+
+function aci_email_settings($userId = null) {
+    static $settingsCache = array();
+    if ($userId === null) $userId = aci_email_current_user_id();
+    $userId = (int)$userId;
+    if (isset($settingsCache[$userId])) return $settingsCache[$userId];
 
     $settings = array();
-    $req = @mysql2_query("SELECT setting_key, setting_value FROM tbl_Email_Settings");
+    $req = @mysql2_query("SELECT setting_key, setting_value, user_id FROM tbl_Email_Settings WHERE user_id IN (0, ".$userId.") ORDER BY user_id ASC");
     if ($req) {
         while ($row = mysqli_fetch_assoc($req)) {
             $settings[$row['setting_key']] = $row['setting_value'];
         }
     }
+    $settingsCache[$userId] = $settings;
     return $settings;
 }
 
