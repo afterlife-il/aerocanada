@@ -116,6 +116,7 @@
 			<li><a href="aircrafts.php"><i class="fa fa-th-list "></i> Aircrafts</a></li>
 			<li><a href="company_type.php"><i class="fa fa-th-list "></i> Company Type</a></li>
 			<li><a href="currency.php"><i class="fa fa-dollar "></i> Currency</a></li>
+			<li><a href="email_signature_settings.php"><i class="fa fa-envelope "></i> Email Signature</a></li>
 			<li><a href="release.php"><i class="fa fa-th-list "></i> Release</a></li>
 			<li><a href="rfq_conditions.php"><i class="fa fa-th-list "></i> RFQ Conditions</a></li>
 			<li><a href="rfq_priority.php"><i class="fa fa-th-list "></i> RFQ PRIORITY</a></li>

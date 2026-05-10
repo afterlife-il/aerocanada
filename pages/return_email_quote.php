@@ -2,6 +2,7 @@
 session_start();
 include_once "conf.php";
 include_once "page_titles.php";
+include_once "email_signature_helper.php";
 if($_SESSION['conectroy']=="parfait"){
 ?>
 <!DOCTYPE html>
@@ -31,7 +32,7 @@ if($_SESSION['conectroy']=="parfait"){
 
     <!-- Custom CSS -->
      <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
-<link href="../dist/css/aci-overrides.css" rel="stylesheet"> <!-- <= impÃƒÂ©ratif, et APRÃƒË†S sb-admin-2.css -->
+<link href="../dist/css/aci-overrides.css" rel="stylesheet"> <!-- <= impÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ratif, et APRÃƒÆ’Ã†â€™Ãƒâ€¹Ã¢â‚¬Â S sb-admin-2.css -->
 
     <!-- Custom Fonts -->
     <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
@@ -150,8 +151,8 @@ $Fld_Price_recup=$data["Fld_Price"];
 /***********************************************************************************/
 /***********************************************************************************/
 /*Generation de l'email pour client*/
-// $mail = "lamalol@gmail.com"; // DÃƒÂ©claration de l'adresse de destination.
-$mail = $datar['Fld_Contact_Email']; // DÃƒÂ©claration de l'adresse de destination.
+// $mail = "lamalol@gmail.com"; // DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©claration de l'adresse de destination.
+$mail = $datar['Fld_Contact_Email']; // DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©claration de l'adresse de destination.
 if (!preg_match("#^[a-z0-9._-]+@(hotmail|live|msn).[a-z]{2,4}$#", $mail)) // On filtre les serveurs qui rencontrent des bogues.
 {
 	$passage_ligne = "\r\n";
@@ -160,14 +161,12 @@ else
 {
 	$passage_ligne = "\n";
 }
-//=====DÃƒÂ©claration des messages au format texte et au format HTML.
-$message_txt = "Salut ÃƒÂ  tous, voici un e-mail envoyÃƒÂ© par un script PHP.";
-// $message_html = "<html><head></head><body><b>Salut ÃƒÂ  tous</b>, voici un e-mail envoyÃƒÂ© par un <i>script PHP</i>.</body></html>";
+//=====DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©claration des messages au format texte et au format HTML.
+$message_txt = "Salut ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  tous, voici un e-mail envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par un script PHP.";
+// $message_html = "<html><head></head><body><b>Salut ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  tous</b>, voici un e-mail envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par un <i>script PHP</i>.</body></html>";
 											
 
-$message_html = '<html><head></head><body>
-<div style="font-family:sans-serif;color:#000000;font-size:16px;margin:0px;padding:20px;">
-<table id="" style="border-collapse:collapse;border:1px solid #BE0831;background:#e9e9e9;color:#000000;"><tbody><tr style="height:100px"><td id="" style="padding:25px;border:1px solid #BE0831"><img src="https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png" width="83" height="96"></td></tr><tr><td id="" valign="top" style="padding:25px;border:1px solid #BE0831;line-height:24px">';
+$message_html = aci_quote_email_header_html();
 
 											//reuperation priority
 											// ** tbl_Priority ** Fld_Priority_ID  Fld_Priority_Text
@@ -229,29 +228,25 @@ It will always be a pleasure to support you !';
 											//Fin recuperation employee ACI 770
 
 											
-$message_html3= '<div dir="ltr" style="font-size:small"><br><table border="0" cellspacing="0" cellpadding="0" width="479" style="width:359.55pt;border-collapse:collapse;border:none"><tbody><tr><td width="108" valign="top" style="width:81pt;border-top:none;border-bottom:none;border-left:none;border-right:1pt solid windowtext;padding:0in 5.4pt"><p align="center" style="margin-bottom:0.0001pt;text-align:center"><img src="https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png" width="83" height="96"></p></td><td width="371" valign="top" style="width:278.55pt;border:none;padding:0in 5.4pt"><p style="margin-bottom:0.0001pt;line-height: 15px;"><b style="font-size:12.8px"><span lang="EN-US" style="font-family:Arial,sans-serif">'.$dataeaci['Employee_Name'].'<br></span></b><span style="font-family:Arial,sans-serif;font-size:9pt">'.$dataeaci['position'].' | AeroCanada Industries 770 Inc.</span></p><p style="font-size:12.8px"><i><span style="font-family:Americana"><b><font size="2">Your Perfect Choice For Aviation&nbsp;Solutions</font></b></span></i></p><p style="margin-bottom:0.0001pt;line-height: 15px;"><span style="font-family:Arial,sans-serif;font-size:9pt">dir. '.$dataeaci['tel'].' | mob.&nbsp;'.$dataeaci['mobile'].'<br></span><span style="font-family:Arial,sans-serif;font-size:9pt">tel. +1 514 80 06 223 | fax. +1 514 80 06 224<br></span><a href="mailto:roy@aerocanada.aero" style="color:rgb(17,85,204);font-family:Arial,sans-serif;font-size:9pt" target="_blank">'.$dataeaci['email'].'</a><span style="font-family:Arial,sans-serif;font-size:9pt">&nbsp;|&nbsp;</span><a href="http://www.aerocanada.aero/" style="color:rgb(17,85,204);font-family:Arial,sans-serif;font-size:9pt" target="_blank">http://www.aerocanada.aero</a><br><span style="font-family:Arial,sans-serif;font-size:9pt"><b>Skype:</b>&nbsp;'.$dataeaci['skype'].'</span></p><p style="margin-bottom:0.0001pt;line-height: 15px;"><b><u style="background-color:rgb(204,0,0)"><font color="#f3f3f3">OUR ADDRESS CHANGED:<br></font></u></b><span style="font-size:12.8px">99, Prince Street, 7th Floor, Suite#701<br></span><span style="font-size:12.8px">Montreal QC H3C 2M7, Canada</span></p><p style="margin-bottom:0.0001pt;line-height: 15px;"><font size="1">FAA AC00-56A |&nbsp;UNGM 256670 |&nbsp;NATO CAGE L06T4<br></font><a href="http://www.aerocanada.org/index.php/fr/aero-canada-accueil/conditions-generales-de-vente" style="color:rgb(17,85,204);font-size:x-small" target="_blank">Conditions Generales Vente</a><span style="font-size:x-small;color:rgb(0,0,0)">&nbsp;</span><span style="font-size:x-small;color:rgb(0,0,0)">/</span><span style="font-size:x-small;color:rgb(0,0,0)">&nbsp;</span><a href="http://www.aerocanada.org/index.php/en/aero-canada/terms-of-sale" style="color:rgb(17,85,204);font-size:x-small" target="_blank">Terms of Sale</a></p><div><br></div></td></tr></tbody></table></div>
-
-
-</td></tr><tr><td id="" align="center" style="padding:25px;font-size:12px;border:1px solid #BE0831"><a href="http://www.aerocanada.aero" target="_blank">www.aerocanada.aero</a> Ã¢â‚¬Â¢ phone: <a href="tel:+15148006223" value="+15148006223" target="_blank">+1 514 800 6223</a> Ã¢â‚¬Â¢ email <a href="sales@aerocanada.org" value="sales@aerocanada.org" target="_blank">sales@aerocanada.org</a> </td></tr></tbody></table></div>
-</body></html>';
+$message_html3 = aci_quote_email_signature_html($dataeaci);
 //==========
  
-//=====CrÃƒÂ©ation de la boundary
+//=====CrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ation de la boundary
 $boundary = "-----=".md5(rand());
 //==========
  
-//=====DÃƒÂ©finition du sujet.
+//=====DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©finition du sujet.
 $sujet = "ACI770 QUOTE - PN ".$datapn['Fld_Part_Nbr']." - ".$Fld_Condition_Text_aff." - ".$datapn['Fld_Part_Desc'];
 //=========
  
-//=====CrÃƒÂ©ation du header de l'e-mail.
+//=====CrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ation du header de l'e-mail.
 $header = "From: \"".$dataeaci['Employee_Name']."\"<".$dataeaci['email'].">".$passage_ligne;
 $header.= "Reply-to: \"".$dataeaci['Employee_Name']."\" <".$dataeaci['email'].">".$passage_ligne;
 $header.= "MIME-Version: 1.0".$passage_ligne;
 $header.= "Content-Type: multipart/alternative;".$passage_ligne." boundary=\"$boundary\"".$passage_ligne;
 //==========
  
-//=====CrÃƒÂ©ation du message.
+//=====CrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ation du message.
 $message = $passage_ligne."--".$boundary.$passage_ligne;
 //=====Ajout du message au format texte.
 $message.= "Content-Type: text/plain; charset=\"ISO-8859-1\"".$passage_ligne;

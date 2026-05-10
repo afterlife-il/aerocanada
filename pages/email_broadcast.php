@@ -2,6 +2,7 @@
 session_start();
 include_once "conf.php";
 include_once "page_titles.php";
+include_once "email_signature_helper.php";
 
 if ($_SESSION['conectroy'] == "parfait") {
 ?>
@@ -90,7 +91,7 @@ if (!empty($_POST['actonrfq']) && $_POST['actonrfq'] == 'addrfqft') {
 ?>
 
 <form method="post" enctype="multipart/form-data" name="Form1">
-    <!-- HIDDEN FIELDS (sÃƒÂ©curisÃƒÂ©s avec isset) -->
+    <!-- HIDDEN FIELDS (sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s avec isset) -->
     <input type="hidden" name="RFQ_ID"            value="<?php echo isset($_POST['Fld_RFQ_ID']) ? $_POST['Fld_RFQ_ID'] : ''; ?>">
     <input type="hidden" name="Fld_RFQ_ID"        value="<?php echo isset($_POST['Fld_RFQ_ID']) ? $_POST['Fld_RFQ_ID'] : ''; ?>">
     <input type="hidden" name="Fld_Qty"           value="<?php echo isset($_POST['Fld_Qty']) ? $_POST['Fld_Qty'] : ''; ?>">
@@ -137,8 +138,8 @@ if (empty($_POST['Fld_RFQ_ID'])) {
 
         $id_tbl_rfq1 = $datarfq['ID'];
         $daterfq     = $datarfq['date'];
-        // Employee ACI utilisÃƒÂ© pour la signature
-// 1) Si l'ID de l'employÃƒÂ© connectÃƒÂ© est en session -> on l'utilise
+        // Employee ACI utilisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© pour la signature
+// 1) Si l'ID de l'employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© connectÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© est en session -> on l'utilise
 // 2) Sinon on garde celui de la RFQ (comportement historique)
 if (isset($_SESSION['Employee_ID']) && (int)$_SESSION['Employee_ID'] > 0) {
     $contactaci = (int) $_SESSION['Employee_ID'];
@@ -158,7 +159,7 @@ if (isset($_SESSION['Employee_ID']) && (int)$_SESSION['Employee_ID'] > 0) {
 
             $Fld_Contact_Name = $datar['Fld_Contact_Name'];
 
-            // DonnÃƒÂ©es rÃƒÂ©cupÃƒÂ©rÃƒÂ©es de la page prÃƒÂ©cÃƒÂ©dente
+            // DonnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es de la page prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©dente
             $Fld_Qty_recup   = isset($_POST["Fld_Qty"])        ? $_POST["Fld_Qty"]        : 0;
             $Fld_Price_recup = isset($_POST["Fld_Price"])      ? $_POST["Fld_Price"]      : 0;
             $Fld_Currency_ID = isset($_POST["FldCurrencyID"])  ? $_POST["FldCurrencyID"]  : 1;
@@ -174,11 +175,9 @@ if (isset($_SESSION['Employee_ID']) && (int)$_SESSION['Employee_ID'] > 0) {
                 $passage_ligne = "\n";
             }
 
-            $message_txt = "Salut ÃƒÂ  tous, voici un e-mail envoyÃƒÂ© par un script PHP.";
+            $message_txt = "Salut ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  tous, voici un e-mail envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par un script PHP.";
 
-            $message_html = '<html><head></head><body>
-<div style="font-family:sans-serif;color:#000000;font-size:16px;margin:0px;padding:20px;">
-<table id="" style="border-collapse:collapse;border:1px solid #BE0831;background:#e9e9e9;color:#000000;"><tbody><tr style="height:100px"><td id="" style="padding:25px;border:1px solid #BE0831"><img src="https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png" width="83" height="96"></td></tr><tr><td id="" valign="top" style="padding:25px;border:1px solid #BE0831;line-height:24px">';
+            $message_html = aci_quote_email_header_html();
 
             // Priority
             $sqlPriority  = "SELECT Fld_Priority_Text FROM tbl_Priority WHERE Fld_Priority_ID=".(int)$_POST['Fld_Priority_ID'];
@@ -198,9 +197,9 @@ if (isset($_SESSION['Employee_ID']) && (int)$_SESSION['Employee_ID'] > 0) {
             if ($Fld_Currency_ID == '1') {
                 $currencySymbol = '$';        // USD
             } elseif ($Fld_Currency_ID == '2') {
-                $currencySymbol = 'Ã¢â€šÂ¬';        // EUR
+                $currencySymbol = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬';        // EUR
             } elseif ($Fld_Currency_ID == '3') {
-                $currencySymbol = 'Ã‚Â£';        // GBP
+                $currencySymbol = 'ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£';        // GBP
             }
 
             $nombre_format_francais = $currencySymbol . ' ' . number_format($Fld_Price_recup, 2, '.', ',');
@@ -257,11 +256,7 @@ Best Regards,<br>
             ];
 
             // Signature + footer (TA GROS BLOC ORIGINAL)
-            $message_html3 = '<div dir="ltr" style="font-size:small"><br><table border="0" cellspacing="0" cellpadding="0" width="479" style="width:359.55pt;border-collapse:collapse;border:none"><tbody><tr><td width="108" valign="top" style="width:81pt;border-top:none;border-bottom:none;border-left:none;border-right:1pt solid windowtext;padding:0in 5.4pt"><p align="center" style="margin-bottom:0.0001pt;text-align:center"><img src="https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png" width="83" height="96"></p></td><td width="371" valign="top" style="width:278.55pt;border:none;padding:0in 5.4pt"><p style="margin-bottom:0.0001pt;line-height: 15px;"><b style="font-size:12.8px"><span lang="EN-US" style="font-family:Arial,sans-serif">'.$dataeaci['Employee_Name'].'<br></span></b><span style="font-family:Arial,sans-serif;font-size:9pt">'.$dataeaci['position'].' | AeroCanada Industries 770 Inc.</span></p><p style="font-size:12.8px"><i><span style="font-family:Americana"><b><font size="2">Your Perfect Choice For Aviation&nbsp;Solutions</font></b></span></i></p><p style="margin-bottom:0.0001pt;line-height: 15px;"><span style="font-family:Arial,sans-serif;font-size:9pt">dir. '.$dataeaci['tel'].' | mob.&nbsp;'.$dataeaci['mobile'].'<br></span><span style="font-family:Arial,sans-serif;font-size:9pt">tel. +1 514 80 06 223 | fax. +1 514 80 06 224<br></span><a href="mailto:roy@aerocanada.aero" style="color:rgb(17,85,204);font-family:Arial,sans-serif;font-size:9pt" target="_blank">'.$dataeaci['email'].'</a><span style="font-family:Arial,sans-serif;font-size:9pt">&nbsp;|&nbsp;</span><a href="http://www.aerocanada.aero/" style="color:rgb(17,85,204);font-family:Arial,sans-serif;font-size:9pt" target="_blank">http://www.aerocanada.aero</a><br><span style="font-family:Arial,sans-serif;font-size:9pt"><b>Skype:</b>&nbsp;'.$dataeaci['skype'].'</span></p><p style="margin-bottom:0.0001pt;line-height: 15px;"><b><u style="background-color:rgb(204,0,0)"><font color="#f3f3f3">OUR ADDRESS CHANGED:<br></font></u></b><span style="font-size:12.8px">99, Prince Street, 7th Floor, Suite#701<br></span><span style="font-size:12.8px">Montreal QC H3C 2M7, Canada</span></p><p style="margin-bottom:0.0001pt;line-height: 15px;"><font size="1">FAA AC00-56A |&nbsp;UNGM 256670 |&nbsp;NATO CAGE L06T4<br></font><a href="http://www.aerocanada.org/index.php/fr/aero-canada-accueil/conditions-generales-de-vente" style="color:rgb(17,85,204);font-size:x-small" target="_blank">Conditions Generales Vente</a><span style="font-size:x-small;color:rgb(0,0,0)">&nbsp;</span><span style="font-size:x-small;color:rgb(0,0,0)">/</span><span style="font-size:x-small;color:rgb(0,0,0)">&nbsp;</span><a href="http://www.aerocanada.org/index.php/en/aero-canada/terms-of-sale" style="color:rgb(17,85,204);font-size:x-small" target="_blank">Terms of Sale</a></p><div><br></div></td></tr></tbody></table></div>
-
-
-</td></tr><tr><td id="" align="center" style="padding:25px;font-size:12px;border:1px solid #BE0831"><a href="http://www.aerocanada.aero" target="_blank">www.aerocanada.aero</a> Ã¢â‚¬Â¢ phone: <a href="tel:+15148006223" value="+15148006223" target="_blank">+1 514 800 6223</a> Ã¢â‚¬Â¢ email <a href="sales@aerocanada.org" value="sales@aerocanada.org" target="_blank">sales@aerocanada.org</a> </td></tr></tbody></table></div>
-</body></html>';
+            $message_html3 = aci_quote_email_signature_html($dataeaci);
 
             // ===== BOUNDARY / SUJET / HEADERS (comme avant) =====
             $boundary = "-----=".md5(rand());
@@ -284,7 +279,7 @@ Best Regards,<br>
             $message .= $passage_ligne."--".$boundary."--".$passage_ligne;
             $message .= $passage_ligne."--".$boundary."--".$passage_ligne;
 
-            // Envoi mail dÃƒÂ©sactivÃƒÂ© comme avant
+            // Envoi mail dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sactivÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© comme avant
             // mail($mail,$sujet,$message,$header);
             // mail("lamalol@gmail.com",$sujet,$message,$header);
 
@@ -356,7 +351,7 @@ Best Regards,<br>
         </div>
     </div>
 
-       <!-- JS vendors (copiÃƒÂ© d'une page qui marche) -->
+       <!-- JS vendors (copiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© d'une page qui marche) -->
     <script src="../vendor/jquery/jquery.min.js"></script>
     <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
     <script src="../vendor/metisMenu/metisMenu.min.js"></script>

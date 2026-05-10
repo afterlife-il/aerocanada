@@ -2,10 +2,11 @@
 session_start();
 include_once "conf.php";
 include_once "page_titles.php";
+include_once "email_signature_helper.php";
 
 if ($_SESSION['conectroy'] == "parfait") {
 
-    // DÃƒÂ©bug temporaire (tu peux remettre en commentaire quand tout sera bon)
+    // DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©bug temporaire (tu peux remettre en commentaire quand tout sera bon)
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
@@ -62,12 +63,12 @@ if ($_SESSION['conectroy'] == "parfait") {
 $debug_msgs = [];
 
 // ======================================================================
-// 1. RÃƒâ€°CUPÃƒâ€°RATION DES INFOS RFQ / CONTACT
+// 1. RÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°CUPÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°RATION DES INFOS RFQ / CONTACT
 // ======================================================================
 
-// RFQ ID est une chaÃƒÂ®ne du type 2025-11-18-112319 Ã¢â€ â€™ surtout pas de (int)
+// RFQ ID est une chaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â®ne du type 2025-11-18-112319 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ surtout pas de (int)
 $Fld_RFQ_ID = isset($_POST['Fld_RFQ_ID']) ? trim($_POST['Fld_RFQ_ID']) : '';
-$debug_msgs[] = "RFQ ID reÃƒÂ§u : " . $Fld_RFQ_ID;
+$debug_msgs[] = "RFQ ID reÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§u : " . $Fld_RFQ_ID;
 
 $datarfq          = null;
 $daterfq          = "";
@@ -76,7 +77,7 @@ $Fld_Contact_Name = "";
 $datar            = null;
 
 if ($Fld_RFQ_ID !== '') {
-    // On prend la DERNIÃƒË†RE ligne saisie pour ce RFQ (ORDER BY ID DESC)
+    // On prend la DERNIÃƒÆ’Ã†â€™Ãƒâ€¹Ã¢â‚¬Â RE ligne saisie pour ce RFQ (ORDER BY ID DESC)
     $sqlrfq = "
         SELECT *
         FROM tbl_RFQ_1
@@ -103,14 +104,14 @@ if ($Fld_RFQ_ID !== '') {
             $Fld_Contact_Name = $datar['Fld_Contact_Name'];
         }
     } else {
-        $debug_msgs[] = "Aucune ligne trouvÃƒÂ©e dans tbl_RFQ_1 pour ce RFQ.";
+        $debug_msgs[] = "Aucune ligne trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e dans tbl_RFQ_1 pour ce RFQ.";
     }
 } else {
-    $debug_msgs[] = "Attention : Fld_RFQ_ID manquant ou ÃƒÂ©gal ÃƒÂ  0.";
+    $debug_msgs[] = "Attention : Fld_RFQ_ID manquant ou ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©gal ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  0.";
 }
 
 // ======================================================================
-// 1.b DONNÃƒâ€°ES VENANT DU FORM QUOTE
+// 1.b DONNÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°ES VENANT DU FORM QUOTE
 // ======================================================================
 
 $Fld_Qty_recup   = isset($_POST["Fld_Qty"])   ? $_POST["Fld_Qty"]   : '';
@@ -118,17 +119,17 @@ $Fld_Price_recup = isset($_POST["Fld_Price"]) ? $_POST["Fld_Price"] : '';
 $Fld_Currency_ID = isset($_POST["FldCurrencyID"]) ? $_POST["FldCurrencyID"] : '1';
 
 // --------------------------------------------------
-// FORMATAGE PRIX POUR LE RÃƒâ€°SUMÃƒâ€°
+// FORMATAGE PRIX POUR LE RÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°SUMÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°
 // --------------------------------------------------
 $raw_price = str_replace([' ', "\xc2\xa0"], '', $Fld_Price_recup); // supprime espaces / nbsp
-$raw_price = str_replace(',', '.', $raw_price);                    // au cas oÃƒÂ¹
+$raw_price = str_replace(',', '.', $raw_price);                    // au cas oÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¹
 $price_number = (float)$raw_price;
 
 $currencySymbol = '';
 switch ($Fld_Currency_ID) {
     case '1': $currencySymbol = '$'; break;      // USD
-    case '2': $currencySymbol = 'Ã¢â€šÂ¬'; break;      // EUR
-    case '3': $currencySymbol = 'Ã‚Â£'; break;      // GBP
+    case '2': $currencySymbol = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬'; break;      // EUR
+    case '3': $currencySymbol = 'ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£'; break;      // GBP
     default:  $currencySymbol = '';  break;
 }
 
@@ -140,7 +141,7 @@ if ($price_number > 0) {
 }
 
 // --------------------------------------------------
-// EXTRACTION RFQ COMPLET + NOM CONTACT Ãƒâ‚¬ PARTIR DU TEXTE EMAIL
+// EXTRACTION RFQ COMPLET + NOM CONTACT ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ PARTIR DU TEXTE EMAIL
 // On essaie plusieurs noms de champs possibles pour le corps HTML
 // --------------------------------------------------
 $message_html2 = '';
@@ -149,13 +150,13 @@ $fields_possibles = ['message_html2', 'message_html', 'message2', 'message', 'me
 foreach ($fields_possibles as $fname) {
     if (isset($_POST[$fname]) && trim($_POST[$fname]) !== '') {
         $message_html2 = $_POST[$fname];
-        $debug_msgs[] = "Contenu email rÃƒÂ©cupÃƒÂ©rÃƒÂ© depuis le champ : " . $fname;
+        $debug_msgs[] = "Contenu email rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© depuis le champ : " . $fname;
         break;
     }
 }
 
 if ($message_html2 === '') {
-    $debug_msgs[] = "Aucun contenu HTML d'email trouvÃƒÂ© (tous les champs message_* sont vides).";
+    $debug_msgs[] = "Aucun contenu HTML d'email trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© (tous les champs message_* sont vides).";
 }
 
 $rfq_display     = $Fld_RFQ_ID;       // fallback
@@ -183,7 +184,7 @@ if ($mail == '') {
     $debug_msgs[] = "Email du contact client vide ou introuvable.";
 }
 
-// gestion du passage de ligne (gardÃƒÂ© comme ÃƒÂ  lÃ¢â‚¬â„¢origine mÃƒÂªme si on nÃ¢â‚¬â„¢en a plus besoin)
+// gestion du passage de ligne (gardÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© comme ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢origine mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªme si on nÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢en a plus besoin)
 if (!preg_match("#^[a-z0-9._-]+@(hotmail|live|msn).[a-z]{2,4}$#i", $mail)) {
     $passage_ligne = "\r\n";
 } else {
@@ -191,28 +192,13 @@ if (!preg_match("#^[a-z0-9._-]+@(hotmail|live|msn).[a-z]{2,4}$#i", $mail)) {
 }
 
 // ***** ENVELOPPE HTML COMPATIBLE OUTLOOK *****
-$message_html  = "<!DOCTYPE html>
-<html>
-<head>
-<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
-</head>
-<body style='margin:0;padding:0;'>
-<div style='font-family:sans-serif;color:#000000;font-size:16px;margin:0px;padding:20px;'>
-<table style='border-collapse:collapse;border:1px solid #BE0831;background:#e9e9e9;color:#000000;'>
-<tbody>
-<tr style='height:100px'>
-<td style='padding:25px;border:1px solid #BE0831'>
-<img src='https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png' width='83' height='96'>
-</td>
-</tr>
-<tr>
-<td valign='top' style='padding:25px;border:1px solid #BE0831;line-height:24px'>";
+$message_html = aci_quote_email_header_html();
 
 // on reprend exactement le HTML saisi dans le formulaire
 $message_html .= $message_html2;
 
 // ======================================================================
-// 2.b SIGNATURE EMPLOYÃƒâ€° (tbl_Employee)
+// 2.b SIGNATURE EMPLOYÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â° (tbl_Employee)
 // ======================================================================
 $contactaci = $contactaci > 0 ? $contactaci : (int)$_SESSION['id_utilisateur'];
 $sqleaci    = "SELECT * FROM tbl_Employee WHERE Employee_ID = " . $contactaci;
@@ -220,7 +206,7 @@ $reqeaci    = mysql2_query($sqleaci);
 $dataeaci   = $reqeaci ? mysqli_fetch_array($reqeaci) : null;
 
 if (!$dataeaci) {
-    $debug_msgs[] = "Impossible de rÃƒÂ©cupÃƒÂ©rer les infos de l'employÃƒÂ© ACI770 (signature).";
+    $debug_msgs[] = "Impossible de rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer les infos de l'employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© ACI770 (signature).";
     $dataeaci = [
         'Employee_Name' => '',
         'position'      => '',
@@ -231,79 +217,20 @@ if (!$dataeaci) {
     ];
 }
 
-$message_html .= "
-<div dir='ltr' style='font-size:small'><br>
-<table border='0' cellspacing='0' cellpadding='0' width='479' style='width:359.55pt;border-collapse:collapse;border:none'>
-<tbody>
-<tr>
-<td width='108' valign='top' style='width:81pt;border-top:none;border-bottom:none;border-left:none;border-right:1pt solid windowtext;padding:0in 5.4pt'>
-<p align='center' style='margin-bottom:0.0001pt;text-align:center'>
-<img src='https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png' width='83' height='96'>
-</p>
-</td>
-<td width='371' valign='top' style='width:278.55pt;border:none;padding:0in 5.4pt'>
-<p style='margin-bottom:0.0001pt;line-height: 15px;'>
-<b style='font-size:12.8px'>
-<span lang='EN-US' style='font-family:Arial,sans-serif'>" . $dataeaci['Employee_Name'] . "<br></span>
-</b>
-<span style='font-family:Arial,sans-serif;font-size:9pt'>" . $dataeaci['position'] . " | AeroCanada Industries 770 Inc.</span>
-</p>
-<p style='font-size:12.8px'>
-<i><span style='font-family:Americana'><b><font size='2'>Your Perfect Choice For Aviation&nbsp;Solutions</font></b></span></i>
-</p>
-<p style='margin-bottom:0.0001pt;line-height: 15px;'>
-<span style='font-family:Arial,sans-serif;font-size:9pt'>dir. " . $dataeaci['tel'] . " | mob.&nbsp;" . $dataeaci['mobile'] . "<br></span>
-<span style='font-family:Arial,sans-serif;font-size:9pt'>tel. +1 514 80 06 223 | fax. +1 514 80 06 224<br></span>
-<a href='mailto:" . $dataeaci['email'] . "' style='color:rgb(17,85,204);font-family:Arial,sans-serif;font-size:9pt' target='_blank'>" . $dataeaci['email'] . "</a>
-<span style='font-family:Arial,sans-serif;font-size:9pt'>&nbsp;|&nbsp;</span>
-<a href='http://www.aerocanada.aero/' style='color:rgb(17,85,204);font-family:Arial,sans-serif;font-size:9pt' target='_blank'>http://www.aerocanada.aero</a><br>
-<span style='font-family:Arial,sans-serif;font-size:9pt'><b>Skype:</b>&nbsp;" . $dataeaci['skype'] . "</span>
-</p>
-<p style='margin-bottom:0.0001pt;line-height: 15px;'>
-<b><u style='background-color:rgb(204,0,0)'><font color='#f3f3f3'>OUR ADDRESS CHANGED:<br></font></u></b>
-<span style='font-size:12.8px'>99, Prince Street, 7th Floor, Suite#701<br></span>
-<span style='font-size:12.8px'>Montreal QC H3C 2M7, Canada</span>
-</p>
-
-<p style='margin-bottom:0.0001pt;line-height: 15px;'>
-<font size='1'>FAA AC00-56A |&nbsp;UNGM 256670 |&nbsp;NATO CAGE L06T4<br></font>
-<a href='http://www.aerocanada.org/index.php/fr/aero-canada-accueil/conditions-generales-de-vente' style='color:rgb(17,85,204);font-size:x-small' target='_blank'>Conditions Generales Vente</a>
-<span style='font-size:x-small;color:rgb(0,0,0)'>&nbsp;/&nbsp;</span>
-<a href='http://www.aerocanada.org/index.php/en/aero-canada/terms-of-sale' style='color:rgb(17,85,204);font-size:x-small' target='_blank'>Terms of Sale</a>
-</p>
-<div><br></div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-
-</td>
-</tr>
-<tr>
-<td align='center' style='padding:25px;font-size:12px;border:1px solid #BE0831'>
-<a href='http://www.aerocanada.aero' target='_blank'>www.aerocanada.aero</a> Ã¢â‚¬Â¢ phone:
-<a href='tel:+15148006223' value='+15148006223' target='_blank'>+1 514 800 6223</a> Ã¢â‚¬Â¢ email
-<a href='sales@aerocanada.org' value='sales@aerocanada.org' target='_blank'>sales@aerocanada.org</a>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</body></html>";
+$message_html .= aci_quote_email_signature_html($dataeaci);
 
 $sujet = isset($_POST['sujet']) ? (string)$_POST['sujet'] : 'Quotation';
 
 // ======================================================================
-// 3. UPLOAD DES PIÃƒË†CES JOINTES
+// 3. UPLOAD DES PIÃƒÆ’Ã†â€™Ãƒâ€¹Ã¢â‚¬Â CES JOINTES
 // ======================================================================
 
 $uploaddir = __DIR__ . '/uploads/';   // /var/www/.../pages/uploads/
 
-// si le dossier n'existe pas, on le crÃƒÂ©e
+// si le dossier n'existe pas, on le crÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e
 if (!is_dir($uploaddir)) {
     if (!mkdir($uploaddir, 0755, true)) {
-        $debug_msgs[] = "Impossible de crÃƒÂ©er le dossier d'uploads : " . $uploaddir;
+        $debug_msgs[] = "Impossible de crÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©er le dossier d'uploads : " . $uploaddir;
     }
 }
 
@@ -319,7 +246,7 @@ function aci_upload_file($field_name, $uploaddir, &$debug_msgs)
         $debug_msgs[] = "Upload OK pour " . $field_name . " -> " . basename($uploadfile);
         return $uploadfile;
     } else {
-        $debug_msgs[] = "Ãƒâ€°chec upload pour " . $field_name;
+        $debug_msgs[] = "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°chec upload pour " . $field_name;
         return "no";
     }
 }
@@ -329,7 +256,7 @@ $uploadfile2 = aci_upload_file('userfile2', $uploaddir, $debug_msgs);
 $uploadfile3 = aci_upload_file('userfile3', $uploaddir, $debug_msgs);
 
 // ======================================================================
-// 4. RÃƒâ€°CUP COMPTE GMAIL EMPLOYÃƒâ€° + PHPMailer (version moderne)
+// 4. RÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°CUP COMPTE GMAIL EMPLOYÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â° + PHPMailer (version moderne)
 // ======================================================================
 
 // PHPMailer 6.x (dans /pages/phpmailer6)
@@ -340,7 +267,7 @@ require_once __DIR__ . '/phpmailer6/Exception.php';
 // Classe users existante
 require('../classes/users.class.php');
 
-// utilisateur connectÃƒÂ©
+// utilisateur connectÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
 $objet  = new users();
 $donnee = $objet->display_employee($_SESSION['id_utilisateur']);
 
@@ -355,7 +282,7 @@ foreach ($donnee as $dataemp) {
 }
 
 if ($emailemplo == '' || $pwgmaero == '') {
-    $debug_msgs[] = "Attention : email ou mot de passe Gmail (pwgmaero) de l'employÃƒÂ© non dÃƒÂ©fini.";
+    $debug_msgs[] = "Attention : email ou mot de passe Gmail (pwgmaero) de l'employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© non dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fini.";
 }
 
 /**
@@ -375,7 +302,7 @@ function smtpMailer(
     $uploadfile3,
     &$debug_msgs
 ) {
-    // On utilise le namespace complet pour ÃƒÂ©viter les "use" en haut de fichier
+    // On utilise le namespace complet pour ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©viter les "use" en haut de fichier
     $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
 
     try {
@@ -387,18 +314,18 @@ function smtpMailer(
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
 
-        // MÃƒÂªme rÃƒÂ©glage que ton ancien code : SSL sur 465
-        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS; // ÃƒÂ©quivalent "ssl"
+        // MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªme rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©glage que ton ancien code : SSL sur 465
+        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS; // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©quivalent "ssl"
         $mail->Port       = 465;
 
         $mail->CharSet    = 'UTF-8';
-        $mail->Encoding   = 'base64'; // PHPMailer 6 gÃƒÂ¨re bien ÃƒÂ§a
+        $mail->Encoding   = 'base64'; // PHPMailer 6 gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re bien ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a
 
         // Identifiants SMTP (Gmail)
         $mail->Username   = $emailemplo;
         $mail->Password   = $pwgmaero;
 
-        // ExpÃƒÂ©diteur = employÃƒÂ©
+        // ExpÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©diteur = employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
         $mail->setFrom($emailemplo, $employeeName);
         $mail->addReplyTo($emailemplo, $employeeName);
 
@@ -415,7 +342,7 @@ function smtpMailer(
                     $mail->addCC($ccAddr);
                 } else {
                     if ($ccAddr !== '') {
-                        $debug_msgs[] = "CC ignorÃƒÂ© (email invalide) : " . htmlspecialchars($ccAddr);
+                        $debug_msgs[] = "CC ignorÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© (email invalide) : " . htmlspecialchars($ccAddr);
                     }
                 }
             }
@@ -432,11 +359,11 @@ function smtpMailer(
 
         // Version texte (pour Outlook / mode "texte seul")
         $plain = (string)$body;
-        // <br> -> retour ÃƒÂ  la ligne
+        // <br> -> retour ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  la ligne
         $plain = preg_replace('#<\s*br\s*/?\s*>#i', "\n", $plain);
-        // </p> -> retour ÃƒÂ  la ligne
+        // </p> -> retour ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  la ligne
         $plain = preg_replace('#</\s*p\s*>#i', "\n", $plain);
-        // On enlÃƒÂ¨ve le reste du HTML
+        // On enlÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨ve le reste du HTML
         $plain = strip_tags($plain);
         // Compacte les espaces multiples
         $plain = preg_replace('/[ \t]+/', ' ', $plain);
@@ -445,7 +372,7 @@ function smtpMailer(
         $mail->AltBody = trim($plain);
 
         // =======================
-        // PiÃƒÂ¨ces jointes
+        // PiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨ces jointes
         // =======================
         $files = [$uploadfile, $uploadfile2, $uploadfile3];
 
@@ -467,11 +394,11 @@ function smtpMailer(
 
             if ($mime) {
                 $mail->addAttachment($path, basename($path), 'base64', $mime);
-                $debug_msgs[] = "PiÃƒÂ¨ce jointe envoyÃƒÂ©e : " . basename($path) . " (" . $mime . ")";
+                $debug_msgs[] = "PiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨ce jointe envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e : " . basename($path) . " (" . $mime . ")";
             } else {
-                // Autres types Ã¢â€ â€™ on laisse PHPMailer deviner
+                // Autres types ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ on laisse PHPMailer deviner
                 $mail->addAttachment($path);
-                $debug_msgs[] = "PiÃƒÂ¨ce jointe envoyÃƒÂ©e (MIME auto) : " . basename($path);
+                $debug_msgs[] = "PiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨ce jointe envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e (MIME auto) : " . basename($path);
             }
         }
 
@@ -496,7 +423,7 @@ function smtpMailer(
 $clientemail_raw = isset($_POST['clientemail']) ? $_POST['clientemail'] : '';
 $cc_raw = isset($_POST['emailcc']) ? $_POST['emailcc'] : '';
 
-// Emails en copie (CC) Ã¢â‚¬â€œ on essaie plusieurs noms possibles au cas oÃƒÂ¹
+// Emails en copie (CC) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ on essaie plusieurs noms possibles au cas oÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¹
 $cc_raw = '';
 if (isset($_POST['emailcc'])) {
     $cc_raw = $_POST['emailcc'];
@@ -507,7 +434,7 @@ if (isset($_POST['emailcc'])) {
 }
 
 /**
- * Parse une chaÃƒÂ®ne d'emails sÃƒÂ©parÃƒÂ©s par virgule/espace/point-virgule
+ * Parse une chaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â®ne d'emails sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©parÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s par virgule/espace/point-virgule
  * et retourne un tableau d'adresses valides.
  */
 function aci_parse_emails($raw, &$debug_msgs, $label = 'TO')
@@ -519,7 +446,7 @@ function aci_parse_emails($raw, &$debug_msgs, $label = 'TO')
         return $list;
     }
 
-    // On coupe d'abord sur les virgules / points-virgules (sÃƒÂ©paration classique des adresses)
+    // On coupe d'abord sur les virgules / points-virgules (sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©paration classique des adresses)
     $chunks = preg_split('/[;,]+/', $raw);
 
     foreach ($chunks as $chunk) {
@@ -528,7 +455,7 @@ function aci_parse_emails($raw, &$debug_msgs, $label = 'TO')
             continue;
         }
 
-        // Si on a un format "Nom <email@domaine.com>", on rÃƒÂ©cupÃƒÂ¨re juste ce qui est entre <>
+        // Si on a un format "Nom <email@domaine.com>", on rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re juste ce qui est entre <>
         if (preg_match('/<([^>]+)>/', $chunk, $m)) {
             $addr = trim($m[1]);
         } else {
@@ -538,7 +465,7 @@ function aci_parse_emails($raw, &$debug_msgs, $label = 'TO')
         if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
             $list[] = $addr;
         } else {
-            $debug_msgs[] = "Adresse email invalide ignorÃƒÂ©e dans $label : " . htmlspecialchars($chunk);
+            $debug_msgs[] = "Adresse email invalide ignorÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e dans $label : " . htmlspecialchars($chunk);
         }
     }
 
@@ -553,7 +480,7 @@ $listCC    = aci_parse_emails($cc_raw,        $debug_msgs, 'CC');
 // Fallback : si aucun TO mais au moins un CC, on utilise le 1er CC comme destinataire principal
 if (empty($listmails) && !empty($listCC)) {
     $listmails[] = array_shift($listCC); // retire le 1er CC et le met en TO
-    $debug_msgs[] = "Aucun TO fourni, premier CC utilisÃƒÂ© comme destinataire principal.";
+    $debug_msgs[] = "Aucun TO fourni, premier CC utilisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© comme destinataire principal.";
 }
 
 $nbmails = count($listmails);
@@ -634,15 +561,15 @@ if ($quoteLogId > 0) {
     if (!mysql2_query($sqlLog)) {
         $debug_msgs[] = "Impossible de journaliser l'envoi quotation ID $quoteLogId : " . mysqli_error($conn);
     } else {
-        $debug_msgs[] = "Envoi journalisÃƒÂ© sur quotation ID $quoteLogId.";
+        $debug_msgs[] = "Envoi journalisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© sur quotation ID $quoteLogId.";
     }
 } else {
-    $debug_msgs[] = "Aucune ligne tbl_RFQ_3 trouvÃƒÂ©e pour journaliser cet envoi.";
+    $debug_msgs[] = "Aucune ligne tbl_RFQ_3 trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e pour journaliser cet envoi.";
 }
 
 
 // ======================================================================
-// 6. AFFICHAGE : DEBUG + RÃƒâ€°CAP + APERÃƒâ€¡U EMAIL
+// 6. AFFICHAGE : DEBUG + RÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°CAP + APERÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡U EMAIL
 // ======================================================================
 ?>
 
@@ -661,11 +588,11 @@ if ($quoteLogId > 0) {
     $allOk    = (count($onlyTrue) === count($send_results));
     ?>
     <div class="alert alert-<?php echo $allOk ? 'success' : 'warning'; ?>">
-        <strong>RÃƒÂ©sultat envoi email :</strong><br>
+        <strong>RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sultat envoi email :</strong><br>
         <?php
         foreach ($send_results as $email => $res) {
             if ($res === true) {
-                echo htmlspecialchars($email) . " : envoyÃƒÂ© avec succÃƒÂ¨s.<br>";
+                echo htmlspecialchars($email) . " : envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© avec succÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s.<br>";
             } else {
                 echo htmlspecialchars($email) . " : " . htmlspecialchars($res) . "<br>";
             }
@@ -674,13 +601,13 @@ if ($quoteLogId > 0) {
     </div>
 <?php else : ?>
     <div class="alert alert-warning">
-        Aucun email n'a ÃƒÂ©tÃƒÂ© envoyÃƒÂ© (voir section debug ci-dessus).
+        Aucun email n'a ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© (voir section debug ci-dessus).
     </div>
 <?php endif; ?>
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        <strong>RÃƒÂ©sumÃƒÂ© de la cotation envoyÃƒÂ©e</strong>
+        <strong>RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sumÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© de la cotation envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e</strong>
     </div>
     <div class="panel-body">
         <p><strong>RFQ :</strong> RFQ # <?php echo htmlspecialchars($rfq_display); ?></p>
@@ -688,9 +615,9 @@ if ($quoteLogId > 0) {
         <p><strong>Email(s) client :</strong> <?php echo htmlspecialchars($clientemail_raw); ?></p>
         <p><strong>CC :</strong> <?php echo htmlspecialchars($cc_raw); ?></p>
         <p><strong>Sujet :</strong> <?php echo htmlspecialchars($sujet); ?></p>
-        <p><strong>QtÃƒÂ© :</strong> <?php echo htmlspecialchars($Fld_Qty_recup); ?> |
+        <p><strong>QtÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© :</strong> <?php echo htmlspecialchars($Fld_Qty_recup); ?> |
            <strong>Prix :</strong> <?php echo htmlspecialchars($price_display); ?></p>
-        <p><strong>PiÃƒÂ¨ces jointes :</strong>
+        <p><strong>PiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨ces jointes :</strong>
             <?php
             $att = [];
             if ($uploadfile  != "no") $att[] = basename($uploadfile);
@@ -738,15 +665,15 @@ if ($sentQuotePn !== '') {
 ?>
 <div style="margin-bottom:15px;">
     <a href="<?php echo $back_url; ?>" class="btn btn-default">
-        Ã¢â€ Â Back to Part-Nbr
+        ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â Back to Part-Nbr
     </a>
-    <!-- Cancel renvoie aussi sur le mÃƒÂªme PN, mais sans forcer le rechargement de lÃ¢â‚¬â„¢email -->
+    <!-- Cancel renvoie aussi sur le mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªme PN, mais sans forcer le rechargement de lÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢email -->
     <a href="<?php echo $back_url; ?>" class="btn btn-default">
         Cancel / Go back
     </a>
 </div>
 
-<h3>AperÃƒÂ§u de l'email envoyÃƒÂ©</h3>
+<h3>AperÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§u de l'email envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©</h3>
 <div style="border:1px solid #ccc;padding:10px;background:#fff;margin-bottom:20px;">
     <?php echo $message_html; ?>
 </div>
@@ -754,10 +681,10 @@ if ($sentQuotePn !== '') {
 
 <?php
 // ======================================================================
-// 7. NETTOYAGE DES FICHIERS UPLOADÃƒâ€°S (dans le mÃƒÂªme dossier)
+// 7. NETTOYAGE DES FICHIERS UPLOADÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°S (dans le mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªme dossier)
 // ======================================================================
 
-// On supprime uniquement les fichiers rÃƒÂ©ellement uploadÃƒÂ©s pour cette quotation
+// On supprime uniquement les fichiers rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ellement uploadÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s pour cette quotation
 if ($uploadfile != "no" && is_file($uploadfile)) {
     unlink($uploadfile);
 }
