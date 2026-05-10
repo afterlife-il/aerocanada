@@ -919,7 +919,10 @@ if ($numrows_rfq > 0) {
         $datarfq3 = null;
         $sqlrfq3  = "SELECT * 
                      FROM tbl_RFQ_3 
-                     WHERE Fld_RFQ_ID='".$datarfq1['Fld_RFQ_ID']."' 
+                     WHERE Fld_RFQ_ID='".$datarfq1['Fld_RFQ_ID']."'
+                       AND Fld_Part_Id=".(int)$partIdForRfq."
+                       AND id_tbl_rfq1=".(int)$datarfq1['ID']."
+                     ORDER BY ID DESC
                      LIMIT 1";
         $reqrfq3  = mysql2_query($sqlrfq3);
         if ($reqrfq3 && mysqli_num_rows($reqrfq3) > 0) {
@@ -1002,9 +1005,8 @@ if ($numrows_rfq > 0) {
         // ---------------------------------------------------------------------------------
         echo "<tr>
             <td style='border:1px solid ".$prioritescss.";'>
-                <a href=\"javascript:void(0);\" 
-                   data-href=\"getContent.php?id=".$datarfq1['ID']."\" 
-                   class=\"openPopup\">
+                <a href=\"".($rfq3_id > 0 ? "return_email_quote.php?ID=".$rfq3_id : "javascript:void(0);")."\"
+                   ".($rfq3_id > 0 ? "" : "data-href=\"getContent.php?id=".$datarfq1['ID']."\" class=\"openPopup\"").">
                     <i class=\"fa fa-plane\"></i>
                 </a>
             </td>

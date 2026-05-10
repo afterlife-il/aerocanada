@@ -95,6 +95,12 @@ if($_SESSION['conectroy']=="parfait"){
 	
 						<form action="validation-send-email-quotation.php" method="post">
 						<input type="hidden" name="RFQ_ID" value="<?php echo $data['Fld_RFQ_ID'];?>">
+						<input type="hidden" name="Fld_RFQ_ID" value="<?php echo $data['Fld_RFQ_ID'];?>">
+						<input type="hidden" name="quote_id" value="<?php echo (int)$data['ID'];?>">
+						<input type="hidden" name="id_tbl_rfq1" value="<?php echo (int)$data['id_tbl_rfq1'];?>">
+						<input type="hidden" name="idrfq1" value="<?php echo (int)$data['id_tbl_rfq1'];?>">
+						<input type="hidden" name="selected_source_type" value="<?php echo htmlspecialchars($data['source_type'] ?? '', ENT_QUOTES, 'UTF-8');?>">
+						<input type="hidden" name="selected_source_id" value="<?php echo (int)($data['source_id'] ?? 0);?>">
 						<input type="hidden" name="Fld_Qty" value="<?php echo $data['Fld_Qty'];?>">
 						<input type="hidden" name="Fld_Price" value="<?php echo $data['Fld_Price'];?>">
 						<input type="hidden" name="Fld_Part_Nbr" value="<?php echo $datapn['Fld_Part_Nbr'];?>">
@@ -115,6 +121,10 @@ if($_SESSION['conectroy']=="parfait"){
 //recuperation info RFQ 
 //	ID Fld_RFQ_ID  Fld_Qty  Fld_Part_ID  Fld_Observation  Fld_Customer_ID  date  Fld_RFQ_Type_ID  Fld_Priority_ID  Employee_ID  id_company_contact  Fld_Payment_Term_ID  Fld_Condition_ID  pn_rfq  description_rfq
 $sqlrfq="SELECT * from tbl_RFQ_1 where Fld_RFQ_ID='".$data['Fld_RFQ_ID']."'";
+if (!empty($data['id_tbl_rfq1'])) {
+    $sqlrfq .= " AND ID=".(int)$data['id_tbl_rfq1'];
+}
+$sqlrfq .= " ORDER BY ID DESC LIMIT 1";
 // echo $sqlrfq;
 
 $reqrfq = mysql2_query($sqlrfq);

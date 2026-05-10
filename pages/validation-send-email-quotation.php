@@ -599,13 +599,17 @@ $sendStatusLog = empty($send_results) ? 'NO_RECIPIENT' : ($allOkLog ? 'SENT' : '
 $sendMailFlag = $allOkLog ? 'YES' : 'NO';
 
 $quoteWhere = "Fld_RFQ_ID='" . mysqli_real_escape_string($conn, $Fld_RFQ_ID) . "'";
-if (!empty($_POST['id_tbl_rfq1'])) {
-    $quoteWhere .= " AND id_tbl_rfq1=" . (int)$_POST['id_tbl_rfq1'];
-} elseif (!empty($_POST['idrfq1'])) {
-    $quoteWhere .= " AND id_tbl_rfq1=" . (int)$_POST['idrfq1'];
-}
-if (!empty($_POST['part_id'])) {
-    $quoteWhere .= " AND Fld_Part_Id=" . (int)$_POST['part_id'];
+if (!empty($_POST['quote_id'])) {
+    $quoteWhere .= " AND ID=" . (int)$_POST['quote_id'];
+} else {
+    if (!empty($_POST['id_tbl_rfq1'])) {
+        $quoteWhere .= " AND id_tbl_rfq1=" . (int)$_POST['id_tbl_rfq1'];
+    } elseif (!empty($_POST['idrfq1'])) {
+        $quoteWhere .= " AND id_tbl_rfq1=" . (int)$_POST['idrfq1'];
+    }
+    if (!empty($_POST['part_id'])) {
+        $quoteWhere .= " AND Fld_Part_Id=" . (int)$_POST['part_id'];
+    }
 }
 
 $quoteLookup = mysql2_query("SELECT ID FROM tbl_RFQ_3 WHERE $quoteWhere ORDER BY ID DESC LIMIT 1");
@@ -708,19 +712,37 @@ if ($quoteLogId > 0) {
 </div>
 
 <?php
-// Lien retour vers la fiche Part-Nbr correspondant au RFQ
-// Priorité : PN texte (pn_rfq) → c’est ce qui apparaît dans l’URL ?pn=XXXX
+// Lien retour vers la fiche Part-Nbr correspondant a la cotation reellement envoyee.
 $back_url = 'Part-Nbr.php';
+$sentQuotePn = '';
+$sentQuotePartId = 0;
 
-if (!empty($_POST['pn_rfq'])) {
-    // PN envoyé par le formulaire
-    $back_url .= '?pn=' . urlencode($_POST['pn_rfq']);
-} elseif (!empty($datarfq['pn_rfq'])) {
-    // PN enregistré dans tbl_RFQ_1
-    $back_url .= '?pn=' . urlencode($datarfq['pn_rfq']);
-} elseif (!empty($datarfq['Fld_Part_ID'])) {
-    // Dernier recours : ID interne de la pièce
-    $back_url .= '?part_id=' . (int)$datarfq['Fld_Part_ID'];
+if (!empty($quoteLogId)) {
+    $sqlBackPn = "
+        SELECT q.Fld_Part_Id, p.Fld_Part_Nbr
+        FROM tbl_RFQ_3 q
+        LEFT JOIN tbl_Parts p ON q.Fld_Part_Id = p.Fld_Part_ID
+        WHERE q.ID = " . (int)$quoteLogId . "
+        LIMIT 1
+    ";
+    $reqBackPn = mysql2_query($sqlBackPn);
+    if ($reqBackPn && $rowBackPn = mysqli_fetch_assoc($reqBackPn)) {
+        $sentQuotePn = trim((string)($rowBackPn['Fld_Part_Nbr'] ?? ''));
+        $sentQuotePartId = (int)($rowBackPn['Fld_Part_Id'] ?? 0);
+    }
+}
+
+if ($sentQuotePn === '' && !empty($_POST['Fld_Part_Nbr'])) {
+    $sentQuotePn = trim((string)$_POST['Fld_Part_Nbr']);
+}
+if ($sentQuotePartId <= 0 && !empty($_POST['part_id'])) {
+    $sentQuotePartId = (int)$_POST['part_id'];
+}
+
+if ($sentQuotePn !== '') {
+    $back_url .= '?pn=' . urlencode($sentQuotePn);
+} elseif ($sentQuotePartId > 0) {
+    $back_url .= '?part_id=' . $sentQuotePartId;
 }
 ?>
 <div style="margin-bottom:15px;">
