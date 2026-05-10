@@ -148,6 +148,11 @@ if ($_SESSION['conectroy'] == "parfait") {
 
                         <form method="post" name="Form1">
                             <input type="hidden" name="action" value="add_multi_pn_rfq">
+                            <input type="hidden" name="selected_source_type" id="selected_source_type" value="">
+                            <input type="hidden" name="selected_source_id" id="selected_source_id" value="">
+                            <input type="hidden" name="selected_source_supplier" id="selected_source_supplier" value="">
+                            <input type="hidden" name="selected_source_price" id="selected_source_price" value="">
+                            <input type="hidden" name="selected_source_remarks" id="selected_source_remarks" value="">
                             <div class="panel-body">
                                 <div class="row">
                                     <!-- RFQ ID -->
@@ -647,7 +652,43 @@ if ($_SESSION['conectroy'] == "parfait") {
 
         $(document).on('click', '.js-use-stock-source', function(){
           var btn = $(this);
-          var msg = 'Selected stock source: ' + (btn.data('pn') || '') + ' | Qty: ' + (btn.data('qty') || '') + ' | Condition: ' + (btn.data('condition') || '') + ' | Location: ' + (btn.data('location') || '');
+          var qty = btn.data('qty') || '';
+          var conditionId = btn.data('condition-id') || '';
+          var conditionText = btn.data('condition') || '';
+          var supplier = btn.data('supplier') || '';
+          var price = btn.data('price') || '';
+          var priceText = btn.data('price-text') || price;
+          var remarks = btn.data('remarks') || '';
+          var pn = btn.data('pn') || '';
+          var description = btn.data('description') || '';
+          var stockId = btn.data('stock-id') || '';
+          var sourceType = btn.data('source-type') || 'STOCK';
+
+          if (pn) $('#pnid').val(pn);
+          if (description) $('#description').val(description);
+          if (qty !== '') $('#Fld_Qty').val(qty);
+          if (conditionId !== '') {
+            $('select[name="Fld_Condition_ID"]').val(String(conditionId));
+          } else if (conditionText !== '') {
+            $('select[name="Fld_Condition_ID"] option').filter(function(){
+              return $.trim($(this).text()) === $.trim(conditionText);
+            }).prop('selected', true);
+          }
+          if (remarks !== '') $('#Fld_Remark_rfq').val(remarks);
+
+          $('#selected_source_type').val('STOCK-' + sourceType);
+          $('#selected_source_id').val(stockId);
+          $('#selected_source_supplier').val(supplier);
+          $('#selected_source_price').val(price);
+          $('#selected_source_remarks').val(remarks);
+
+          var msg = 'Selected source: STOCK'
+            + ' | ' + sourceType
+            + ' | PN: ' + pn
+            + ' | Qty: ' + qty
+            + ' | Condition: ' + conditionText
+            + (supplier ? ' | Supplier: ' + supplier : '')
+            + (priceText ? ' | Price: ' + priceText : '');
           btn.closest('div[id^="sq_content_"]').find('.js-source-choice').remove();
           btn.closest('div[id^="sq_content_"]').prepend('<div class="alert alert-success js-source-choice" style="margin:8px 0">'+msg+'</div>');
         });

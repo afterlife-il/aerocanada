@@ -47,13 +47,16 @@ function renderStockSection($title, $sourceType, $req, $emptyText) {
         $sn = $r['sn'] ?? $r['Fld_Part_SN'] ?? '';
         $qty = $r['qty'] ?? $r['Fld_Qty'] ?? '';
         $condition = $r['condition_text'] ?? $r['condition_part'] ?? '';
+        $conditionId = $r['condition_id'] ?? $r['Fld_Condition_ID'] ?? '';
         $release = $r['release_text'] ?? '';
         if ($release === '' && isset($r['release_tag'])) {
             $release = trim(($r['release_tag'] ?? '') . ' ' . ($r['release_tag2'] ?? ''));
         }
         $supplier = $r['supplier_name'] ?? $r['company_name'] ?? '';
         $location = $r['location_text'] ?? $r['Fld_Warehouse_Location'] ?? $r['location'] ?? '';
-        $price = moneyText($r['price'] ?? $r['Fld_Part_Price'] ?? '', $r['currency_text'] ?? '');
+        $priceRaw = $r['price'] ?? $r['Fld_Part_Price'] ?? '';
+        $currency = $r['currency_text'] ?? '';
+        $price = moneyText($priceRaw, $currency);
         $remarks = trim(($r['remarks'] ?? $r['Fld_Stock_Remark'] ?? '') . ' ' . ($r['sales_remarks'] ?? $r['Fld_Sales_Remark'] ?? ''));
         $stockId = (int)($r['stock_id'] ?? $r['Fld_Stock_ID'] ?? $r['Fld_Stock_externe_ID'] ?? $r['id_stock_part'] ?? 0);
 
@@ -62,11 +65,17 @@ function renderStockSection($title, $sourceType, $req, $emptyText) {
             ." data-stock-id='".$stockId."'"
             ." data-source-type='".h($sourceType)."'"
             ." data-pn='".h($pn)."'"
+            ." data-description='".h($desc)."'"
             ." data-condition='".h($condition)."'"
+            ." data-condition-id='".h($conditionId)."'"
+            ." data-supplier='".h($supplier)."'"
             ." data-location='".h($location)."'"
             ." data-sn='".h($sn)."'"
             ." data-qty='".h($qty)."'"
-            ." data-price='".h($price)."'>Use this Stock</button></td>";
+            ." data-price='".h($priceRaw)."'"
+            ." data-price-text='".h($price)."'"
+            ." data-currency='".h($currency)."'"
+            ." data-remarks='".h($remarks)."'>Use this Stock</button></td>";
         echo "<td>".h($sourceType)."</td>";
         echo "<td>".h($pn)."</td>";
         echo "<td>".h($desc)."</td>";
@@ -92,6 +101,7 @@ $sqlAci = "SELECT
         p.Fld_Part_Desc AS description,
         s.Fld_Part_SN,
         s.Fld_Qty,
+        s.Fld_Condition_ID AS condition_id,
         cond.Fld_Condition_Text AS condition_text,
         rel.Fld_Release_Text AS release_text,
         supplier.Fld_Company_Name AS supplier_name,
@@ -117,6 +127,7 @@ $sqlExternal = "SELECT
         p.Fld_Part_Desc AS description,
         se.Fld_Part_SN,
         se.Fld_Qty,
+        se.Fld_Condition_ID AS condition_id,
         cond.Fld_Condition_Text AS condition_text,
         rel.Fld_Release_Text AS release_text,
         COALESCE(company.Fld_Company_Name, supplier.Fld_Company_Name) AS company_name,
