@@ -11,6 +11,8 @@ $donnee = $objet->modif_quote();
 $id = (int)$_POST['ID'];
 if (!empty($_POST['send_quotation'])) {
     echo "<META http-equiv=\"refresh\" content=\"0;URL=return_email_quote.php?ID=".$id."\">";
+} elseif (!empty($_POST['clean_mode'])) {
+    echo "<META http-equiv=\"refresh\" content=\"0;URL=modif_quotations.php?ID=".$id."&mode=clean\">";
 } else {
     echo "<META http-equiv=\"refresh\" content=\"0;URL=modif_quotations.php?ID=".$id."\">";
 }

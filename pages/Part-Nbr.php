@@ -1005,7 +1005,7 @@ if ($numrows_rfq > 0) {
         // ---------------------------------------------------------------------------------
         echo "<tr>
             <td style='border:1px solid ".$prioritescss.";'>
-                <a href=\"".($rfq3_id > 0 ? "modif_quotations.php?ID=".$rfq3_id : "javascript:void(0);")."\"
+                <a href=\"".($rfq3_id > 0 ? "modif_quotations.php?ID=".$rfq3_id."&mode=clean" : "javascript:void(0);")."\"
                    ".($rfq3_id > 0 ? "" : "data-href=\"getContent.php?id=".$datarfq1['ID']."\" class=\"openPopup\"").">
                     <i class=\"fa fa-plane\"></i>
                 </a>

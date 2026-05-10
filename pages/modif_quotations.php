@@ -3,6 +3,268 @@ session_start();
 include_once "conf.php";
 include_once "page_titles.php";
 if($_SESSION['conectroy']=="parfait"){
+if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
+    $quoteId = (int)($_GET['ID'] ?? 0);
+
+    function qh($value) {
+        return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+    }
+
+    function renderQuoteOptions($sql, $valueField, $labelField, $selected) {
+        $req = mysql2_query($sql);
+        while($row = mysqli_fetch_array($req)) {
+            $value = $row[$valueField];
+            echo "<option value='".qh($value)."'";
+            if((string)$value === (string)$selected) echo " selected";
+            echo ">".qh($row[$labelField])."</option>";
+        }
+    }
+
+    function sourceInfoForQuote($sourceType, $sourceId) {
+        $sourceType = trim((string)$sourceType);
+        $sourceId = (int)$sourceId;
+        if($sourceType === '' || $sourceId <= 0) {
+            return array('type' => '', 'supplier' => '', 'price' => '', 'currency' => '');
+        }
+
+        if(stripos($sourceType, 'SQ') !== false) {
+            $sql = "SELECT r2.Fld_Price AS price, cur.Fld_Currency_Text AS currency, s.Fld_Company_Name AS supplier
+                FROM tbl_RFQ_2 r2
+                LEFT JOIN tb_company s ON r2.Fld_Supplier_ID = s.Fld_Company_ID
+                LEFT JOIN tbl_Currency cur ON r2.Fld_Currency_ID = cur.Fld_Currency_ID
+                WHERE r2.ID='".$sourceId."'
+                LIMIT 1";
+        } elseif(stripos($sourceType, 'External') !== false) {
+            $sql = "SELECT se.Fld_Part_Price AS price, cur.Fld_Currency_Text AS currency, COALESCE(company.Fld_Company_Name, supplier.Fld_Company_Name) AS supplier
+                FROM tbl_Stock_external se
+                LEFT JOIN tb_company supplier ON se.Fld_Supplier_ID = supplier.Fld_Company_ID
+                LEFT JOIN tb_company company ON se.Fld_Company_ID = company.Fld_Company_ID
+                LEFT JOIN tbl_Currency cur ON se.Fld_Price_Currency_ID = cur.Fld_Currency_ID
+                WHERE se.Fld_Stock_externe_ID='".$sourceId."'
+                LIMIT 1";
+        } else {
+            $sql = "SELECT s.Fld_Part_Price AS price, cur.Fld_Currency_Text AS currency, supplier.Fld_Company_Name AS supplier
+                FROM tbl_Stock s
+                LEFT JOIN tb_company supplier ON s.Fld_Supplier_ID = supplier.Fld_Company_ID
+                LEFT JOIN tbl_Currency cur ON s.Fld_Price_Currency_ID = cur.Fld_Currency_ID
+                WHERE s.Fld_Stock_ID='".$sourceId."'
+                LIMIT 1";
+        }
+
+        $req = mysql2_query($sql);
+        $row = $req ? mysqli_fetch_array($req) : null;
+        return array(
+            'type' => $sourceType,
+            'supplier' => $row['supplier'] ?? '',
+            'price' => $row['price'] ?? '',
+            'currency' => $row['currency'] ?? ''
+        );
+    }
+
+    $sql = "SELECT q.*,
+            p.Fld_Part_Nbr,
+            p.Fld_Part_Desc,
+            r.Fld_Customer_ID,
+            r.id_company_contact,
+            cust.Fld_Company_Name AS customer_name,
+            contact.Fld_Contact_Name,
+            contact.Fld_Contact_Email,
+            cond.Fld_Condition_Text,
+            cur.Fld_Currency_Text,
+            rel.Fld_Release_Text,
+            tag.Fld_Company_Name AS tag_info_name,
+            trace.Fld_Company_Name AS traceability_name
+        FROM tbl_RFQ_3 q
+        LEFT JOIN tbl_Parts p ON q.Fld_Part_Id = p.Fld_Part_ID
+        LEFT JOIN tbl_RFQ_1 r ON q.id_tbl_rfq1 = r.ID
+        LEFT JOIN tb_company cust ON r.Fld_Customer_ID = cust.Fld_Company_ID
+        LEFT JOIN tb_company_contact contact ON r.id_company_contact = contact.id_company_contact
+        LEFT JOIN tbl_Condition cond ON q.Fld_Condition = cond.Fld_Condition_ID
+        LEFT JOIN tbl_Currency cur ON q.Fld_Currency_ID = cur.Fld_Currency_ID
+        LEFT JOIN tbl_Release rel ON q.Fld_Release_ID = rel.Fld_Release_ID
+        LEFT JOIN tb_company tag ON q.Fld_Tag_Info_ID = tag.Fld_Company_ID
+        LEFT JOIN tb_company trace ON q.Fld_Traceability_ID = trace.Fld_Company_ID
+        WHERE q.ID='".$quoteId."'
+        LIMIT 1";
+    $req = mysql2_query($sql);
+    $data = $req ? mysqli_fetch_array($req) : null;
+
+    if(!$data) {
+        echo "<!DOCTYPE html><html><head><meta charset='utf-8'><link href='../vendor/bootstrap/css/bootstrap.min.css' rel='stylesheet'></head><body><div class='container' style='margin-top:30px'><div class='alert alert-danger'>Quotation not found.</div></div></body></html>";
+        exit;
+    }
+
+    if((empty($data['customer_name']) || empty($data['Fld_Contact_Name'])) && !empty($data['Fld_RFQ_ID'])) {
+        $fallbackSql = "SELECT cust.Fld_Company_Name AS customer_name, contact.Fld_Contact_Name, contact.Fld_Contact_Email
+            FROM tbl_RFQ_1 r
+            LEFT JOIN tb_company cust ON r.Fld_Customer_ID = cust.Fld_Company_ID
+            LEFT JOIN tb_company_contact contact ON r.id_company_contact = contact.id_company_contact
+            WHERE r.Fld_RFQ_ID='".addslashes($data['Fld_RFQ_ID'])."'
+            ORDER BY r.ID DESC
+            LIMIT 1";
+        $fallbackReq = mysql2_query($fallbackSql);
+        $fallback = $fallbackReq ? mysqli_fetch_array($fallbackReq) : null;
+        if($fallback) {
+            if(empty($data['customer_name'])) $data['customer_name'] = $fallback['customer_name'];
+            if(empty($data['Fld_Contact_Name'])) $data['Fld_Contact_Name'] = $fallback['Fld_Contact_Name'];
+            if(empty($data['Fld_Contact_Email'])) $data['Fld_Contact_Email'] = $fallback['Fld_Contact_Email'];
+        }
+    }
+
+    $source = sourceInfoForQuote($data['source_type'] ?? '', $data['source_id'] ?? 0);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quotation Preparation</title>
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <style>
+        body { background:#f5f5f5; }
+        .quote-shell { max-width:1180px; margin:22px auto; }
+        .quote-header { background:#fff; border:1px solid #ddd; padding:16px 18px; margin-bottom:14px; }
+        .quote-title { margin:0; font-size:22px; font-weight:600; }
+        .quote-card { background:#fff; border:1px solid #ddd; padding:16px; margin-bottom:14px; }
+        .quote-card h4 { margin-top:0; font-size:16px; font-weight:600; }
+        .quote-context dt { width:120px; }
+        .quote-context dd { margin-left:135px; margin-bottom:6px; }
+        .form-actions { text-align:right; padding:14px 0 4px; }
+        textarea.form-control { min-height:92px; }
+    </style>
+</head>
+<body>
+<div class="quote-shell">
+    <div class="quote-header">
+        <h1 class="quote-title">Quotation Preparation</h1>
+        <div class="text-muted">Review and adjust the quote before preparing the customer email.</div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-7">
+            <div class="quote-card">
+                <h4>Context</h4>
+                <dl class="dl-horizontal quote-context">
+                    <dt>RFQ ID</dt><dd><?php echo qh($data['Fld_RFQ_ID']); ?></dd>
+                    <dt>PN</dt><dd><?php echo qh($data['Fld_Part_Nbr']); ?></dd>
+                    <dt>Description</dt><dd><?php echo qh($data['Fld_Part_Desc']); ?></dd>
+                    <dt>Customer</dt><dd><?php echo qh($data['customer_name']); ?></dd>
+                    <dt>Contact</dt><dd><?php echo qh($data['Fld_Contact_Name']); ?> <?php if(!empty($data['Fld_Contact_Email'])) echo '&lt;'.qh($data['Fld_Contact_Email']).'&gt;'; ?></dd>
+                </dl>
+            </div>
+        </div>
+        <div class="col-sm-5">
+            <div class="quote-card">
+                <h4>Source</h4>
+                <?php if(!empty($source['type'])) { ?>
+                    <dl class="dl-horizontal quote-context">
+                        <dt>Type</dt><dd><?php echo qh($source['type']); ?> #<?php echo (int)$data['source_id']; ?></dd>
+                        <dt>Supplier</dt><dd><?php echo qh($source['supplier']); ?></dd>
+                        <dt>Source Price</dt><dd><?php echo qh($source['price']); ?> <?php echo qh($source['currency']); ?></dd>
+                    </dl>
+                <?php } else { ?>
+                    <div class="text-muted">No stock or supplier quote source is linked to this customer quote.</div>
+                <?php } ?>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" action="valid_modif_quotation.php">
+        <input type="hidden" name="ID" value="<?php echo (int)$data['ID']; ?>">
+        <input type="hidden" name="clean_mode" value="1">
+        <input type="hidden" name="Fld_RFQ_ID" value="<?php echo qh($data['Fld_RFQ_ID']); ?>">
+        <input type="hidden" name="Fld_Quote_Date" value="<?php echo qh($data['Fld_Quote_Date']); ?>">
+        <input type="hidden" name="Fld_Part_Id" value="<?php echo (int)$data['Fld_Part_Id']; ?>">
+        <input type="hidden" name="Fld_Traceability_ID" value="<?php echo qh($data['Fld_Traceability_ID']); ?>">
+        <input type="hidden" name="Fld_Tag_Info_ID" value="<?php echo qh($data['Fld_Tag_Info_ID']); ?>">
+        <input type="hidden" name="Fld_Priority_ID" value="<?php echo qh($data['Fld_Priority_ID']); ?>">
+        <input type="hidden" name="moq" value="<?php echo qh($data['moq']); ?>">
+
+        <div class="quote-card">
+            <h4>Quote Data</h4>
+            <div class="row">
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Qty</label>
+                        <input class="form-control" name="Fld_Qty" value="<?php echo qh($data['Fld_Qty']); ?>">
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Condition</label>
+                        <select class="form-control" name="Fld_Condition">
+                            <?php renderQuoteOptions("SELECT Fld_Condition_ID, Fld_Condition_Text FROM tbl_Condition ORDER BY Fld_Condition_Text", 'Fld_Condition_ID', 'Fld_Condition_Text', $data['Fld_Condition']); ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Price</label>
+                        <input class="form-control" name="Fld_Price" value="<?php echo qh($data['Fld_Price']); ?>">
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label>Currency</label>
+                        <select class="form-control" name="Fld_Currency_ID">
+                            <?php renderQuoteOptions("SELECT Fld_Currency_ID, Fld_Currency_Text FROM tbl_Currency ORDER BY Fld_Currency_Text", 'Fld_Currency_ID', 'Fld_Currency_Text', $data['Fld_Currency_ID']); ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Certification / Release</label>
+                        <select class="form-control" name="Fld_Release_ID">
+                            <?php renderQuoteOptions("SELECT Fld_Release_ID, Fld_Release_Text FROM tbl_Release ORDER BY Fld_Release_Text", 'Fld_Release_ID', 'Fld_Release_Text', $data['Fld_Release_ID']); ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Delivery</label>
+                        <input class="form-control" name="lead_time" value="<?php echo qh($data['lead_time']); ?>">
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Part SN</label>
+                        <input class="form-control" name="Fld_Part_SN" value="<?php echo qh($data['Fld_Part_SN']); ?>">
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Tag Info</label>
+                        <input class="form-control" value="<?php echo qh($data['tag_info_name']); ?>">
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Tag Date</label>
+                        <input class="form-control" name="Fld_Tag_Date" value="<?php echo qh($data['Fld_Tag_Date']); ?>">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Remarks</label>
+                <textarea class="form-control" name="Fld_Remark"><?php echo qh($data['Fld_Remark']); ?></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" name="send_quotation" value="1" class="btn btn-danger btn-lg">
+                    <i class="fa fa-paper-plane"></i> Send Quotation
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>
+<?php
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
