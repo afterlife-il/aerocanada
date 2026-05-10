@@ -61,7 +61,7 @@ if($_SESSION['conectroy']=="parfait"){
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-lg-12">
-                        <h1 class="page-header">Validation Quote</h1>
+                        <h1 class="page-header">Step 2: Review and send email</h1>
 					</div>
 				</div>	
 				
@@ -290,7 +290,7 @@ echo $message_html;
 	<?php 
 	echo $message_html3;
 	?>	
-<div align="center"><input type="submit"></div>
+<div align="center"><button type="submit" class="btn btn-danger btn-lg">Send Email to Customer</button></div>
 
 						</form>
 										</div>

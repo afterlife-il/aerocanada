@@ -265,8 +265,10 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
         textarea.form-control { min-height:92px; }
         .source-table { font-size:12px; background:#fff; }
         .source-table th { background:#eee; }
+        .source-table tr.source-selected td { background:#dff0d8; border-top:2px solid #3c763d; border-bottom:2px solid #3c763d; }
         .source-empty { margin:0 0 10px; }
         .source-summary { margin-top:8px; }
+        .selected-source-title { font-weight:bold; display:block; margin-bottom:3px; }
     </style>
 </head>
 <body>
@@ -325,7 +327,7 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
                 <div class="col-sm-5">
                     <div class="form-group">
                         <label>Contact</label>
-                        <select class="form-control" name="customer_contact_id">
+                        <select class="form-control" name="customer_contact_id" id="customer_contact_id">
                             <?php
                             $contactSql = "SELECT id_company_contact, Fld_Contact_Name, Fld_Contact_Email
                                 FROM tb_company_contact
@@ -333,12 +335,13 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
                                 ORDER BY Fld_Contact_Name";
                             $contactReq = mysql2_query($contactSql);
                             while($contactRow = mysqli_fetch_array($contactReq)) {
-                                echo "<option value='".(int)$contactRow['id_company_contact']."'";
+                                echo "<option value='".(int)$contactRow['id_company_contact']."' data-email='".qh($contactRow['Fld_Contact_Email'])."'";
                                 if((int)$contactRow['id_company_contact'] === (int)$data['id_company_contact']) echo " selected";
                                 echo ">".qh($contactRow['Fld_Contact_Name'])." - ".qh($contactRow['Fld_Contact_Email'])."</option>";
                             }
                             ?>
                         </select>
+                        <p id="selected-contact-email" class="help-block">Email will be sent to: <?php echo qh($data['Fld_Contact_Email']); ?></p>
                     </div>
                 </div>
             </div>
@@ -346,7 +349,9 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
 
         <div class="quote-card">
             <h4>Available Sources</h4>
+            <p class="text-muted">Select the best available source before sending quotation.</p>
             <div id="source-current" class="alert alert-info source-summary">
+                <span class="selected-source-title">SELECTED SOURCE</span>
                 Current source:
                 <strong><?php echo qh($source['type'] ?: 'None'); ?></strong>
                 <?php if(!empty($data['source_id'])) echo '#'.(int)$data['source_id']; ?>
@@ -431,8 +436,8 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
                 <textarea class="form-control" name="Fld_Remark"><?php echo qh($data['Fld_Remark']); ?></textarea>
             </div>
             <div class="form-actions">
-                <button type="submit" name="send_quotation" value="1" class="btn btn-danger btn-lg">
-                    <i class="fa fa-paper-plane"></i> Send Quotation
+                <button type="submit" name="send_quotation" value="1" class="btn btn-danger btn-lg" id="prepare-email-btn">
+                    <i class="fa fa-paper-plane"></i> Prepare Email
                 </button>
             </div>
         </div>
@@ -453,7 +458,10 @@ $(document).on('click', '.js-use-source', function(){
     var sourceId = btn.data('source-id');
     var supplier = btn.data('supplier') || '';
     var currency = btn.data('currency') || '';
+    var condition = btn.data('condition') || '';
 
+    $('.source-table tr').removeClass('source-selected');
+    btn.closest('tr').addClass('source-selected');
     $('#source_type').val(sourceType);
     $('#source_id').val(sourceId);
     $('input[name="Fld_Qty"]').val(qty);
@@ -465,9 +473,38 @@ $(document).on('click', '.js-use-source', function(){
     $('textarea[name="Fld_Remark"]').val(remarks);
 
     $('#source-current').removeClass('alert-info').addClass('alert-success')
-        .html('Selected source: <strong>' + $('<div>').text(sourceType).html() + '</strong> #' + sourceId
-            + (supplier ? ' | ' + $('<div>').text(supplier).html() : '')
-            + (price ? ' | ' + $('<div>').text(price + ' ' + currency).html() : ''));
+        .html('<span class="selected-source-title">SELECTED SOURCE</span>'
+            + 'Type: <strong>' + $('<div>').text(sourceType).html() + '</strong> #' + sourceId
+            + '<br>Supplier: ' + $('<div>').text(supplier || '').html()
+            + '<br>Price: ' + $('<div>').text((price || '') + ' ' + (currency || '')).html()
+            + '<br>Condition: ' + $('<div>').text(condition || '').html());
+});
+
+$('#customer_contact_id').on('change', function(){
+    var email = $(this).find('option:selected').data('email') || '';
+    $('#selected-contact-email').text('Email will be sent to: ' + email);
+});
+
+$('#prepare-email-btn').on('click', function(e){
+    var sourceType = $.trim($('#source_type').val());
+    var contactEmail = $.trim($('#customer_contact_id option:selected').data('email') || '');
+    var price = parseFloat($('input[name="Fld_Price"]').val());
+
+    if (!sourceType) {
+        alert('Please select a source before preparing the email.');
+        e.preventDefault();
+        return false;
+    }
+    if (!contactEmail) {
+        alert('Please select a customer contact with an email address.');
+        e.preventDefault();
+        return false;
+    }
+    if (isNaN(price) || price <= 0) {
+        alert('Please enter a price greater than 0 before preparing the email.');
+        e.preventDefault();
+        return false;
+    }
 });
 </script>
 </body>
