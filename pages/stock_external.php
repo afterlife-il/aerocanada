@@ -77,9 +77,14 @@ if($_SESSION['conectroy']=="parfait"){
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
+                            <form id="externalStockBulkForm" method="post" action="delete_external_stock.php">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmExternalStockBulkDelete();">Delete selected</button>
+                            </div>
                             <table width="100%" class="table table-striped table-bordered table-hover" id="dataTablesStock">
                                 <thead>
                                     <tr>
+                    <th><input type="checkbox" id="selectAllExternalStock"></th>
 					<th>PN</th>
 					<th>DESCRIPTION</th>
                     <th>Fld_Qty</th> 
@@ -87,11 +92,13 @@ if($_SESSION['conectroy']=="parfait"){
 	                <th>Company</th>
                     <th>Fld_Physical_Stock</th> 
                     <th>Fld_Entry_Date</th> 
+                    <th>ACTIONS</th> 
 
                                     </tr>
                                 </thead>
                                
                             </table>
+                            </form>
 							       
                             <!-- /.table-responsive -->
                         </div>
@@ -136,10 +143,26 @@ if($_SESSION['conectroy']=="parfait"){
          "responsive": true,
 		"processing": true,
         "serverSide": true,
-        "ajax": "stockexternaldata.php"
+        "ajax": "stockexternaldata.php",
+        "columnDefs": [
+            { "orderable": false, "searchable": false, "targets": [0, 8] }
+        ],
+        "order": [[1, "asc"]]
 
         });
+
+        $('#selectAllExternalStock').on('change', function() {
+            $('.external-stock-check').prop('checked', this.checked);
+        });
     });
+
+    function confirmExternalStockBulkDelete() {
+        if ($('.external-stock-check:checked').length === 0) {
+            alert('Please select at least one external stock row.');
+            return false;
+        }
+        return confirm('Delete selected external stock rows?');
+    }
        
     </script>
 

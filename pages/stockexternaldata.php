@@ -20,22 +20,24 @@ $length = max(10, intval($requestData['length'] ?? 25));
 
 /*
  * Must match pages/stock_external.php THEAD exactly:
- * 0 PN
- * 1 DESCRIPTION
- * 2 Fld_Qty
- * 3 Fld_Condition_ID (display condition label)
- * 4 Company
- * 5 Fld_Physical_Stock
- * 6 Fld_Entry_Date
+ * 0 checkbox
+ * 1 PN
+ * 2 DESCRIPTION
+ * 3 Fld_Qty
+ * 4 Fld_Condition_ID (display condition label)
+ * 5 Company
+ * 6 Fld_Physical_Stock
+ * 7 Fld_Entry_Date
+ * 8 ACTIONS
  */
 $columns = array(
-    0 => 'p.Fld_Part_Nbr',
-    1 => 'p.Fld_Part_Desc',
-    2 => 'se.Fld_Qty',
-    3 => 'cond.Fld_Condition_Text',
-    4 => 'company.Fld_Company_Name',
-    5 => 'se.Fld_Physical_Stock',
-    6 => 'se.Fld_Entry_Date'
+    1 => 'p.Fld_Part_Nbr',
+    2 => 'p.Fld_Part_Desc',
+    3 => 'se.Fld_Qty',
+    4 => 'cond.Fld_Condition_Text',
+    5 => 'company.Fld_Company_Name',
+    6 => 'se.Fld_Physical_Stock',
+    7 => 'se.Fld_Entry_Date'
 );
 
 $baseSql = "
@@ -105,14 +107,22 @@ if (!$query) {
 
 $data = array();
 while ($row = mysqli_fetch_assoc($query)) {
+    $stockId = (int)$row['Fld_Stock_externe_ID'];
+    $pn = $row['Fld_Part_Nbr'] ?? '';
+    $pnHtml = htmlspecialchars($pn, ENT_QUOTES, 'UTF-8');
+    $pnUrl = rawurlencode($pn);
     $data[] = array(
-        htmlspecialchars($row['Fld_Part_Nbr'] ?? '', ENT_QUOTES, 'UTF-8'),
+        '<input type="checkbox" class="external-stock-check" name="ids[]" value="'.$stockId.'">',
+        $pnHtml,
         htmlspecialchars($row['Fld_Part_Desc'] ?? '', ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($row['Fld_Qty'] ?? '', ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($row['Fld_Condition_Text'] ?? '', ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($row['Fld_Company_Name'] ?? '', ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($row['Fld_Physical_Stock'] ?? '', ENT_QUOTES, 'UTF-8'),
-        htmlspecialchars($row['Fld_Entry_Date'] ?? '', ENT_QUOTES, 'UTF-8')
+        htmlspecialchars($row['Fld_Entry_Date'] ?? '', ENT_QUOTES, 'UTF-8'),
+        '<a class="btn btn-default btn-xs" href="Part-Nbr.php?pn='.$pnUrl.'">View PN</a> '.
+        '<a class="btn btn-primary btn-xs" href="modif_external_stock.php?id='.$stockId.'">Edit</a> '.
+        '<a class="btn btn-danger btn-xs" href="delete_external_stock.php?id='.$stockId.'" onclick="return confirm(\'Delete this external stock row?\');">Delete</a>'
     );
 }
 
