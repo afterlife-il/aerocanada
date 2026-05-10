@@ -3,184 +3,129 @@ session_start();
 include_once "conf.php";
 include_once "page_titles.php";
 
-// Activer l'affichage des erreurs pour le débogage
+if (!isset($_SESSION["conectroy"]) || $_SESSION["conectroy"] !== "parfait") {
+    echo json_encode(["draw"=>0,"recordsTotal"=>0,"recordsFiltered"=>0,"data"=>[]]);
+    exit;
+}
+
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Capture de la sortie pour éviter tout caractère non désiré
+ini_set("display_errors", 0);
 ob_start();
+header('Content-Type: application/json; charset=utf-8');
 
-// S'assurer que le script renvoie du JSON
-header('Content-Type: application/json');
-
-// Récupération des données de la requête
 $requestData = $_REQUEST;
+$draw = intval($requestData['draw'] ?? 0);
+$start = max(0, intval($requestData['start'] ?? 0));
+$length = max(10, intval($requestData['length'] ?? 25));
 
-$columns = array( 
-    0 => 'Fld_Stock_externe_ID',
-    1 => 'Fld_Part_ID', 
-    2 => 'Fld_Part_SN', 
-    3 => 'Fld_Supplier_ID', 
-    4 => 'Fld_Entry_Date', 
-    5 => 'Fld_Part_Price', 
-    6 => 'Fld_Price_Currency_ID', 
-    7 => 'Fld_BAX_PO_Nbr', 
-    8 => 'Fld_Supplier_order_Date', 
-    9 => 'Fld_Supplier_Payment_Date', 
-    10 => 'Fld_Qty', 
-    11 => 'Fld_Condition_ID', 
-    12 => 'Fld_Release_ID', 
-    13 => 'Fld_Tag_Info_ID', 
-    14 => 'Fld_Tag_Date', 
-    15 => 'Fld_Traceability_ID', 
-    16 => 'Fld_Warehouse_Location', 
-    17 => 'Fld_Physical_Stock', 
-    18 => 'Fld_Owner_ID', 
-    19 => 'Fld_Stock_Location_ID', 
-    20 => 'Fld_Status_ID', 
-    21 => 'Fld_Status_Ind', 
-    22 => 'Fld_Status_Date', 
-    23 => 'Fld_Stock_Remark', 
-    24 => 'Fld_Shelf_Life_Limit', 
-    25 => 'Fld_Valeur_Comptable', 
-    26 => 'Fld_Valeur_Comptable_currency_Id', 
-    27 => 'Fld_Sales_Remark', 
-    28 => 'Fld_External_Location', 
-    29 => 'Fld_Sales_Remark_ID', 
-    30 => 'Fld_Warehouse_Location_ID', 
-    31 => 'Fld_OriginalUnit_Stock_ID', 
-    32 => 'Fld_Min_Qty', 
-    33 => 'Fld_Publish',
-    34 => 'status',
-    35 => 'Fld_AC_ID',
-    36 => 'Fld_Company_ID'
+/*
+ * Must match pages/stock_external.php THEAD exactly:
+ * 0 PN
+ * 1 DESCRIPTION
+ * 2 Fld_Qty
+ * 3 Fld_Condition_ID (display condition label)
+ * 4 Company
+ * 5 Fld_Physical_Stock
+ * 6 Fld_Entry_Date
+ */
+$columns = array(
+    0 => 'p.Fld_Part_Nbr',
+    1 => 'p.Fld_Part_Desc',
+    2 => 'se.Fld_Qty',
+    3 => 'cond.Fld_Condition_Text',
+    4 => 'company.Fld_Company_Name',
+    5 => 'se.Fld_Physical_Stock',
+    6 => 'se.Fld_Entry_Date'
 );
 
-// Récupération du nombre total d'enregistrements sans filtre
-$sql = "SELECT * FROM tbl_Stock_external";
-$query = mysqli_query($conn, $sql);
+$baseSql = "
+    FROM tbl_Stock_external se
+    LEFT JOIN tbl_Parts p ON se.Fld_Part_ID = p.Fld_Part_ID
+    LEFT JOIN tbl_Condition cond ON se.Fld_Condition_ID = cond.Fld_Condition_ID
+    LEFT JOIN tb_company company ON se.Fld_Company_ID = company.Fld_Company_ID
+    WHERE 1=1
+";
 
-if (!$query) {
-    echo json_encode(["error" => "Erreur SQL: " . mysqli_error($conn)]);
-    ob_end_clean();
-    exit;
+$totalQuery = mysqli_query($conn, "SELECT COUNT(*) AS c FROM tbl_Stock_external");
+$totalData = $totalQuery ? intval(mysqli_fetch_assoc($totalQuery)['c']) : 0;
+
+$search = trim($requestData['search']['value'] ?? '');
+if ($search !== '') {
+    $s = mysqli_real_escape_string($conn, $search);
+    $baseSql .= "
+      AND (
+        p.Fld_Part_Nbr LIKE '%$s%' OR
+        p.Fld_Part_Desc LIKE '%$s%' OR
+        se.Fld_Qty LIKE '%$s%' OR
+        cond.Fld_Condition_Text LIKE '%$s%' OR
+        company.Fld_Company_Name LIKE '%$s%' OR
+        se.Fld_Physical_Stock LIKE '%$s%' OR
+        se.Fld_Entry_Date LIKE '%$s%' OR
+        se.Fld_Stock_Remark LIKE '%$s%' OR
+        se.Fld_Sales_Remark LIKE '%$s%'
+      )
+    ";
 }
 
-$totalData = mysqli_num_rows($query);
-$totalFiltered = $totalData;
+$filteredQuery = mysqli_query($conn, "SELECT COUNT(*) AS c $baseSql");
+$totalFiltered = $filteredQuery ? intval(mysqli_fetch_assoc($filteredQuery)['c']) : 0;
 
-// Préparation de la requête SQL pour la recherche
-$sql = "SELECT tbl_Stock_external.*, tbl_Parts.Fld_Part_Nbr, tbl_Parts.Fld_Part_Desc 
-        FROM tbl_Stock_external 
-        LEFT JOIN tbl_Parts ON tbl_Stock_external.Fld_Part_ID = tbl_Parts.Fld_Part_ID 
-        WHERE 1 = 1";
+$orderIdx = intval($requestData['order'][0]['column'] ?? 0);
+$dir = strtolower($requestData['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
+$orderCol = $columns[$orderIdx] ?? 'p.Fld_Part_Nbr';
 
-if (!empty($requestData['search']['value'])) {
-    $searchValue = mysqli_real_escape_string($conn, $requestData['search']['value']);
-    $sql .= " AND (tbl_Stock_external.Fld_Stock_externe_ID LIKE '%" . $searchValue . "%' ";
-
-    $sql2 = "SHOW COLUMNS FROM tbl_Stock_external";
-    $query2 = mysqli_query($conn, $sql2);
-
-    if (!$query2) {
-        echo json_encode(["error" => "Erreur SQL: " . mysqli_error($conn)]);
-        ob_end_clean();
-        exit;
-    }
-
-    while ($row2 = mysqli_fetch_array($query2)) {
-        $sql .= " OR tbl_Stock_external." . $row2["Field"] . " LIKE '%" . $searchValue . "%' ";
-    }
-
-    $sql .= ") OR (tbl_Parts.Fld_Part_Nbr LIKE '%" . $searchValue . "%' OR tbl_Parts.Fld_Part_Desc LIKE '%" . $searchValue . "%')";
-}
+$sql = "
+    SELECT
+      se.Fld_Stock_externe_ID,
+      p.Fld_Part_Nbr,
+      p.Fld_Part_Desc,
+      se.Fld_Qty,
+      cond.Fld_Condition_Text,
+      company.Fld_Company_Name,
+      se.Fld_Physical_Stock,
+      se.Fld_Entry_Date
+    $baseSql
+    ORDER BY $orderCol $dir, se.Fld_Stock_externe_ID DESC
+    LIMIT $start, $length
+";
 
 $query = mysqli_query($conn, $sql);
-
 if (!$query) {
-    echo json_encode(["error" => "Erreur SQL: " . mysqli_error($conn)]);
+    $out = [
+        "draw" => $draw,
+        "recordsTotal" => $totalData,
+        "recordsFiltered" => $totalFiltered,
+        "data" => [],
+        "error" => "SQL: " . mysqli_error($conn)
+    ];
     ob_end_clean();
-    exit;
-}
-
-$totalFiltered = mysqli_num_rows($query); // Modification du total filtré en fonction des résultats de recherche
-$sql .= " ORDER BY tbl_Stock_external." . $columns[$requestData['order'][0]['column']] . " " . mysqli_real_escape_string($conn, $requestData['order'][0]['dir']) . " LIMIT " . intval($requestData['start']) . ", " . intval($requestData['length']);
-
-$query = mysqli_query($conn, $sql);
-
-if (!$query) {
-    echo json_encode(["error" => "Erreur SQL: " . mysqli_error($conn)]);
-    ob_end_clean();
+    echo json_encode($out);
     exit;
 }
 
 $data = array();
-while ($row = mysqli_fetch_array($query)) {
-    $nestedData = array();
-    $nestedData[] = htmlspecialchars($row['Fld_Stock_externe_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Part_Nbr']);
-    $nestedData[] = htmlspecialchars($row['Fld_Part_Desc']);
-    $nestedData[] = htmlspecialchars($row['Fld_Part_SN']);
-    $nestedData[] = htmlspecialchars($row['Fld_Supplier_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Entry_Date']);
-    $nestedData[] = htmlspecialchars($row['Fld_Part_Price']);
-    $nestedData[] = htmlspecialchars($row['Fld_Price_Currency_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_BAX_PO_Nbr']);
-    $nestedData[] = htmlspecialchars($row['Fld_Supplier_order_Date']);
-    $nestedData[] = htmlspecialchars($row['Fld_Supplier_Payment_Date']);
-    $nestedData[] = htmlspecialchars($row['Fld_Qty']);
-    $nestedData[] = htmlspecialchars($row['Fld_Condition_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Release_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Tag_Info_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Tag_Date']);
-    $nestedData[] = htmlspecialchars($row['Fld_Traceability_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Warehouse_Location']);
-    $nestedData[] = htmlspecialchars($row['Fld_Physical_Stock']);
-    $nestedData[] = htmlspecialchars($row['Fld_Owner_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Stock_Location_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Status_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Status_Ind']);
-    $nestedData[] = htmlspecialchars($row['Fld_Status_Date']);
-    $nestedData[] = htmlspecialchars($row['Fld_Stock_Remark']);
-    $nestedData[] = htmlspecialchars($row['Fld_Shelf_Life_Limit']);
-    $nestedData[] = htmlspecialchars($row['Fld_Valeur_Comptable']);
-    $nestedData[] = htmlspecialchars($row['Fld_Valeur_Comptable_currency_Id']);
-    $nestedData[] = htmlspecialchars($row['Fld_Sales_Remark']);
-    $nestedData[] = htmlspecialchars($row['Fld_External_Location']);
-    $nestedData[] = htmlspecialchars($row['Fld_Sales_Remark_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Warehouse_Location_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_OriginalUnit_Stock_ID']);
-    $nestedData[] = htmlspecialchars($row['Fld_Min_Qty']);
-    $nestedData[] = htmlspecialchars($row['Fld_Publish']);
-
-    // Récupération du nom de la compagnie
-    $sqlrn = "SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID='" . mysqli_real_escape_string($conn, $row['Fld_Company_ID']) . "'";
-    $reqrn = mysqli_query($conn, $sqlrn);
-
-    if ($reqrn && $datarn = mysqli_fetch_array($reqrn)) {
-        $nestedData[] = htmlspecialchars($datarn["Fld_Company_Name"]);
-    } else {
-        $nestedData[] = "Nom de la compagnie non disponible";
-    }
-
-    $data[] = $nestedData;
+while ($row = mysqli_fetch_assoc($query)) {
+    $data[] = array(
+        htmlspecialchars($row['Fld_Part_Nbr'] ?? '', ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($row['Fld_Part_Desc'] ?? '', ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($row['Fld_Qty'] ?? '', ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($row['Fld_Condition_Text'] ?? '', ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($row['Fld_Company_Name'] ?? '', ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($row['Fld_Physical_Stock'] ?? '', ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($row['Fld_Entry_Date'] ?? '', ENT_QUOTES, 'UTF-8')
+    );
 }
 
-// Nettoyer le tampon de sortie
-ob_end_clean();
-
-// Préparation des données en JSON
-$json_data = array(
-    "draw" => intval($requestData['draw']),
-    "recordsTotal" => intval($totalData),
-    "recordsFiltered" => intval($totalFiltered),
+$out = array(
+    "draw" => $draw,
+    "recordsTotal" => $totalData,
+    "recordsFiltered" => $totalFiltered,
     "data" => $data
 );
 
-// Envoi de la réponse en JSON avec vérification des erreurs JSON
-echo json_encode($json_data);
-if (json_last_error() !== JSON_ERROR_NONE) {
-    echo json_encode(["error" => "Erreur JSON: " . json_last_error_msg()]);
-}
+$junk = ob_get_contents();
+ob_end_clean();
+if (trim($junk) !== '') $out['debug'] = $junk;
 
+echo json_encode($out);
 ?>
