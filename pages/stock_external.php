@@ -79,6 +79,7 @@ if($_SESSION['conectroy']=="parfait"){
                         <div class="panel-body">
                             <form id="externalStockBulkForm" method="post" action="delete_external_stock.php">
                             <div class="form-group">
+                                <a href="add_external_stock.php" class="btn btn-primary btn-sm">Add External Stock</a>
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmExternalStockBulkDelete();">Delete selected</button>
                             </div>
                             <table width="100%" class="table table-striped table-bordered table-hover" id="dataTablesStock">

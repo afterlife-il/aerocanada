@@ -148,8 +148,33 @@ if ($_SESSION['conectroy'] == "parfait") {
 
                         <form method="post" name="Form1">
                             <input type="hidden" name="action" value="add_multi_pn_rfq">
+                            <input type="hidden" name="RFQ_ID" value="<?php echo htmlspecialchars($rfq_id); ?>">
+                            <input type="hidden" name="id_utilisateur" value="<?php echo (int)$_SESSION['id_utilisateur']; ?>">
+                            <input type="hidden" name="companyidpopup" value="<?php echo htmlspecialchars($company_name . ',' . (int)$company_id); ?>">
+                            <input type="hidden" name="idrfq1" id="quote_idrfq1" value="">
+                            <input type="hidden" name="actonrfq" id="quote_actonrfq" value="">
+                            <input type="hidden" name="qtc" id="quote_qtc" value="">
+                            <input type="hidden" name="quotethecustomer" id="quote_quotethecustomer" value="">
+                            <input type="hidden" name="quote_type" id="quote_type" value="">
+                            <input type="hidden" name="Fld_Part_ID" id="quote_Fld_Part_ID" value="">
+                            <input type="hidden" name="part_id" id="quote_part_id" value="">
+                            <input type="hidden" name="Fld_Part_Nbr" id="quote_Fld_Part_Nbr" value="">
+                            <input type="hidden" name="Fld_Part_Desc" id="quote_Fld_Part_Desc" value="">
+                            <input type="hidden" name="pn_rfq" id="quote_pn_rfq" value="">
+                            <input type="hidden" name="description_rfq" id="quote_description_rfq" value="">
+                            <input type="hidden" name="Fld_Price" id="quote_Fld_Price" value="">
+                            <input type="hidden" name="FldCurrencyID" id="quote_FldCurrencyID" value="">
+                            <input type="hidden" name="Fld_Release_ID" id="quote_Fld_Release_ID" value="">
+                            <input type="hidden" name="Fld_Tag_Info_ID" id="quote_Fld_Tag_Info_ID" value="">
+                            <input type="hidden" name="Fld_Tag_Date" id="quote_Fld_Tag_Date" value="">
+                            <input type="hidden" name="Fld_Traceability_ID" id="quote_Fld_Traceability_ID" value="">
+                            <input type="hidden" name="lead_time" id="quote_lead_time" value="">
+                            <input type="hidden" name="Fld_Remark" id="quote_Fld_Remark" value="">
+                            <input type="hidden" name="Fld_Part_SN" id="quote_Fld_Part_SN" value="">
+                            <input type="hidden" name="moq" id="quote_moq" value="">
                             <input type="hidden" name="selected_source_type" id="selected_source_type" value="">
                             <input type="hidden" name="selected_source_id" id="selected_source_id" value="">
+                            <input type="hidden" name="selected_source_line_id" id="selected_source_line_id" value="">
                             <input type="hidden" name="selected_source_supplier" id="selected_source_supplier" value="">
                             <input type="hidden" name="selected_source_price" id="selected_source_price" value="">
                             <input type="hidden" name="selected_source_remarks" id="selected_source_remarks" value="">
@@ -645,24 +670,49 @@ if ($_SESSION['conectroy'] == "parfait") {
 
         $(document).on('click', '.js-use-sq-source', function(){
           var btn = $(this);
-          var msg = 'Selected SQ source: ' + (btn.data('supplier') || '') + ' | Price: ' + (btn.data('price') || '') + ' ' + (btn.data('currency') || '') + ' | Lead time: ' + (btn.data('lead-time') || '');
-          btn.closest('div[id^="sq_content_"]').find('.js-source-choice').remove();
-          btn.closest('div[id^="sq_content_"]').prepend('<div class="alert alert-success js-source-choice" style="margin:8px 0">'+msg+'</div>');
+          applyQuoteSource(btn, 'SQ');
         });
 
         $(document).on('click', '.js-use-stock-source', function(){
           var btn = $(this);
+          applyQuoteSource(btn, 'STOCK');
+        });
+
+        $(document).on('click', '.js-create-customer-quote', function(){
+          if (!$('#selected_source_type').val() || !$('#selected_source_id').val()) {
+            alert('Please select a stock or supplier quote source first.');
+            return;
+          }
+          $('#quote_actonrfq').val('');
+          $('#quote_qtc').val('valid');
+          $('#quote_quotethecustomer').val('valid');
+          document.Form1.action = 'email_broadcast.php';
+          document.Form1.target = '_self';
+          document.Form1.submit();
+        });
+
+        function escapeHtml(value) {
+          return $('<div>').text(value || '').html();
+        }
+
+        function applyQuoteSource(btn, family) {
           var qty = btn.data('qty') || '';
           var conditionId = btn.data('condition-id') || '';
           var conditionText = btn.data('condition') || '';
           var supplier = btn.data('supplier') || '';
           var price = btn.data('price') || '';
           var priceText = btn.data('price-text') || price;
+          var currencyId = btn.data('currency-id') || '';
+          var releaseId = btn.data('release-id') || '';
           var remarks = btn.data('remarks') || '';
           var pn = btn.data('pn') || '';
           var description = btn.data('description') || '';
-          var stockId = btn.data('stock-id') || '';
-          var sourceType = btn.data('source-type') || 'STOCK';
+          var sourceId = btn.data('stock-id') || btn.data('quote-id') || '';
+          var sourceSubtype = btn.data('source-type') || family;
+          var partId = btn.data('part-id') || '';
+          var lineId = btn.data('line-id') || '';
+          var leadTime = btn.data('lead-time') || btn.data('location') || '';
+          var sn = btn.data('sn') || '';
 
           if (pn) $('#pnid').val(pn);
           if (description) $('#description').val(description);
@@ -676,22 +726,39 @@ if ($_SESSION['conectroy'] == "parfait") {
           }
           if (remarks !== '') $('#Fld_Remark_rfq').val(remarks);
 
-          $('#selected_source_type').val('STOCK-' + sourceType);
-          $('#selected_source_id').val(stockId);
+          $('#quote_type').val(family === 'SQ' ? 'suppliers_quote' : 'stock');
+          $('#quote_Fld_Part_ID').val(partId);
+          $('#quote_part_id').val(partId);
+          $('#quote_Fld_Part_Nbr').val(pn);
+          $('#quote_Fld_Part_Desc').val(description);
+          $('#quote_pn_rfq').val(pn);
+          $('#quote_description_rfq').val(description);
+          $('#quote_Fld_Price').val(price);
+          $('#quote_FldCurrencyID').val(currencyId);
+          $('#quote_Fld_Release_ID').val(releaseId);
+          $('#quote_lead_time').val(leadTime);
+          $('#quote_Fld_Remark').val(remarks);
+          $('#quote_Fld_Part_SN').val(sn);
+
+          $('#selected_source_type').val(family + (sourceSubtype && sourceSubtype !== family ? '-' + sourceSubtype : ''));
+          $('#selected_source_id').val(sourceId);
+          $('#selected_source_line_id').val(lineId);
+          $('#quote_idrfq1').val(lineId);
           $('#selected_source_supplier').val(supplier);
           $('#selected_source_price').val(price);
           $('#selected_source_remarks').val(remarks);
 
-          var msg = 'Selected source: STOCK'
-            + ' | ' + sourceType
+          var msg = 'Selected source: ' + family
+            + (sourceSubtype ? ' | ' + sourceSubtype : '')
             + ' | PN: ' + pn
             + ' | Qty: ' + qty
             + ' | Condition: ' + conditionText
             + (supplier ? ' | Supplier: ' + supplier : '')
             + (priceText ? ' | Price: ' + priceText : '');
+          var createButton = '<div style="margin-top:8px"><button type="button" class="btn btn-sm btn-danger js-create-customer-quote">Create Customer Quote</button></div>';
           btn.closest('div[id^="sq_content_"]').find('.js-source-choice').remove();
-          btn.closest('div[id^="sq_content_"]').prepend('<div class="alert alert-success js-source-choice" style="margin:8px 0">'+msg+'</div>');
-        });
+          btn.closest('div[id^="sq_content_"]').prepend('<div class="alert alert-success js-source-choice" style="margin:8px 0">'+escapeHtml(msg)+createButton+'</div>');
+        }
 
         // POPUP ADD PN
         $('#myModal').on('click', '.btn-primary', function(){

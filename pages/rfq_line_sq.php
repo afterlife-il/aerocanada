@@ -23,6 +23,8 @@ $where .= " AND r2.Fld_Supplier_ID IS NOT NULL AND r2.Fld_Supplier_ID <> '' AND 
 $sql = "SELECT r2.*,
         s.Fld_Company_Name AS supplier_name,
         cc.Fld_Contact_Name AS contact_name,
+        p.Fld_Part_Nbr,
+        p.Fld_Part_Desc,
         cond.Fld_Condition_Text,
         cur.Fld_Currency_Text,
         rel.Fld_Release_Text,
@@ -31,6 +33,7 @@ $sql = "SELECT r2.*,
     FROM tbl_RFQ_2 r2
     LEFT JOIN tb_company s ON r2.Fld_Supplier_ID = s.Fld_Company_ID
     LEFT JOIN tb_company_contact cc ON r2.Fld_Supplier_Contact_ID = cc.id_company_contact
+    LEFT JOIN tbl_Parts p ON r2.Fld_Part_ID = p.Fld_Part_ID
     LEFT JOIN tbl_Condition cond ON r2.Fld_Condition_ID = cond.Fld_Condition_ID
     LEFT JOIN tbl_Currency cur ON r2.Fld_Currency_ID = cur.Fld_Currency_ID
     LEFT JOIN tbl_Release rel ON r2.Fld_Release_ID = rel.Fld_Release_ID
@@ -71,10 +74,33 @@ while ($r = mysqli_fetch_assoc($req)) {
     $supplierAttr = htmlspecialchars($r['supplier_name'] ?? '', ENT_QUOTES);
     $priceAttr = htmlspecialchars($r['Fld_Price'] ?? '', ENT_QUOTES);
     $currencyAttr = htmlspecialchars($r['Fld_Currency_Text'] ?? '', ENT_QUOTES);
+    $currencyIdAttr = htmlspecialchars($r['Fld_Currency_ID'] ?? '', ENT_QUOTES);
     $leadTimeAttr = htmlspecialchars($r['lead_time'] ?? '', ENT_QUOTES);
     $remarksAttr = htmlspecialchars($r['Fld_Remark'] ?? '', ENT_QUOTES);
+    $pnAttr = htmlspecialchars($r['Fld_Part_Nbr'] ?? '', ENT_QUOTES);
+    $descAttr = htmlspecialchars($r['Fld_Part_Desc'] ?? '', ENT_QUOTES);
+    $qtyAttr = htmlspecialchars($r['Fld_Qty'] ?? '', ENT_QUOTES);
+    $conditionIdAttr = htmlspecialchars($r['Fld_Condition_ID'] ?? '', ENT_QUOTES);
+    $conditionAttr = htmlspecialchars($r['Fld_Condition_Text'] ?? '', ENT_QUOTES);
+    $releaseIdAttr = htmlspecialchars($r['Fld_Release_ID'] ?? '', ENT_QUOTES);
+    $partIdAttr = htmlspecialchars($r['Fld_Part_ID'] ?? '', ENT_QUOTES);
     echo "<td>";
-    echo "<button type='button' class='btn btn-xs btn-success js-use-sq-source' data-quote-id='".(int)$r['ID']."' data-supplier='".$supplierAttr."' data-price='".$priceAttr."' data-currency='".$currencyAttr."' data-lead-time='".$leadTimeAttr."' data-remarks='".$remarksAttr."'>Use this SQ</button> ";
+    echo "<button type='button' class='btn btn-xs btn-success js-use-sq-source'"
+        ." data-quote-id='".(int)$r['ID']."'"
+        ." data-line-id='".$lineId."'"
+        ." data-part-id='".$partIdAttr."'"
+        ." data-pn='".$pnAttr."'"
+        ." data-description='".$descAttr."'"
+        ." data-qty='".$qtyAttr."'"
+        ." data-condition-id='".$conditionIdAttr."'"
+        ." data-condition='".$conditionAttr."'"
+        ." data-release-id='".$releaseIdAttr."'"
+        ." data-supplier='".$supplierAttr."'"
+        ." data-price='".$priceAttr."'"
+        ." data-currency-id='".$currencyIdAttr."'"
+        ." data-currency='".$currencyAttr."'"
+        ." data-lead-time='".$leadTimeAttr."'"
+        ." data-remarks='".$remarksAttr."'>Use this SQ</button> ";
     echo "<a href='modif_suppliers_quote.php?ID=".(int)$r['ID']."' class='btn btn-xs btn-default'><i class='fa fa-pencil'></i></a>";
     echo "</td>";
     echo "</tr>";

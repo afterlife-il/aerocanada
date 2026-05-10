@@ -56,6 +56,8 @@ function renderStockSection($title, $sourceType, $req, $emptyText) {
         $location = $r['location_text'] ?? $r['Fld_Warehouse_Location'] ?? $r['location'] ?? '';
         $priceRaw = $r['price'] ?? $r['Fld_Part_Price'] ?? '';
         $currency = $r['currency_text'] ?? '';
+        $currencyId = $r['currency_id'] ?? $r['Fld_Price_Currency_ID'] ?? '';
+        $releaseId = $r['release_id'] ?? $r['Fld_Release_ID'] ?? '';
         $price = moneyText($priceRaw, $currency);
         $remarks = trim(($r['remarks'] ?? $r['Fld_Stock_Remark'] ?? '') . ' ' . ($r['sales_remarks'] ?? $r['Fld_Sales_Remark'] ?? ''));
         $stockId = (int)($r['stock_id'] ?? $r['Fld_Stock_ID'] ?? $r['Fld_Stock_externe_ID'] ?? $r['id_stock_part'] ?? 0);
@@ -63,17 +65,21 @@ function renderStockSection($title, $sourceType, $req, $emptyText) {
         echo "<tr>";
         echo "<td><button type='button' class='btn btn-xs btn-success js-use-stock-source'"
             ." data-stock-id='".$stockId."'"
+            ." data-line-id='".(int)($_GET['line_id'] ?? 0)."'"
+            ." data-part-id='".(int)($_GET['part_id'] ?? 0)."'"
             ." data-source-type='".h($sourceType)."'"
             ." data-pn='".h($pn)."'"
             ." data-description='".h($desc)."'"
             ." data-condition='".h($condition)."'"
             ." data-condition-id='".h($conditionId)."'"
+            ." data-release-id='".h($releaseId)."'"
             ." data-supplier='".h($supplier)."'"
             ." data-location='".h($location)."'"
             ." data-sn='".h($sn)."'"
             ." data-qty='".h($qty)."'"
             ." data-price='".h($priceRaw)."'"
             ." data-price-text='".h($price)."'"
+            ." data-currency-id='".h($currencyId)."'"
             ." data-currency='".h($currency)."'"
             ." data-remarks='".h($remarks)."'>Use this Stock</button></td>";
         echo "<td>".h($sourceType)."</td>";
@@ -103,10 +109,12 @@ $sqlAci = "SELECT
         s.Fld_Qty,
         s.Fld_Condition_ID AS condition_id,
         cond.Fld_Condition_Text AS condition_text,
+        s.Fld_Release_ID AS release_id,
         rel.Fld_Release_Text AS release_text,
         supplier.Fld_Company_Name AS supplier_name,
         s.Fld_Warehouse_Location,
         s.Fld_Part_Price AS price,
+        s.Fld_Price_Currency_ID AS currency_id,
         cur.Fld_Currency_Text AS currency_text,
         s.Fld_Stock_Remark,
         s.Fld_Sales_Remark
@@ -129,11 +137,13 @@ $sqlExternal = "SELECT
         se.Fld_Qty,
         se.Fld_Condition_ID AS condition_id,
         cond.Fld_Condition_Text AS condition_text,
+        se.Fld_Release_ID AS release_id,
         rel.Fld_Release_Text AS release_text,
         COALESCE(company.Fld_Company_Name, supplier.Fld_Company_Name) AS company_name,
         se.Fld_Warehouse_Location,
         se.Fld_External_Location,
         se.Fld_Part_Price AS price,
+        se.Fld_Price_Currency_ID AS currency_id,
         cur.Fld_Currency_Text AS currency_text,
         se.Fld_Stock_Remark,
         se.Fld_Sales_Remark
