@@ -1009,6 +1009,7 @@ if ($numrows_rfq > 0) {
                    ".($rfq3_id > 0 ? "" : "data-href=\"getContent.php?id=".$datarfq1['ID']."\" class=\"openPopup\"").">
                     <i class=\"fa fa-plane\"></i>
                 </a>
+                ".($rfq3_id > 0 ? "<br><a href=\"download_quote_pdf.php?ID=".$rfq3_id."\" target=\"_blank\" title=\"Download Quote PDF\"><i class=\"fa fa-file-pdf-o\"></i></a>" : "")."
             </td>
 
             <td style='".$prioritescss."text-align:center;'>

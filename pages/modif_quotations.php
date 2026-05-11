@@ -276,6 +276,11 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
     <div class="quote-header">
         <h1 class="quote-title">Quotation Preparation</h1>
         <div class="text-muted">Review and adjust the quote before preparing the customer email.</div>
+        <div style="margin-top:10px">
+            <a class="btn btn-default btn-sm" href="download_quote_pdf.php?ID=<?php echo (int)$data['ID']; ?>" target="_blank">
+                <i class="fa fa-file-pdf-o"></i> Download Quote PDF
+            </a>
+        </div>
     </div>
 
     <div class="row">
@@ -436,6 +441,9 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
                 <textarea class="form-control" name="Fld_Remark"><?php echo qh($data['Fld_Remark']); ?></textarea>
             </div>
             <div class="form-actions">
+                <a class="btn btn-default btn-lg" href="download_quote_pdf.php?ID=<?php echo (int)$data['ID']; ?>" target="_blank">
+                    <i class="fa fa-file-pdf-o"></i> Download Quote PDF
+                </a>
                 <button type="submit" name="send_quotation" value="1" class="btn btn-danger btn-lg" id="prepare-email-btn">
                     <i class="fa fa-paper-plane"></i> Prepare Email
                 </button>
