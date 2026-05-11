@@ -5,16 +5,38 @@ function aci_email_default_settings($employee = array()) {
         'company_logo_url' => 'https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png',
         'signature_logo_url' => 'https://www.aerocanada-industries.com/yoyamic/pages/images/logo-aei-email.png',
         'signer_name' => $employee['Employee_Name'] ?? '',
+        'signer_name_show' => '1',
+        'signer_name_label' => 'Name',
         'signer_title' => $employee['position'] ?? '',
+        'signer_title_show' => '1',
+        'signer_title_label' => 'Title',
         'phone' => '+1 514 800 6223',
+        'phone_show' => '1',
+        'phone_label' => 'Phone',
         'mobile' => $employee['mobile'] ?? '',
+        'mobile_show' => '1',
+        'mobile_label' => 'Mobile',
         'fax' => '+1 514 800 6224',
+        'fax_show' => '1',
+        'fax_label' => 'Fax',
         'email' => $employee['email'] ?? 'sales@aerocanada.org',
+        'email_show' => '1',
+        'email_label' => 'Email',
         'website' => 'http://www.aerocanada.aero',
+        'website_show' => '1',
+        'website_label' => 'Website',
         'skype' => $employee['skype'] ?? '',
+        'skype_show' => '1',
+        'skype_label' => 'Skype',
         'address_html' => '99, Prince Street, 7th Floor, Suite#701<br>Montreal QC H3C 2M7, Canada',
+        'address_html_show' => '1',
+        'address_html_label' => 'Address',
         'footer_text' => 'FAA AC00-56A |&nbsp;UNGM 256670 |&nbsp;NATO CAGE L06T4',
+        'footer_text_show' => '1',
+        'footer_text_label' => 'Footer',
         'terms_url' => 'http://www.aerocanada.org/index.php/en/aero-canada/terms-of-sale',
+        'terms_url_show' => '1',
+        'terms_url_label' => 'Terms',
         'email_signature_html' => ''
     );
 }
@@ -56,11 +78,22 @@ function aci_email_render_setting($settings, $defaults, $key) {
     return (string)($defaults[$key] ?? '');
 }
 
-function aci_email_signature_row($label, $value, $isHtml = false) {
+function aci_email_setting_enabled($settings, $defaults, $key) {
+    $value = strtolower(trim(aci_email_render_setting($settings, $defaults, $key)));
+    return !in_array($value, array('', '0', 'false', 'no', 'off'), true);
+}
+
+function aci_email_signature_row($settings, $defaults, $key, $value, $isHtml = false) {
+    if (!aci_email_setting_enabled($settings, $defaults, $key.'_show')) return '';
     $value = (string)$value;
     if (trim($value) === '') return '';
+    $label = trim(aci_email_render_setting($settings, $defaults, $key.'_label'));
     $display = $isHtml ? $value : htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-    return '<tr><td style="font-weight:bold;padding:1px 8px 1px 0;white-space:nowrap;vertical-align:top;">'.$label.'</td><td style="padding:1px 0;vertical-align:top;">'.$display.'</td></tr>';
+    if ($label === '') {
+        return '<tr><td colspan="2" style="padding:1px 0;vertical-align:top;">'.$display.'</td></tr>';
+    }
+    $labelDisplay = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
+    return '<tr><td style="font-weight:bold;padding:1px 8px 1px 0;white-space:nowrap;vertical-align:top;">'.$labelDisplay.':</td><td style="padding:1px 0;vertical-align:top;">'.$display.'</td></tr>';
 }
 
 function aci_quote_email_header_html($settings = null) {
@@ -99,17 +132,17 @@ function aci_quote_email_signature_html($employee = array(), $settings = null) {
 
     $logoHtml = $signatureLogo !== '' ? '<img src="'.$signatureLogo.'" width="83" height="96">' : '';
     $rows = '';
-    $rows .= aci_email_signature_row('Name', $signerName);
-    $rows .= aci_email_signature_row('Title', $signerTitle);
-    $rows .= aci_email_signature_row('Phone', $phone);
-    $rows .= aci_email_signature_row('Mobile', $mobile);
-    $rows .= aci_email_signature_row('Fax', $fax);
-    $rows .= aci_email_signature_row('Email', $email);
-    $rows .= aci_email_signature_row('Website', $website);
-    $rows .= aci_email_signature_row('Skype', $skype);
-    $rows .= aci_email_signature_row('Address', $addressHtml, true);
-    $rows .= aci_email_signature_row('Footer', $footerText, true);
-    $rows .= aci_email_signature_row('Terms', $termsUrl);
+    $rows .= aci_email_signature_row($settings, $defaults, 'signer_name', $signerName);
+    $rows .= aci_email_signature_row($settings, $defaults, 'signer_title', $signerTitle);
+    $rows .= aci_email_signature_row($settings, $defaults, 'phone', $phone);
+    $rows .= aci_email_signature_row($settings, $defaults, 'mobile', $mobile);
+    $rows .= aci_email_signature_row($settings, $defaults, 'fax', $fax);
+    $rows .= aci_email_signature_row($settings, $defaults, 'email', $email);
+    $rows .= aci_email_signature_row($settings, $defaults, 'website', $website);
+    $rows .= aci_email_signature_row($settings, $defaults, 'skype', $skype);
+    $rows .= aci_email_signature_row($settings, $defaults, 'address_html', $addressHtml, true);
+    $rows .= aci_email_signature_row($settings, $defaults, 'footer_text', $footerText, true);
+    $rows .= aci_email_signature_row($settings, $defaults, 'terms_url', $termsUrl);
 
     return '<div dir="ltr" style="font-size:small"><br><table border="0" cellspacing="0" cellpadding="0" width="560" style="width:420pt;border-collapse:collapse;border:none"><tbody><tr><td width="108" valign="top" style="width:81pt;border-top:none;border-bottom:none;border-left:none;border-right:1pt solid windowtext;padding:0in 5.4pt"><p align="center" style="margin-bottom:0.0001pt;text-align:center">'.$logoHtml.'</p></td><td width="452" valign="top" style="width:339pt;border:none;padding:0in 5.4pt"><table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:9pt;line-height:15px;">'.$rows.'</table></td></tr></tbody></table></div>
 
