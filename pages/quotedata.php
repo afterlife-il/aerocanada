@@ -116,7 +116,7 @@ while( $row = mysqli_fetch_array($query) ) {
     $nestedData[] = htmlspecialchars($row["lead_time"] ?? '');
     $nestedData[] = htmlspecialchars($row["Fld_Priority_Text"] ?? '');
     $nestedData[] = htmlspecialchars($row["Employee_Name"] ?? '');
-    $nestedData[] = $row["ID"]." <a href='download_quote_pdf.php?ID=".(int)$row["ID"]."' target='_blank' class='btn btn-xs btn-default'>PDF</a>";
+    $nestedData[] = $row["ID"]." <a href='download_quote_pdf.php?ID=".(int)$row["ID"]."' target='_blank' class='btn btn-xs btn-default'>PDF</a> <a href='create_po_from_quote.php?quote_id=".(int)$row["ID"]."' class='btn btn-xs btn-default'>Create PO</a>";
 
     if ($_SESSION['statut'] == "SuperAdmin") {
         $nestedData[] = "<a href='del_quotation.php?ID=".$row['ID']."' onClick=\"return(confirm('Etes vous sur ?'));\">

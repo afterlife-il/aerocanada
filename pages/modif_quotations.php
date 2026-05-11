@@ -280,6 +280,9 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
             <a class="btn btn-default btn-sm" href="download_quote_pdf.php?ID=<?php echo (int)$data['ID']; ?>" target="_blank">
                 <i class="fa fa-file-pdf-o"></i> Download Quote PDF
             </a>
+            <a class="btn btn-default btn-sm" href="create_po_from_quote.php?quote_id=<?php echo (int)$data['ID']; ?>">
+                <i class="fa fa-shopping-cart"></i> Create PO
+            </a>
         </div>
     </div>
 
@@ -443,6 +446,9 @@ if(isset($_GET['mode']) && $_GET['mode'] === 'clean'){
             <div class="form-actions">
                 <a class="btn btn-default btn-lg" href="download_quote_pdf.php?ID=<?php echo (int)$data['ID']; ?>" target="_blank">
                     <i class="fa fa-file-pdf-o"></i> Download Quote PDF
+                </a>
+                <a class="btn btn-default btn-lg" href="create_po_from_quote.php?quote_id=<?php echo (int)$data['ID']; ?>">
+                    <i class="fa fa-shopping-cart"></i> Create PO
                 </a>
                 <button type="submit" name="send_quotation" value="1" class="btn btn-danger btn-lg" id="prepare-email-btn">
                     <i class="fa fa-paper-plane"></i> Prepare Email
