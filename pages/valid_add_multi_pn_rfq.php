@@ -686,7 +686,7 @@ if ($_SESSION['conectroy'] == "parfait") {
           $('#quote_actonrfq').val('');
           $('#quote_qtc').val('valid');
           $('#quote_quotethecustomer').val('valid');
-          document.Form1.action = 'email_broadcast.php';
+          document.Form1.action = 'create_customer_quote_from_rfq.php';
           document.Form1.target = '_self';
           document.Form1.submit();
         });
