@@ -132,6 +132,10 @@ $reqrfq = mysql2_query($sqlrfq);
 $datarfq = mysqli_fetch_array($reqrfq);
 $daterfq=$datarfq['date'];
 $contactaci=$datarfq['Employee_ID'];
+$currentSignatureUser = aci_email_current_user_id();
+if ($currentSignatureUser > 0) {
+    $contactaci = $currentSignatureUser;
+}
 // ** tb_company_contact ** id_company_contact Fld_Linked_ID  Fld_Company_ID  Company_Old_Id  Fld_Contact_Name  Fld_Contact_Phone  Fld_Contact_Phone2  Fld_Contact_Fax  Fld_Company_Mobile  Fld_Contact_Division_ID  Fld_Contact_Email  Fld_Contact_Title  Fld_Contact_Remark  status  aci_contact entry_date
 $sqlr="SELECT * from tb_company_contact where id_company_contact=".$datarfq['id_company_contact'];
 // echo $sqlr;

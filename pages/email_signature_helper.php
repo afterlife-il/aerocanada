@@ -10,7 +10,7 @@ function aci_email_default_settings($employee = array()) {
         'signer_title' => $employee['position'] ?? '',
         'signer_title_show' => '1',
         'signer_title_label' => 'Title',
-        'phone' => '+1 514 800 6223',
+        'phone' => !empty($employee['tel']) ? $employee['tel'] : '+1 514 800 6223',
         'phone_show' => '1',
         'phone_label' => 'Phone',
         'mobile' => $employee['mobile'] ?? '',
@@ -66,6 +66,21 @@ function aci_email_current_company_id($userId = null) {
     return 0;
 }
 
+function aci_email_current_employee_profile($userId = null) {
+    if ($userId === null) $userId = aci_email_current_user_id();
+    $userId = (int)$userId;
+    if ($userId <= 0) return array();
+    $req = @mysql2_query("SELECT * FROM tbl_Employee WHERE Employee_ID = ".$userId." LIMIT 1");
+    if ($req && ($row = mysqli_fetch_assoc($req))) {
+        return $row;
+    }
+    return array();
+}
+
+function aci_email_profile_setting_keys() {
+    return array('signer_name', 'signer_title', 'phone', 'mobile', 'email', 'skype');
+}
+
 function aci_email_settings($userId = null) {
     static $settingsCache = array();
     if ($userId === null) $userId = aci_email_current_user_id();
@@ -75,6 +90,7 @@ function aci_email_settings($userId = null) {
     if (isset($settingsCache[$cacheKey])) return $settingsCache[$cacheKey];
 
     $settings = array();
+    $fallbackSettings = array();
     $req = @mysql2_query("SELECT setting_key, setting_value, user_id, company_id, is_company_default, is_global_default
         FROM tbl_Email_Settings
         WHERE (user_id = ".$userId." AND company_id = ".$companyId.")
@@ -96,9 +112,14 @@ function aci_email_settings($userId = null) {
                 && (int)$row['is_global_default'] !== 1) {
                 continue;
             }
-            $settings[$row['setting_key']] = $row['setting_value'];
+            if ((int)$row['user_id'] === $userId) {
+                $settings[$row['setting_key']] = $row['setting_value'];
+            } else {
+                $fallbackSettings[$row['setting_key']] = $row['setting_value'];
+            }
         }
     }
+    $settings['__fallback_settings'] = $fallbackSettings;
     $settingsCache[$cacheKey] = $settings;
     return $settings;
 }
@@ -107,12 +128,24 @@ function aci_email_setting($settings, $defaults, $key) {
     if (isset($settings[$key]) && trim((string)$settings[$key]) !== '') {
         return $settings[$key];
     }
+    if (in_array($key, aci_email_profile_setting_keys(), true) && trim((string)($defaults[$key] ?? '')) !== '') {
+        return $defaults[$key];
+    }
+    if (isset($settings['__fallback_settings'][$key]) && trim((string)$settings['__fallback_settings'][$key]) !== '') {
+        return $settings['__fallback_settings'][$key];
+    }
     return $defaults[$key] ?? '';
 }
 
 function aci_email_render_setting($settings, $defaults, $key) {
     if (array_key_exists($key, $settings)) {
         return (string)$settings[$key];
+    }
+    if (in_array($key, aci_email_profile_setting_keys(), true) && trim((string)($defaults[$key] ?? '')) !== '') {
+        return (string)$defaults[$key];
+    }
+    if (array_key_exists('__fallback_settings', $settings) && array_key_exists($key, $settings['__fallback_settings'])) {
+        return (string)$settings['__fallback_settings'][$key];
     }
     return (string)($defaults[$key] ?? '');
 }
@@ -148,7 +181,9 @@ function aci_quote_email_header_html($settings = null) {
 
 function aci_quote_email_signature_html($employee = array(), $settings = null) {
     if ($settings === null) $settings = aci_email_settings();
-    $defaults = aci_email_default_settings($employee);
+    $currentEmployee = aci_email_current_employee_profile();
+    if (empty($currentEmployee)) $currentEmployee = $employee;
+    $defaults = aci_email_default_settings($currentEmployee);
 
     $override = trim((string)aci_email_setting($settings, $defaults, 'email_signature_html'));
     $signatureLogo = htmlspecialchars(aci_email_render_setting($settings, $defaults, 'signature_logo_url'), ENT_QUOTES, 'UTF-8');

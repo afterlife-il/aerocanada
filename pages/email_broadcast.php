@@ -141,8 +141,9 @@ if (empty($_POST['Fld_RFQ_ID'])) {
         // Employee ACI utilisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© pour la signature
 // 1) Si l'ID de l'employÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© connectÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© est en session -> on l'utilise
 // 2) Sinon on garde celui de la RFQ (comportement historique)
-if (isset($_SESSION['Employee_ID']) && (int)$_SESSION['Employee_ID'] > 0) {
-    $contactaci = (int) $_SESSION['Employee_ID'];
+$currentSignatureUser = aci_email_current_user_id();
+if ($currentSignatureUser > 0) {
+    $contactaci = $currentSignatureUser;
 } else {
     $contactaci = (int) $datarfq['Employee_ID'];
 }

@@ -200,7 +200,8 @@ $message_html .= $message_html2;
 // ======================================================================
 // 2.b SIGNATURE EMPLOYÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â° (tbl_Employee)
 // ======================================================================
-$contactaci = $contactaci > 0 ? $contactaci : (int)$_SESSION['id_utilisateur'];
+$currentSignatureUser = aci_email_current_user_id();
+$contactaci = $currentSignatureUser > 0 ? $currentSignatureUser : $contactaci;
 $sqleaci    = "SELECT * FROM tbl_Employee WHERE Employee_ID = " . $contactaci;
 $reqeaci    = mysql2_query($sqleaci);
 $dataeaci   = $reqeaci ? mysqli_fetch_array($reqeaci) : null;
