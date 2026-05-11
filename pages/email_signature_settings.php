@@ -65,9 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $safeKey = escape_data($key);
         $safeValue = mysqli_real_escape_string($db_link, (string)$value);
-        mysql2_query("INSERT INTO tbl_Email_Settings (user_id, company_id, setting_key, setting_value, updated_by, updated_at)
-            VALUES ('".$updatedBy."', '".$companyId."', '".$safeKey."', '".$safeValue."', '".$updatedBy."', NOW())
-            ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at)");
+        mysql2_query("INSERT INTO tbl_Email_Settings (user_id, company_id, setting_key, setting_value, is_company_default, is_global_default, updated_by, updated_at)
+            VALUES ('".$updatedBy."', '".$companyId."', '".$safeKey."', '".$safeValue."', 0, 0, '".$updatedBy."', NOW())
+            ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value), is_company_default=0, is_global_default=0, updated_by=VALUES(updated_by), updated_at=VALUES(updated_at)");
     }
     $saved = true;
 }

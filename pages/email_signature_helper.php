@@ -75,22 +75,27 @@ function aci_email_settings($userId = null) {
     if (isset($settingsCache[$cacheKey])) return $settingsCache[$cacheKey];
 
     $settings = array();
-    $req = @mysql2_query("SELECT setting_key, setting_value, user_id, company_id
+    $req = @mysql2_query("SELECT setting_key, setting_value, user_id, company_id, is_company_default, is_global_default
         FROM tbl_Email_Settings
-        WHERE (user_id = 0 AND company_id = 0)
-           OR (user_id = 0 AND company_id = ".$companyId.")
+        WHERE (user_id = ".$userId." AND company_id = ".$companyId.")
            OR (user_id = ".$userId." AND company_id = 0)
-           OR (user_id = ".$userId." AND company_id = ".$companyId.")
+           OR (company_id = ".$companyId." AND is_company_default = 1)
+           OR (company_id = 0 AND is_global_default = 1)
         ORDER BY
             CASE
-                WHEN user_id = 0 AND company_id = 0 THEN 1
-                WHEN user_id = 0 AND company_id = ".$companyId." THEN 2
+                WHEN company_id = 0 AND is_global_default = 1 THEN 1
+                WHEN company_id = ".$companyId." AND is_company_default = 1 THEN 2
                 WHEN user_id = ".$userId." AND company_id = 0 THEN 3
                 WHEN user_id = ".$userId." AND company_id = ".$companyId." THEN 4
                 ELSE 5
             END ASC");
     if ($req) {
         while ($row = mysqli_fetch_assoc($req)) {
+            if ((int)$row['user_id'] !== $userId
+                && (int)$row['is_company_default'] !== 1
+                && (int)$row['is_global_default'] !== 1) {
+                continue;
+            }
             $settings[$row['setting_key']] = $row['setting_value'];
         }
     }
