@@ -37,6 +37,17 @@ function poq_ensure_table() {
         delivery VARCHAR(200) DEFAULT NULL,
         remarks TEXT,
         po_number VARCHAR(60) DEFAULT NULL,
+        customer_po_number VARCHAR(100) DEFAULT NULL,
+        customer_po_file VARCHAR(255) DEFAULT NULL,
+        accepted_price VARCHAR(30) DEFAULT NULL,
+        accepted_qty VARCHAR(20) DEFAULT NULL,
+        accepted_condition_id INT(11) DEFAULT NULL,
+        payment_terms VARCHAR(255) DEFAULT NULL,
+        shipping_terms VARCHAR(255) DEFAULT NULL,
+        shipping_address TEXT,
+        required_documents TEXT,
+        missing_information TEXT,
+        acceptance_notes TEXT,
         status VARCHAR(30) DEFAULT 'DRAFT',
         created_by INT(11) DEFAULT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -45,6 +56,25 @@ function poq_ensure_table() {
         UNIQUE KEY uq_po_draft_quote (quotation_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
     mysql2_query($sql);
+    $columns = array(
+        'customer_po_number' => "ALTER TABLE tbl_PO_Draft ADD COLUMN customer_po_number VARCHAR(100) DEFAULT NULL AFTER po_number",
+        'customer_po_file' => "ALTER TABLE tbl_PO_Draft ADD COLUMN customer_po_file VARCHAR(255) DEFAULT NULL AFTER customer_po_number",
+        'accepted_price' => "ALTER TABLE tbl_PO_Draft ADD COLUMN accepted_price VARCHAR(30) DEFAULT NULL AFTER customer_po_file",
+        'accepted_qty' => "ALTER TABLE tbl_PO_Draft ADD COLUMN accepted_qty VARCHAR(20) DEFAULT NULL AFTER accepted_price",
+        'accepted_condition_id' => "ALTER TABLE tbl_PO_Draft ADD COLUMN accepted_condition_id INT(11) DEFAULT NULL AFTER accepted_qty",
+        'payment_terms' => "ALTER TABLE tbl_PO_Draft ADD COLUMN payment_terms VARCHAR(255) DEFAULT NULL AFTER accepted_condition_id",
+        'shipping_terms' => "ALTER TABLE tbl_PO_Draft ADD COLUMN shipping_terms VARCHAR(255) DEFAULT NULL AFTER payment_terms",
+        'shipping_address' => "ALTER TABLE tbl_PO_Draft ADD COLUMN shipping_address TEXT AFTER shipping_terms",
+        'required_documents' => "ALTER TABLE tbl_PO_Draft ADD COLUMN required_documents TEXT AFTER shipping_address",
+        'missing_information' => "ALTER TABLE tbl_PO_Draft ADD COLUMN missing_information TEXT AFTER required_documents",
+        'acceptance_notes' => "ALTER TABLE tbl_PO_Draft ADD COLUMN acceptance_notes TEXT AFTER missing_information"
+    );
+    foreach ($columns as $column => $alterSql) {
+        $exists = mysql2_query("SHOW COLUMNS FROM tbl_PO_Draft LIKE '".$column."'");
+        if ($exists && mysqli_num_rows($exists) == 0) {
+            mysql2_query($alterSql);
+        }
+    }
 }
 
 function poq_source_company($sourceType, $sourceId) {
@@ -99,7 +129,7 @@ $poNumber = 'DRAFT-Q'.$quoteId;
 $insert = "INSERT INTO tbl_PO_Draft (
         quotation_id, rfq_id, rfq_line_id, part_id, source_type, source_id, source_company_id,
         customer_company_id, customer_contact_id, qty, condition_id, price, currency_id, release_id,
-        delivery, remarks, po_number, status, created_by
+        delivery, remarks, po_number, accepted_price, accepted_qty, accepted_condition_id, status, created_by
     ) VALUES (
         '".$quoteId."',
         '".poq_escape($quote['Fld_RFQ_ID'])."',
@@ -118,6 +148,9 @@ $insert = "INSERT INTO tbl_PO_Draft (
         '".poq_escape($quote['lead_time'])."',
         '".poq_escape($quote['Fld_Remark'])."',
         '".poq_escape($poNumber)."',
+        '".poq_escape($quote['Fld_Price'])."',
+        '".poq_escape($quote['Fld_Qty'])."',
+        '".(int)$quote['Fld_Condition']."',
         'DRAFT',
         ".($createdBy > 0 ? "'".$createdBy."'" : "NULL")."
     )";
