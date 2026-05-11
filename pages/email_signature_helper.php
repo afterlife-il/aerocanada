@@ -47,20 +47,54 @@ function aci_email_current_user_id() {
     return 0;
 }
 
+function aci_email_current_company_id($userId = null) {
+    if (isset($_SESSION['email_signature_company_id'])) return (int)$_SESSION['email_signature_company_id'];
+    if (isset($_SESSION['company_id'])) return (int)$_SESSION['company_id'];
+    if (isset($_SESSION['Fld_Company_ID'])) return (int)$_SESSION['Fld_Company_ID'];
+    if ($userId === null) $userId = aci_email_current_user_id();
+    $userId = (int)$userId;
+    if ($userId <= 0) return 0;
+
+    $req = @mysql2_query("SELECT c.Fld_Company_ID
+        FROM tbl_Employee e
+        LEFT JOIN tb_company_contact c ON c.id_company_contact = e.Fld_Contact_Id
+        WHERE e.Employee_ID = ".$userId."
+        LIMIT 1");
+    if ($req && ($row = mysqli_fetch_assoc($req))) {
+        return (int)$row['Fld_Company_ID'];
+    }
+    return 0;
+}
+
 function aci_email_settings($userId = null) {
     static $settingsCache = array();
     if ($userId === null) $userId = aci_email_current_user_id();
     $userId = (int)$userId;
-    if (isset($settingsCache[$userId])) return $settingsCache[$userId];
+    $companyId = aci_email_current_company_id($userId);
+    $cacheKey = $userId.'-'.$companyId;
+    if (isset($settingsCache[$cacheKey])) return $settingsCache[$cacheKey];
 
     $settings = array();
-    $req = @mysql2_query("SELECT setting_key, setting_value, user_id FROM tbl_Email_Settings WHERE user_id IN (0, ".$userId.") ORDER BY user_id ASC");
+    $req = @mysql2_query("SELECT setting_key, setting_value, user_id, company_id
+        FROM tbl_Email_Settings
+        WHERE (user_id = 0 AND company_id = 0)
+           OR (user_id = 0 AND company_id = ".$companyId.")
+           OR (user_id = ".$userId." AND company_id = 0)
+           OR (user_id = ".$userId." AND company_id = ".$companyId.")
+        ORDER BY
+            CASE
+                WHEN user_id = 0 AND company_id = 0 THEN 1
+                WHEN user_id = 0 AND company_id = ".$companyId." THEN 2
+                WHEN user_id = ".$userId." AND company_id = 0 THEN 3
+                WHEN user_id = ".$userId." AND company_id = ".$companyId." THEN 4
+                ELSE 5
+            END ASC");
     if ($req) {
         while ($row = mysqli_fetch_assoc($req)) {
             $settings[$row['setting_key']] = $row['setting_value'];
         }
     }
-    $settingsCache[$userId] = $settings;
+    $settingsCache[$cacheKey] = $settings;
     return $settings;
 }
 
