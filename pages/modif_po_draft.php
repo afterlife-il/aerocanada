@@ -32,7 +32,8 @@ function pod_ensure_workflow_columns() {
         'payment_terms' => "ALTER TABLE tbl_PO_Draft ADD COLUMN payment_terms VARCHAR(255) DEFAULT NULL AFTER accepted_condition_id",
         'shipping_terms' => "ALTER TABLE tbl_PO_Draft ADD COLUMN shipping_terms VARCHAR(255) DEFAULT NULL AFTER payment_terms",
         'shipping_address' => "ALTER TABLE tbl_PO_Draft ADD COLUMN shipping_address TEXT AFTER shipping_terms",
-        'required_documents' => "ALTER TABLE tbl_PO_Draft ADD COLUMN required_documents TEXT AFTER shipping_address",
+        'shipping_address_id' => "ALTER TABLE tbl_PO_Draft ADD COLUMN shipping_address_id INT(11) DEFAULT NULL AFTER shipping_address",
+        'required_documents' => "ALTER TABLE tbl_PO_Draft ADD COLUMN required_documents TEXT AFTER shipping_address_id",
         'missing_information' => "ALTER TABLE tbl_PO_Draft ADD COLUMN missing_information TEXT AFTER required_documents",
         'acceptance_notes' => "ALTER TABLE tbl_PO_Draft ADD COLUMN acceptance_notes TEXT AFTER missing_information"
     );
@@ -57,6 +58,8 @@ function pod_required_documents_from_post() {
 function pod_missing_information($draft) {
     $missing = array();
     if (trim((string)($draft['customer_po_number'] ?? '')) === '' && trim((string)($draft['customer_po_file'] ?? '')) === '') $missing[] = 'customer PO number or scanned customer PO missing';
+    $docs = array_filter(array_map('trim', explode("\n", (string)($draft['required_documents'] ?? ''))));
+    if (in_array('PO Acknowledgment', $docs, true) && trim((string)($draft['customer_po_file'] ?? '')) === '') $missing[] = 'scanned customer PO file missing for PO acknowledgment';
     if ((int)($draft['release_id'] ?? 0) <= 0) $missing[] = 'release/certification missing';
     if (trim((string)($draft['shipping_address'] ?? '')) === '') $missing[] = 'shipping address missing';
     if (trim((string)($draft['shipping_terms'] ?? '')) === '') $missing[] = 'shipping terms missing';
@@ -67,9 +70,36 @@ function pod_missing_information($draft) {
     return $missing;
 }
 
+function pod_format_company_address($address) {
+    if (!$address) return '';
+    $parts = array();
+    foreach (array('title_address', 'Fld_Company_Street', 'Fld_Company_City', 'Fld_Company_State', 'Fld_Company_ZipCode', 'Fld_Company_Country') as $field) {
+        if (trim((string)($address[$field] ?? '')) !== '') $parts[] = trim((string)$address[$field]);
+    }
+    return implode("\n", $parts);
+}
+
+function pod_fulfillment_info($draft) {
+    $type = strtoupper((string)($draft['source_type'] ?? ''));
+    if (strpos($type, 'SQ') !== false) {
+        return array('required' => 'YES', 'action' => 'Create Supplier PO Draft', 'message' => 'Supplier PO is required. Supplier, price, condition, delivery and release must come from the selected Supplier Quote.');
+    }
+    if (strpos($type, 'ACI770') !== false || $type === 'ACI770') {
+        return array('required' => 'NO', 'action' => 'Internal fulfilment / shipping docs', 'message' => 'No supplier PO required. Proceed with internal fulfilment and shipping documents.');
+    }
+    if (strpos($type, 'EXTERNAL') !== false || strpos($type, 'CONSIGN') !== false) {
+        return array('required' => 'MAYBE', 'action' => 'Confirm source availability / documents', 'message' => 'Supplier or consignment confirmation may be required before document generation.');
+    }
+    return array('required' => 'UNKNOWN', 'action' => 'Review source selection', 'message' => 'Source type is not clear. Review selected stock/SQ source before proceeding.');
+}
+
 pod_ensure_workflow_columns();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $basicDraftRes = mysql2_query("SELECT customer_company_id FROM tbl_PO_Draft WHERE id='".$draftId."' LIMIT 1");
+    $basicDraft = $basicDraftRes ? mysqli_fetch_assoc($basicDraftRes) : array();
+    $customerCompanyId = (int)($basicDraft['customer_company_id'] ?? 0);
+
     $uploadedFile = $_POST['existing_customer_po_file'] ?? '';
     if (!empty($_FILES['customer_po_file']['name']) && is_uploaded_file($_FILES['customer_po_file']['tmp_name'])) {
         $uploadDir = __DIR__.'/uploads/customer_po';
@@ -94,6 +124,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nextStatus = ($hasCustomerPo && $hasAcceptedValues) ? 'ACCEPTED_ORDER' : 'CUSTOMER_PO_RECEIVED';
     }
 
+    $shippingAddress = trim((string)($_POST['shipping_address'] ?? ''));
+    $shippingAddressId = (int)($_POST['shipping_address_id'] ?? 0);
+    if ($shippingAddressId > 0 && empty($_POST['save_shipping_address'])) {
+        $addressRes = mysql2_query("SELECT * FROM tbl_Company_Details WHERE id_tbl_company_Details='".$shippingAddressId."' AND Fld_Company_ID='".$customerCompanyId."' LIMIT 1");
+        $addressRow = $addressRes ? mysqli_fetch_assoc($addressRes) : null;
+        $shippingAddress = pod_format_company_address($addressRow);
+    }
+    if ($shippingAddress !== '' && !empty($_POST['save_shipping_address']) && $customerCompanyId > 0) {
+        $title = 'PO Draft '.$draftId.' Shipping';
+        $insertAddress = "INSERT INTO tbl_Company_Details (
+                Fld_Linked_ID, Fld_Company_ID, Company_Old_Id, Fld_Company_Type_ID, Fld_Company_Country,
+                Fld_Company_City, Fld_Company_State, Fld_Company_Street, Fld_Company_ZipCode, Fld_Company_Fax,
+                Fld_Company_Phone, Fld_Company_Email, Fld_Company_Score, Fld_Company_BAX_Contact, Fld_Remark,
+                Fld_VAT_Nbr, Fld_Date_Of_First_Contact, Fld_Company_Address_Type, UTC_timezone, title_address
+            ) VALUES (
+                0, '".$customerCompanyId."', 0, 0, '', '', '', '".pod_escape($shippingAddress)."', '', '',
+                '', '', '', '', 'Saved from PO draft ".$draftId."', '', '".date('Y-m-d')."', 2, '', '".pod_escape($title)."'
+            )";
+        if (mysql2_query($insertAddress)) {
+            $shippingAddressId = mysqli_insert_id($conn);
+        }
+    }
+
     $sql = "UPDATE tbl_PO_Draft SET
         po_number='".pod_escape($_POST['po_number'] ?? '')."',
         customer_po_number='".pod_escape($_POST['customer_po_number'] ?? '')."',
@@ -103,7 +156,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         accepted_condition_id='".(int)($_POST['accepted_condition_id'] ?? 0)."',
         payment_terms='".pod_escape($_POST['payment_terms'] ?? '')."',
         shipping_terms='".pod_escape($_POST['shipping_terms'] ?? '')."',
-        shipping_address='".pod_escape($_POST['shipping_address'] ?? '')."',
+        shipping_address='".pod_escape($shippingAddress)."',
+        shipping_address_id=".($shippingAddressId > 0 ? "'".$shippingAddressId."'" : "NULL").",
         required_documents='".pod_escape(pod_required_documents_from_post())."',
         acceptance_notes='".pod_escape($_POST['acceptance_notes'] ?? '')."',
         qty='".pod_escape($_POST['qty'] ?? '')."',
@@ -158,6 +212,8 @@ if ((string)($draft['missing_information'] ?? '') !== $missingText) {
 }
 $savedDocs = array_filter(array_map('trim', explode("\n", (string)($draft['required_documents'] ?? ''))));
 $allDocs = array('PO Acknowledgment', 'Proforma Invoice', 'Shipping Proforma', 'Delivery Note', 'Packing List', 'ATA106', 'NIS', 'Certificate / Release');
+$fulfillmentInfo = pod_fulfillment_info($draft);
+$addressRes = mysql2_query("SELECT * FROM tbl_Company_Details WHERE Fld_Company_ID='".(int)$draft['customer_company_id']."' ORDER BY id_tbl_company_Details DESC");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -213,11 +269,21 @@ $allDocs = array('PO Acknowledgment', 'Proforma Invoice', 'Shipping Proforma', '
             </div>
             <div class="col-lg-4">
                 <div class="panel panel-default">
-                    <div class="panel-heading">Source</div>
+                    <div class="panel-heading">Fulfillment Source</div>
                     <div class="panel-body">
                         <p><b>Type:</b> <?php echo pod_h($draft['source_type']); ?></p>
                         <p><b>Source ID:</b> <?php echo (int)$draft['source_id']; ?></p>
                         <p><b>Supplier / Source:</b> <?php echo pod_h($draft['source_company_name']); ?></p>
+                        <p><b>Supplier PO required:</b> <?php echo pod_h($fulfillmentInfo['required']); ?></p>
+                        <p><b>Next recommended action:</b> <?php echo pod_h($fulfillmentInfo['action']); ?></p>
+                        <p class="text-muted"><?php echo pod_h($fulfillmentInfo['message']); ?></p>
+                        <?php if ($fulfillmentInfo['required'] === 'YES') { ?>
+                            <button type="button" class="btn btn-default btn-sm" disabled>Create Supplier PO Draft</button>
+                        <?php } elseif ($fulfillmentInfo['required'] === 'NO') { ?>
+                            <span class="label label-success">No supplier PO required</span>
+                        <?php } elseif ($fulfillmentInfo['required'] === 'MAYBE') { ?>
+                            <span class="label label-warning">Supplier/consignment confirmation may be required</span>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
@@ -378,7 +444,19 @@ $allDocs = array('PO Acknowledgment', 'Proforma Invoice', 'Shipping Proforma', '
                     <div class="col-lg-3">
                         <div class="form-group">
                             <label>Shipping Address</label>
+                            <select class="form-control" name="shipping_address_id">
+                                <option value="">Choose saved address</option>
+                                <?php while ($address = mysqli_fetch_assoc($addressRes)) {
+                                    $addressText = pod_format_company_address($address);
+                                    $selected = ((int)($draft['shipping_address_id'] ?? 0) === (int)$address['id_tbl_company_Details']) ? ' selected' : '';
+                                    echo "<option value='".(int)$address['id_tbl_company_Details']."' data-address='".pod_h($addressText)."'".$selected.">".pod_h(str_replace("\n", ' - ', $addressText))."</option>";
+                                } ?>
+                            </select>
+                            <p class="help-block">Choose a saved customer address, or enter a manual address below.</p>
                             <textarea class="form-control" name="shipping_address" rows="3"><?php echo pod_h($draft['shipping_address']); ?></textarea>
+                            <label class="checkbox-inline" style="margin-top:6px">
+                                <input type="checkbox" name="save_shipping_address" value="1"> Save this address to customer profile
+                            </label>
                         </div>
                     </div>
                     <div class="col-lg-3">
@@ -425,5 +503,15 @@ $allDocs = array('PO Acknowledgment', 'Proforma Invoice', 'Shipping Proforma', '
 <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
 <script src="../vendor/metisMenu/metisMenu.min.js"></script>
 <script src="../dist/js/sb-admin-2.js"></script>
+<script>
+$(function(){
+    $('select[name="shipping_address_id"]').on('change', function(){
+        var address = $(this).find('option:selected').data('address') || '';
+        if (address) {
+            $('textarea[name="shipping_address"]').val(address);
+        }
+    });
+});
+</script>
 </body>
 </html>

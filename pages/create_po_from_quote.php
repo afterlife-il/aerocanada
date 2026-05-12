@@ -45,6 +45,7 @@ function poq_ensure_table() {
         payment_terms VARCHAR(255) DEFAULT NULL,
         shipping_terms VARCHAR(255) DEFAULT NULL,
         shipping_address TEXT,
+        shipping_address_id INT(11) DEFAULT NULL,
         required_documents TEXT,
         missing_information TEXT,
         acceptance_notes TEXT,
@@ -65,7 +66,8 @@ function poq_ensure_table() {
         'payment_terms' => "ALTER TABLE tbl_PO_Draft ADD COLUMN payment_terms VARCHAR(255) DEFAULT NULL AFTER accepted_condition_id",
         'shipping_terms' => "ALTER TABLE tbl_PO_Draft ADD COLUMN shipping_terms VARCHAR(255) DEFAULT NULL AFTER payment_terms",
         'shipping_address' => "ALTER TABLE tbl_PO_Draft ADD COLUMN shipping_address TEXT AFTER shipping_terms",
-        'required_documents' => "ALTER TABLE tbl_PO_Draft ADD COLUMN required_documents TEXT AFTER shipping_address",
+        'shipping_address_id' => "ALTER TABLE tbl_PO_Draft ADD COLUMN shipping_address_id INT(11) DEFAULT NULL AFTER shipping_address",
+        'required_documents' => "ALTER TABLE tbl_PO_Draft ADD COLUMN required_documents TEXT AFTER shipping_address_id",
         'missing_information' => "ALTER TABLE tbl_PO_Draft ADD COLUMN missing_information TEXT AFTER required_documents",
         'acceptance_notes' => "ALTER TABLE tbl_PO_Draft ADD COLUMN acceptance_notes TEXT AFTER missing_information"
     );
