@@ -93,27 +93,59 @@ function pod_fulfillment_info($draft) {
     return array('required' => 'UNKNOWN', 'action' => 'Review source selection', 'message' => 'Source type is not clear. Review selected stock/SQ source before proceeding.');
 }
 
+function pod_customer_po_upload_dir() {
+    return __DIR__.'/uploads/customer_po';
+}
+
+function pod_customer_po_upload_error($code) {
+    $errors = array(
+        UPLOAD_ERR_INI_SIZE => 'Uploaded file exceeds the server upload limit.',
+        UPLOAD_ERR_FORM_SIZE => 'Uploaded file exceeds the form upload limit.',
+        UPLOAD_ERR_PARTIAL => 'Uploaded file was only partially uploaded.',
+        UPLOAD_ERR_NO_FILE => '',
+        UPLOAD_ERR_NO_TMP_DIR => 'Server temporary upload directory is missing.',
+        UPLOAD_ERR_CANT_WRITE => 'Server could not write the uploaded file.',
+        UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload.'
+    );
+    return $errors[$code] ?? 'Unknown upload error.';
+}
+
 pod_ensure_workflow_columns();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $basicDraftRes = mysql2_query("SELECT customer_company_id FROM tbl_PO_Draft WHERE id='".$draftId."' LIMIT 1");
+    $basicDraftRes = mysql2_query("SELECT customer_company_id, customer_po_file FROM tbl_PO_Draft WHERE id='".$draftId."' LIMIT 1");
     $basicDraft = $basicDraftRes ? mysqli_fetch_assoc($basicDraftRes) : array();
     $customerCompanyId = (int)($basicDraft['customer_company_id'] ?? 0);
 
-    $uploadedFile = $_POST['existing_customer_po_file'] ?? '';
-    if (!empty($_FILES['customer_po_file']['name']) && is_uploaded_file($_FILES['customer_po_file']['tmp_name'])) {
-        $uploadDir = __DIR__.'/uploads/customer_po';
+    $uploadedFile = trim((string)($basicDraft['customer_po_file'] ?? ''));
+    if (trim((string)($_POST['existing_customer_po_file'] ?? '')) !== '') {
+        $uploadedFile = trim((string)$_POST['existing_customer_po_file']);
+    }
+
+    if (!empty($_FILES['customer_po_file']['name'])) {
+        if (!empty($_FILES['customer_po_file']['error'])) {
+            $saveError = pod_customer_po_upload_error((int)$_FILES['customer_po_file']['error']);
+        }
+        $uploadDir = pod_customer_po_upload_dir();
         if (!is_dir($uploadDir)) {
             @mkdir($uploadDir, 0755, true);
         }
-        $original = basename($_FILES['customer_po_file']['name']);
-        $safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', $original);
-        $targetName = 'po_draft_'.$draftId.'_'.date('YmdHis').'_'.$safeName;
-        $targetPath = $uploadDir.'/'.$targetName;
-        if (move_uploaded_file($_FILES['customer_po_file']['tmp_name'], $targetPath)) {
-            $uploadedFile = 'uploads/customer_po/'.$targetName;
-        } else {
-            $saveError = "Unable to upload customer PO file.";
+        if (!is_writable($uploadDir)) {
+            @chmod($uploadDir, 0775);
+        }
+        if (empty($saveError) && (!is_dir($uploadDir) || !is_writable($uploadDir))) {
+            $saveError = "Customer PO upload directory is not writable.";
+        }
+        if (empty($saveError) && is_uploaded_file($_FILES['customer_po_file']['tmp_name'])) {
+            $original = basename($_FILES['customer_po_file']['name']);
+            $safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', $original);
+            $targetName = 'po_draft_'.$draftId.'_'.date('YmdHis').'_'.$safeName;
+            $targetPath = $uploadDir.'/'.$targetName;
+            if (move_uploaded_file($_FILES['customer_po_file']['tmp_name'], $targetPath)) {
+                $uploadedFile = 'uploads/customer_po/'.$targetName;
+            } else {
+                $saveError = "Unable to upload customer PO file.";
+            }
         }
     }
 
@@ -241,6 +273,12 @@ $addressRes = mysql2_query("SELECT * FROM tbl_Company_Details WHERE Fld_Company_
                 <h1 class="page-header">PO Draft</h1>
                 <?php if (!empty($_GET['saved'])) { ?><div class="alert alert-success">PO draft saved.</div><?php } ?>
                 <?php if (!empty($saveError)) { ?><div class="alert alert-danger"><?php echo pod_h($saveError); ?></div><?php } ?>
+                <div class="alert alert-info">
+                    <p><b>Editable PO Draft</b> is the internal accepted order data prepared from the customer quotation.</p>
+                    <p><b>Customer PO</b> is the customer's official purchase order received by email, upload, or manual entry.</p>
+                    <p><b>Validate Customer PO</b> confirms the customer order and prepares the document workflow.</p>
+                    <p><b>Required Documents</b> is the checklist of documents to prepare after acceptance.</p>
+                </div>
             </div>
         </div>
 
@@ -395,7 +433,12 @@ $addressRes = mysql2_query("SELECT * FROM tbl_Company_Details WHERE Fld_Company_
                             <input type="file" name="customer_po_file" class="form-control">
                             <input type="hidden" name="existing_customer_po_file" value="<?php echo pod_h($draft['customer_po_file']); ?>">
                             <?php if (!empty($draft['customer_po_file'])) { ?>
-                                <p class="help-block"><a href="<?php echo pod_h($draft['customer_po_file']); ?>" target="_blank">Current attachment</a></p>
+                                <p class="help-block">
+                                    Current attachment:
+                                    <a href="<?php echo pod_h($draft['customer_po_file']); ?>" target="_blank"><?php echo pod_h(basename($draft['customer_po_file'])); ?></a>
+                                </p>
+                            <?php } else { ?>
+                                <p class="help-block">No customer PO attachment saved yet.</p>
                             <?php } ?>
                         </div>
                     </div>
