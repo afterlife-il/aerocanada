@@ -1811,12 +1811,26 @@ if ($numrows_rfq > 0) {
 					                        $sqlemp="SELECT Employee_Name FROM tbl_Employee where tbl_Employee.Employee_ID='".$datarfq2['aci_contact']."'";
 											
 											$reqemp = mysql2_query($sqlemp);
-											$dataemp = mysqli_fetch_array($reqemp);
-					                        //Fin recuperation Employee_Name
-											
-											
-                                            echo "<tr>";
-											echo "<td style='border: 1px solid ".$prioritescss.";'><a href=\"javascript:void(0);\" data-href=\"getContentSupplier.php?id=".$datarfq2['ID']."&Fld_RFQ_ID=".$datarfq2['Fld_RFQ_ID']."\" class=\"openPopup\"><i class=\"fa  fa-plane\"></i></a></td>";
+												$dataemp = mysqli_fetch_array($reqemp);
+						                        //Fin recuperation Employee_Name
+												
+												$sqSourcePayload = htmlspecialchars(json_encode(array(
+													'id' => $datarfq2['ID'],
+													'qty' => $datarfq2['Fld_Qty'],
+													'condition_id' => $datarfq2['Fld_Condition_ID'],
+													'price' => $datarfq2['Fld_Price'],
+													'currency_id' => $datarfq2['Fld_Currency_ID'],
+													'release_id' => $datarfq2['Fld_Release_ID'],
+													'tag_info' => trim($datarfq2['Fld_Tag_Info_ID'] . ',' . $datatiid['Fld_Company_Name'], ','),
+													'tag_date' => $datarfq2['Fld_Tag_Date'],
+													'traceability' => trim($datarfq2['Fld_Traceability_ID'] . ',' . $datatrac['Fld_Company_Name'], ','),
+													'lead_time' => $datarfq2['lead_time'],
+													'remark' => $datarfq2['Fld_Remark'],
+													'sn' => $datarfq2['Fld_Part_SN']
+												)), ENT_QUOTES, 'UTF-8');
+												
+	                                            echo "<tr>";
+												echo "<td style='border: 1px solid ".$prioritescss.";'><button type=\"button\" class=\"btn btn-xs btn-success\" onclick=\"quote_the_customer_sq_source(this.getAttribute('data-source'))\" data-source=\"".$sqSourcePayload."\">Use SQ</button> <a href=\"javascript:void(0);\" data-href=\"getContentSupplier.php?id=".$datarfq2['ID']."&Fld_RFQ_ID=".$datarfq2['Fld_RFQ_ID']."\" class=\"openPopup\"><i class=\"fa  fa-plane\"></i></a></td>";
 											// echo "<td><input type=\"radio\" name=\"suppliers_choice_id\" value='".$datarfq2['ID']."' onchange=\"quote_the_customer_sq('".$datarfq2['ID']."')\"></td>";
 											echo "<td><a href='modif_suppliers_quote.php?ID=".$datarfq2['ID']."&part_id=".$part_id."'>".$datarfq2['Fld_RFQ_ID']."</a></td>
 											<td>".$datarn['Fld_Company_Name']."</td>
@@ -2852,6 +2866,10 @@ $(document).ready(function(){
 
 		function quote_the_customer_external(payload) {
 			aciSelectStockSource(payload, 'External', 'External Stock');
+		}
+
+		function quote_the_customer_sq_source(payload) {
+			aciSelectStockSource(payload, 'SQ', 'Supplier Quote');
 		}
 
         $(document).ready(function() {
