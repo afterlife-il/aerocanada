@@ -82,15 +82,15 @@ function pod_format_company_address($address) {
 function pod_fulfillment_info($draft) {
     $type = strtoupper((string)($draft['source_type'] ?? ''));
     if (strpos($type, 'SQ') !== false) {
-        return array('required' => 'YES', 'action' => 'Create Supplier PO Draft', 'message' => 'Supplier PO is required. Supplier, price, condition, delivery and release must come from the selected Supplier Quote.');
+        return array('required' => 'YES', 'stock_reservation' => 'NO', 'stock_action' => 'Create supplier PO before stock reservation.', 'action' => 'Create Supplier PO Draft', 'message' => 'Supplier PO is required. Supplier, price, condition, delivery and release must come from the selected Supplier Quote.');
     }
     if (strpos($type, 'ACI770') !== false || $type === 'ACI770') {
-        return array('required' => 'NO', 'action' => 'Internal fulfilment / shipping docs', 'message' => 'No supplier PO required. Proceed with internal fulfilment and shipping documents.');
+        return array('required' => 'NO', 'stock_reservation' => 'YES', 'stock_action' => 'Reserve or block the selected ACI770 stock before shipping.', 'action' => 'Internal fulfilment / shipping docs', 'message' => 'No supplier PO required. Proceed with internal fulfilment and shipping documents.');
     }
     if (strpos($type, 'EXTERNAL') !== false || strpos($type, 'CONSIGN') !== false) {
-        return array('required' => 'MAYBE', 'action' => 'Confirm source availability / documents', 'message' => 'Supplier or consignment confirmation may be required before document generation.');
+        return array('required' => 'MAYBE', 'stock_reservation' => 'MAYBE', 'stock_action' => 'Confirm external/consignment availability and source documents.', 'action' => 'Confirm source availability / documents', 'message' => 'Supplier or consignment confirmation may be required before document generation.');
     }
-    return array('required' => 'UNKNOWN', 'action' => 'Review source selection', 'message' => 'Source type is not clear. Review selected stock/SQ source before proceeding.');
+    return array('required' => 'UNKNOWN', 'stock_reservation' => 'UNKNOWN', 'stock_action' => 'Review selected source before stock action.', 'action' => 'Review source selection', 'message' => 'Source type is not clear. Review selected stock/SQ source before proceeding.');
 }
 
 function pod_customer_po_upload_dir() {
@@ -313,7 +313,9 @@ $addressRes = mysql2_query("SELECT * FROM tbl_Company_Details WHERE Fld_Company_
                         <p><b>Source ID:</b> <?php echo (int)$draft['source_id']; ?></p>
                         <p><b>Supplier / Source:</b> <?php echo pod_h($draft['source_company_name']); ?></p>
                         <p><b>Supplier PO required:</b> <?php echo pod_h($fulfillmentInfo['required']); ?></p>
+                        <p><b>Stock reservation required:</b> <?php echo pod_h($fulfillmentInfo['stock_reservation']); ?></p>
                         <p><b>Next recommended action:</b> <?php echo pod_h($fulfillmentInfo['action']); ?></p>
+                        <p><b>Next stock action:</b> <?php echo pod_h($fulfillmentInfo['stock_action']); ?></p>
                         <p class="text-muted"><?php echo pod_h($fulfillmentInfo['message']); ?></p>
                         <?php if ($fulfillmentInfo['required'] === 'YES') { ?>
                             <button type="button" class="btn btn-default btn-sm" disabled>Create Supplier PO Draft</button>

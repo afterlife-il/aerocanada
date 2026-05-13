@@ -464,10 +464,14 @@ if (empty($_GET['part_id']) && !empty($_GET['pn'])) {
                         <input type="hidden" name="Fld_Part_ID_hidden" id="Fld_Part_ID_hidden">
                         <input type="hidden" name="Fld_Part_ID" value="<?php echo $data['Fld_Part_ID'];?>">
 						<input type="hidden" name="Fld_Part_Nbr" value="<?php echo $data["Fld_Part_Nbr"];?>">
-						<input type="hidden" name="Fld_Part_Desc" value="<?php echo $data["Fld_Part_Desc"];?>">
-						<input type="hidden" name="part_id" value="<?php echo $part_id;?>">
-						<input type="hidden" name="id_utilisateur" value="<?php echo $_SESSION['id_utilisateur'];?>">
-						<input type="hidden" name="actonrfq" value="addrfqft">
+							<input type="hidden" name="Fld_Part_Desc" value="<?php echo $data["Fld_Part_Desc"];?>">
+							<input type="hidden" name="part_id" value="<?php echo $part_id;?>">
+							<input type="hidden" name="id_utilisateur" value="<?php echo $_SESSION['id_utilisateur'];?>">
+							<input type="hidden" name="actonrfq" value="addrfqft">
+							<input type="hidden" name="selected_source_type" id="selected_source_type" value="">
+							<input type="hidden" name="selected_source_id" id="selected_source_id" value="">
+							<input type="hidden" name="source_type" id="source_type" value="">
+							<input type="hidden" name="source_id" id="source_id" value="">
                         <div class="panel-body" id='blocrecuprfqquote'>  
 						  <div id='divrecuprfqquote'>
                           <div class="form-group has-warning">
@@ -1148,7 +1152,8 @@ if ($numrows_rfq > 0) {
 							'tag_date' => $datast['Fld_Tag_Date'],
 							'traceability' => $datast['Fld_Traceability_ID'],
 							'lead_time' => $datasl['Fld_Stock_Location_Text'],
-							'remark' => $datast['Fld_Sales_Remark']
+							'remark' => $datast['Fld_Sales_Remark'],
+							'sn' => $datast['Fld_Part_SN']
 						)), ENT_QUOTES, 'UTF-8');
 
 	                    echo "<tr>
@@ -1667,11 +1672,12 @@ if ($numrows_rfq > 0) {
 												'price' => $datastex['Fld_Part_Price'],
 												'currency_id' => $datastex['Fld_Price_Currency_ID'],
 												'release_id' => $datastex['Fld_Release_ID'],
-												'tag_info' => trim($datastex['Fld_Tag_Info_ID'] . ',' . $datacn['Fld_Company_Name'], ','),
-												'tag_date' => $datastex['Fld_Tag_Date'],
-												'traceability' => $datastex['Fld_Traceability_ID'],
-												'lead_time' => $datastex['Fld_External_Location'],
-												'remark' => $datastex['Fld_Stock_Remark']
+													'tag_info' => trim($datastex['Fld_Tag_Info_ID'] . ',' . $datacn['Fld_Company_Name'], ','),
+													'tag_date' => $datastex['Fld_Tag_Date'],
+													'traceability' => $datastex['Fld_Traceability_ID'],
+													'lead_time' => $datastex['Fld_External_Location'],
+													'remark' => $datastex['Fld_Stock_Remark'],
+													'sn' => $datastex['Fld_Part_SN']
 											)), ENT_QUOTES, 'UTF-8');
 	                                            echo "<tr><td><input type=\"radio\" name=\"external_stock_choice\" value=\"".$datastex['Fld_Stock_externe_ID']."\" onchange=\"quote_the_customer_external(this.getAttribute('data-stock'))\" data-stock=\"".$externalStockPayload."\"></td><td>".$datastex['Fld_Stock_externe_ID']."</td><td>".$data["Fld_Part_Nbr"]."</td><td>".$data['Fld_Part_Desc']."</td><td>".$Aircraft_modelse."</td><td>".$datastex['Fld_Qty']."</td><td>".$datac['Fld_Condition_Text']."</td><td>".$datacn['Fld_Company_Name']."</td><td>".$datastex['Fld_Entry_Date']."</td><td>".$datastex['Fld_Stock_Remark']."</td></tr>";
 					}
@@ -2804,7 +2810,7 @@ $(document).ready(function(){
 			}
 		}
 
-		function aciSelectStockSource(payload, sourceLabel) {
+		function aciSelectStockSource(payload, sourceType, sourceLabel) {
 			var stock = {};
 			try {
 				stock = JSON.parse(payload || '{}');
@@ -2822,6 +2828,11 @@ $(document).ready(function(){
 			aciSetFormValue('Form1', 'Fld_Price', stock.price);
 			aciSetFormValue('Form1', 'FldCurrencyID', stock.currency_id);
 			aciSetFormValue('Form1', 'Fld_Remark', stock.remark);
+			aciSetFormValue('Form1', 'Fld_Part_SN', stock.sn);
+			aciSetFormValue('Form1', 'selected_source_type', sourceType);
+			aciSetFormValue('Form1', 'selected_source_id', stock.id);
+			aciSetFormValue('Form1', 'source_type', sourceType);
+			aciSetFormValue('Form1', 'source_id', stock.id);
 
 			$('#blocquotecustomer, #blocrecuprfqquote').hide();
 			$('#divquotecustomer, #divrecuprfqquote').empty();
@@ -2836,11 +2847,11 @@ $(document).ready(function(){
 		}
 
 		function quote_the_customer_aci(payload) {
-			aciSelectStockSource(payload, 'ACI770 Stock');
+			aciSelectStockSource(payload, 'ACI770', 'ACI770 Stock');
 		}
 
 		function quote_the_customer_external(payload) {
-			aciSelectStockSource(payload, 'External Stock');
+			aciSelectStockSource(payload, 'External', 'External Stock');
 		}
 
         $(document).ready(function() {
