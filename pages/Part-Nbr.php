@@ -472,6 +472,9 @@ if (empty($_GET['part_id']) && !empty($_GET['pn'])) {
 							<input type="hidden" name="selected_source_id" id="selected_source_id" value="">
 							<input type="hidden" name="source_type" id="source_type" value="">
 							<input type="hidden" name="source_id" id="source_id" value="">
+							<input type="hidden" name="supplier_quote_id" id="supplier_quote_id" value="">
+							<input type="hidden" name="idrfq1" id="idrfq1" value="">
+							<input type="hidden" name="id_tbl_rfq1" id="id_tbl_rfq1" value="">
                         <div class="panel-body" id='blocrecuprfqquote'>  
 						  <div id='divrecuprfqquote'>
                           <div class="form-group has-warning">
@@ -493,14 +496,15 @@ if (empty($_GET['part_id']) && !empty($_GET['pn'])) {
 
     <!-- Champ visible NON modifiable (readonly, sans name) -->
     <input class="form-control"
+           id="rfq_id_display"
            value="<?php echo $rfq_id_safe; ?>"
            readonly="readonly"
            style="background-color:#eee; cursor:not-allowed;">
 
     <!-- Champs cachés envoyés au serveur (comme avant) -->
-    <input type="hidden" name="RFQ_ID"
+    <input type="hidden" name="RFQ_ID" id="RFQ_ID"
            value="<?php echo $rfq_id_safe; ?>">
-    <input type="hidden" name="Fld_RFQ_ID"
+    <input type="hidden" name="Fld_RFQ_ID" id="Fld_RFQ_ID"
            value="<?php echo $rfq_id_safe; ?>">
 </div>
 
@@ -1145,6 +1149,7 @@ if ($numrows_rfq > 0) {
 								'id' => $datast['Fld_Stock_ID'],
 								'pn' => $data["Fld_Part_Nbr"],
 								'description' => $data['Fld_Part_Desc'],
+								'part_id' => $data['Fld_Part_ID'],
 								'qty' => $datast['Fld_Qty'],
 								'condition_id' => $datast['Fld_Condition_ID'],
 							'price' => $datast['Fld_Part_Price'],
@@ -1671,6 +1676,7 @@ if ($numrows_rfq > 0) {
 													'id' => $datastex['Fld_Stock_externe_ID'],
 													'pn' => $data["Fld_Part_Nbr"],
 													'description' => $data['Fld_Part_Desc'],
+													'part_id' => $data['Fld_Part_ID'],
 													'qty' => $datastex['Fld_Qty'],
 												'condition_id' => $datastex['Fld_Condition_ID'],
 												'price' => $datastex['Fld_Part_Price'],
@@ -1820,8 +1826,11 @@ if ($numrows_rfq > 0) {
 												
 												$sqSourcePayload = htmlspecialchars(json_encode(array(
 													'id' => $datarfq2['ID'],
+													'rfq_id' => $datarfq2['Fld_RFQ_ID'],
+													'id_tbl_rfq1' => $datarfq2['id_tbl_rfq1'],
 													'pn' => $data["Fld_Part_Nbr"],
 													'description' => $data['Fld_Part_Desc'],
+													'part_id' => $data['Fld_Part_ID'],
 													'qty' => $datarfq2['Fld_Qty'],
 													'condition_id' => $datarfq2['Fld_Condition_ID'],
 													'price' => $datarfq2['Fld_Price'],
@@ -2868,6 +2877,19 @@ $(document).ready(function(){
 			aciSelectValue('selected_source_id', stock.id);
 			aciSelectValue('source_type', sourceType);
 			aciSelectValue('source_id', stock.id);
+			aciSelectValue('supplier_quote_id', sourceType === 'SQ' ? stock.id : '');
+			aciSelectValue('idrfq1', stock.id_tbl_rfq1 || '');
+			aciSelectValue('id_tbl_rfq1', stock.id_tbl_rfq1 || '');
+			if (stock.part_id) {
+				aciSelectValue('part_id', stock.part_id);
+				aciSelectValue('Fld_Part_ID', stock.part_id);
+				aciSelectValue('Fld_Part_ID_hidden', stock.part_id);
+			}
+			if (stock.rfq_id) {
+				aciSelectValue('RFQ_ID', stock.rfq_id);
+				aciSelectValue('Fld_RFQ_ID', stock.rfq_id);
+				$('#rfq_id_display').val(stock.rfq_id);
+			}
 
 			$('#blocrecuprfqquote').show();
 			$('#blocquotecustomer').hide();

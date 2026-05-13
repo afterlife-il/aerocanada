@@ -111,8 +111,12 @@ if (!empty($_POST['actonrfq']) && $_POST['actonrfq'] == 'addrfqft') {
     <input type="hidden" name="moq"               value="<?php echo isset($_POST['moq']) ? $_POST['moq'] : ''; ?>">
     <input type="hidden" name="Fld_Traceability_ID" value="<?php echo isset($_POST['Fld_Traceability_ID']) ? $_POST['Fld_Traceability_ID'] : ''; ?>">
     <input type="hidden" name="idrfq1"            value="<?php echo isset($_POST['idrfq1']) ? (int)$_POST['idrfq1'] : ''; ?>">
+    <input type="hidden" name="id_tbl_rfq1"       value="<?php echo isset($_POST['id_tbl_rfq1']) ? (int)$_POST['id_tbl_rfq1'] : ''; ?>">
     <input type="hidden" name="selected_source_type" value="<?php echo isset($_POST['selected_source_type']) ? htmlspecialchars($_POST['selected_source_type'], ENT_QUOTES, 'UTF-8') : ''; ?>">
     <input type="hidden" name="selected_source_id" value="<?php echo isset($_POST['selected_source_id']) ? (int)$_POST['selected_source_id'] : ''; ?>">
+    <input type="hidden" name="source_type" value="<?php echo isset($_POST['source_type']) ? htmlspecialchars($_POST['source_type'], ENT_QUOTES, 'UTF-8') : ''; ?>">
+    <input type="hidden" name="source_id" value="<?php echo isset($_POST['source_id']) ? (int)$_POST['source_id'] : ''; ?>">
+    <input type="hidden" name="supplier_quote_id" value="<?php echo isset($_POST['supplier_quote_id']) ? (int)$_POST['supplier_quote_id'] : ''; ?>">
 
 <?php
 // Si pas de RFQ_ID => on affiche un message au lieu de casser la page

@@ -18,9 +18,69 @@ class rfq
     public $Fld_Condition_ID;
     public $pn_rfq;
     public $description_rfq;
+
+	private function selected_source_type()
+	{
+		$source_type = !empty($_POST['selected_source_type']) ? $_POST['selected_source_type'] : (!empty($_POST['source_type']) ? $_POST['source_type'] : '');
+		$source_type = strtoupper(trim($source_type));
+		return in_array($source_type, array('SQ', 'ACI770', 'EXTERNAL'), true) ? $source_type : '';
+	}
+
+	private function selected_source_id()
+	{
+		return !empty($_POST['selected_source_id']) ? (int)$_POST['selected_source_id'] : (!empty($_POST['source_id']) ? (int)$_POST['source_id'] : 0);
+	}
+
+	private function supplier_quote_id()
+	{
+		$supplier_quote_id = !empty($_POST['supplier_quote_id']) ? (int)$_POST['supplier_quote_id'] : 0;
+		if ($supplier_quote_id <= 0 && $this->selected_source_type() === 'SQ') {
+			$supplier_quote_id = $this->selected_source_id();
+		}
+		return $supplier_quote_id;
+	}
+
+	private function fail_source_context($message)
+	{
+		echo "<div class=\"alert alert-danger\">".htmlspecialchars($message, ENT_QUOTES, 'UTF-8')."</div>";
+		exit;
+	}
+
+	private function validate_supplier_quote_source($rfq_id, $part_id)
+	{
+		if ($this->selected_source_type() !== 'SQ') {
+			return 0;
+		}
+
+		$supplier_quote_id = $this->supplier_quote_id();
+		if ($supplier_quote_id <= 0) {
+			$this->fail_source_context('Supplier quote source is missing. Please select the supplier quote again.');
+		}
+
+		$sql = "SELECT ID, Fld_RFQ_ID, Fld_Part_ID, id_tbl_rfq1 FROM tbl_RFQ_2 WHERE ID='".$supplier_quote_id."' LIMIT 1";
+		$result = mysql2_query($sql);
+		$sq = $result ? mysqli_fetch_array($result) : null;
+		if (!$sq) {
+			$this->fail_source_context('Selected supplier quote does not exist.');
+		}
+		if ((int)$sq['Fld_Part_ID'] !== (int)$part_id) {
+			$this->fail_source_context('Selected supplier quote does not match this part.');
+		}
+		if (!empty($sq['Fld_RFQ_ID']) && $rfq_id !== '' && $sq['Fld_RFQ_ID'] !== $rfq_id) {
+			$this->fail_source_context('Selected supplier quote belongs to a different RFQ.');
+		}
+		if (empty($_POST['supplier_quote_id'])) {
+			$_POST['supplier_quote_id'] = $supplier_quote_id;
+		}
+
+		return !empty($sq['id_tbl_rfq1']) ? (int)$sq['id_tbl_rfq1'] : 0;
+	}
 		
 	public function add_rfq()
 	{
+								$companyidrecup = '';
+								$companyidrecuptrac = '';
+								$companytaginforecup = '';
 								if (!empty($_POST['companyid'])) 
 										{
 									$companyid = explode(",", $_POST['companyid']);
@@ -39,21 +99,33 @@ class rfq
 									$description=$_POST['description_rfq'];
 									$pn_rfq=$_POST['pn_rfq'];
 									}
+
+		$source_type = $this->selected_source_type();
+		$source_id = $this->selected_source_id();
+		$existing_rfq_line_id = $this->validate_supplier_quote_source($_POST['Fld_RFQ_ID'], $pnidres);
 										
-		$req="INSERT INTO `tbl_RFQ_1` (`ID`, `Fld_RFQ_ID`, `Fld_Qty`, `Fld_Part_ID`, `Fld_Observation`, `Fld_Customer_ID`, `date`, `Fld_RFQ_Type_ID`, `Fld_Priority_ID`, `Employee_ID`, `id_company_contact`, `Fld_Payment_Term_ID`, `Fld_Condition_ID`, `pn_rfq`, `description_rfq`) VALUES (NULL, '".$_POST['Fld_RFQ_ID']."', '".$_POST['Fld_Qty']."', '".$pnidres."', '".$_POST['Fld_Remark_rfq']."', '".$companyidrecup."', '".$_POST['RFQ_DATE']."', '".$_POST['Fld_RFQ_Type_ID']."', '".$_POST['Fld_Priority_ID']."', '".$_POST['Employee_ID']."', '".$_POST['id_company_contact']."', '".$_POST['Fld_Payment_Term_ID']."', '".$_POST['Fld_Condition_ID']."', '".$pn_rfq."', '".$description."');";
-		// echo $req;
-		$requete = mysql2_query($req);
-		$lastidrfq=mysql2_insert_id();//reuperation de l'id qu'on vient de saisir
-		//ajout de ce RFQ ID dans la table tbl_RFQ si elle n'existe pas deja
-		
-		$resultrfq1 = mysql2_query("SELECT * FROM tbl_RFQ where Fld_RFQ_ID='".$_POST['Fld_RFQ_ID']."'");
-		$num_rows_rfq1 = mysqli_num_rows($resultrfq1);
-		if($num_rows_rfq1==0){
-		
-		$req5="INSERT INTO `tbl_RFQ` (`ID`, `Fld_RFQ_ID`, `Fld_Date`, `Fld_Step_1`, `Fld_Step_2`, `Fld_Step_3`, `Fld_Priority_ID`, `Fld_Observation`, `Fld_RFQ_Type_ID`, `Fld_RFQ_ACI_Employee_Id`, `Fld_Customer_ID`, `Fld_Contact_ID`, `Fld_Customer_Detail_ID`, `Fld_PO`, `Fld_PO_Date`, `Fld_Requested_Date`, `Fld_Payment_Term_ID`, `Fld_Customer_Forwarder_ID`, `Fld_ShipTo_Company`, `Fld_Customer_ShippingDetail_ID`, `Fld_Customer_ShippingContact_ID`, `Fld_PO_IsOpen`, `RowIndex`, `Fld_Order_Rating`) VALUES (NULL, '".$_POST['Fld_RFQ_ID']."', '".$_POST['RFQ_DATE']."', 'TRUE', 'FALSE', 'FALSE', '".$_POST['Fld_Priority_ID']."', NULL, NULL, '".$_POST['id_utilisateur']."', '".$companyidrecup."', NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);";
-		$requete5 = mysql2_query($req5);
-							}
-		//Fin ajout de ce RFQ ID dans la table tbl_RFQ si elle n'existe pas deja
+		if ($existing_rfq_line_id > 0) {
+			$result_existing_rfq1 = mysql2_query("SELECT ID FROM tbl_RFQ_1 WHERE ID='".$existing_rfq_line_id."' AND Fld_RFQ_ID='".$_POST['Fld_RFQ_ID']."' AND Fld_Part_ID='".$pnidres."' LIMIT 1");
+			if (!$result_existing_rfq1 || mysqli_num_rows($result_existing_rfq1) == 0) {
+				$this->fail_source_context('Selected supplier quote RFQ line does not match the active RFQ.');
+			}
+			$lastidrfq = $existing_rfq_line_id;
+		} else {
+			$req="INSERT INTO `tbl_RFQ_1` (`ID`, `Fld_RFQ_ID`, `Fld_Qty`, `Fld_Part_ID`, `Fld_Observation`, `Fld_Customer_ID`, `date`, `Fld_RFQ_Type_ID`, `Fld_Priority_ID`, `Employee_ID`, `id_company_contact`, `Fld_Payment_Term_ID`, `Fld_Condition_ID`, `pn_rfq`, `description_rfq`) VALUES (NULL, '".$_POST['Fld_RFQ_ID']."', '".$_POST['Fld_Qty']."', '".$pnidres."', '".$_POST['Fld_Remark_rfq']."', '".$companyidrecup."', '".$_POST['RFQ_DATE']."', '".$_POST['Fld_RFQ_Type_ID']."', '".$_POST['Fld_Priority_ID']."', '".$_POST['Employee_ID']."', '".$_POST['id_company_contact']."', '".$_POST['Fld_Payment_Term_ID']."', '".$_POST['Fld_Condition_ID']."', '".$pn_rfq."', '".$description."');";
+			// echo $req;
+			$requete = mysql2_query($req);
+			$lastidrfq=mysql2_insert_id();//reuperation de l'id qu'on vient de saisir
+			//ajout de ce RFQ ID dans la table tbl_RFQ si elle n'existe pas deja
+
+			$resultrfq1 = mysql2_query("SELECT * FROM tbl_RFQ where Fld_RFQ_ID='".$_POST['Fld_RFQ_ID']."'");
+			$num_rows_rfq1 = mysqli_num_rows($resultrfq1);
+			if($num_rows_rfq1==0){
+
+			$req5="INSERT INTO `tbl_RFQ` (`ID`, `Fld_RFQ_ID`, `Fld_Date`, `Fld_Step_1`, `Fld_Step_2`, `Fld_Step_3`, `Fld_Priority_ID`, `Fld_Observation`, `Fld_RFQ_Type_ID`, `Fld_RFQ_ACI_Employee_Id`, `Fld_Customer_ID`, `Fld_Contact_ID`, `Fld_Customer_Detail_ID`, `Fld_PO`, `Fld_PO_Date`, `Fld_Requested_Date`, `Fld_Payment_Term_ID`, `Fld_Customer_Forwarder_ID`, `Fld_ShipTo_Company`, `Fld_Customer_ShippingDetail_ID`, `Fld_Customer_ShippingContact_ID`, `Fld_PO_IsOpen`, `RowIndex`, `Fld_Order_Rating`) VALUES (NULL, '".$_POST['Fld_RFQ_ID']."', '".$_POST['RFQ_DATE']."', 'TRUE', 'FALSE', 'FALSE', '".$_POST['Fld_Priority_ID']."', NULL, NULL, '".$_POST['id_utilisateur']."', '".$companyidrecup."', NULL, NULL, '', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);";
+			$requete5 = mysql2_query($req5);
+								}
+			//Fin ajout de ce RFQ ID dans la table tbl_RFQ si elle n'existe pas deja
+		}
 		
 					//*************************************************************************************
 					//je verifie si il y a des elements a rentrer dans la dable quote
@@ -74,8 +146,6 @@ class rfq
 												$companyidtaginfo = explode(",", $_POST['Fld_Tag_Info_ID']);
 													$companytaginforecup=$companyidtaginfo[0]; 
 														}
-												$source_type = !empty($_POST['selected_source_type']) ? $_POST['selected_source_type'] : (!empty($_POST['source_type']) ? $_POST['source_type'] : '');
-												$source_id = !empty($_POST['selected_source_id']) ? (int)$_POST['selected_source_id'] : (!empty($_POST['source_id']) ? (int)$_POST['source_id'] : 0);
 												$sql="INSERT INTO `tbl_RFQ_3` (`ID`, `Fld_RFQ_ID`, `Fld_Quote_Date`, `Fld_Part_Id`, `Fld_Part_SN`, `Fld_Qty`, `Fld_Condition`, `Fld_Price`, `Fld_Price_Min`, `Fld_Price_Max`, `Fld_Currency_ID`, `Fld_Remark`, `Fld_Supply_Date`, `Fld_Traceability_ID`, `Fld_Tag_Info_ID`, `Fld_Tag_Date`, `Fld_Release_ID`, `Fld_Linked_ID`, `Fld_Exch_Core_Value`, `Fld_Exch_Core_Value_Currency_ID`, `Fld_Exch_Cond`, `Fld_IsBeen_Chosen`, `Fld_Send_Mail`, `Fld_Exch_Core_RCVD`, `moq`, `lead_time`, `Fld_Priority_ID`, `id_tbl_rfq1`, `source_type`, `source_id`) VALUES (NULL, '".$_POST['Fld_RFQ_ID']."', '".$datequote."', '".$_POST['part_id']."', '".$_POST['Fld_Part_SN']."', '".$_POST['Fld_Qty']."', '".$_POST['Fld_Condition_ID']."', '".$_POST['Fld_Price']."', '', '', '".$_POST['FldCurrencyID']."', '".$_POST['Fld_Remark']."', '', '".$companyidrecuptrac."', '".$companytaginforecup."', '".$_POST['Fld_Tag_Date']."', '".$_POST['Fld_Release_ID']."', '', '', '', '', '', '', '', '".$_POST['moq']."', '".$_POST['lead_time']."', '".$_POST['Fld_Priority_ID']."', '".$lastidrfq."', '".$source_type."', '".$source_id."');";
 											// echo $sql;
 											$requete = mysql2_query($sql);
