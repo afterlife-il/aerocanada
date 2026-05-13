@@ -1141,10 +1141,12 @@ if ($numrows_rfq > 0) {
 					$datacn = mysqli_fetch_array($reqcomn);
 					//Fin recuperation du nom de la compagnie
 					
-						$aciStockPayload = htmlspecialchars(json_encode(array(
-							'id' => $datast['Fld_Stock_ID'],
-							'qty' => $datast['Fld_Qty'],
-							'condition_id' => $datast['Fld_Condition_ID'],
+							$aciStockPayload = htmlspecialchars(json_encode(array(
+								'id' => $datast['Fld_Stock_ID'],
+								'pn' => $data["Fld_Part_Nbr"],
+								'description' => $data['Fld_Part_Desc'],
+								'qty' => $datast['Fld_Qty'],
+								'condition_id' => $datast['Fld_Condition_ID'],
 							'price' => $datast['Fld_Part_Price'],
 							'currency_id' => $datast['Fld_Price_Currency_ID'],
 							'release_id' => $datast['Fld_Release_ID'],
@@ -1665,9 +1667,11 @@ if ($numrows_rfq > 0) {
 					//Fin recuperation du nom du aircraft
 					
 					
-											$externalStockPayload = htmlspecialchars(json_encode(array(
-												'id' => $datastex['Fld_Stock_externe_ID'],
-												'qty' => $datastex['Fld_Qty'],
+												$externalStockPayload = htmlspecialchars(json_encode(array(
+													'id' => $datastex['Fld_Stock_externe_ID'],
+													'pn' => $data["Fld_Part_Nbr"],
+													'description' => $data['Fld_Part_Desc'],
+													'qty' => $datastex['Fld_Qty'],
 												'condition_id' => $datastex['Fld_Condition_ID'],
 												'price' => $datastex['Fld_Part_Price'],
 												'currency_id' => $datastex['Fld_Price_Currency_ID'],
@@ -1816,6 +1820,8 @@ if ($numrows_rfq > 0) {
 												
 												$sqSourcePayload = htmlspecialchars(json_encode(array(
 													'id' => $datarfq2['ID'],
+													'pn' => $data["Fld_Part_Nbr"],
+													'description' => $data['Fld_Part_Desc'],
 													'qty' => $datarfq2['Fld_Qty'],
 													'condition_id' => $datarfq2['Fld_Condition_ID'],
 													'price' => $datarfq2['Fld_Price'],
@@ -2820,8 +2826,21 @@ $(document).ready(function(){
 		function aciSetFormValue(formName, fieldName, value) {
 			var form = document.forms[formName];
 			if (form && form.elements[fieldName]) {
-				$(form.elements[fieldName]).val(value || '');
+				$(form.elements[fieldName]).val(value || '').trigger('change');
+				return;
 			}
+			if ($('#' + fieldName).length) {
+				$('#' + fieldName).val(value || '').trigger('change');
+				return;
+			}
+			$('[name="' + fieldName + '"]').first().val(value || '').trigger('change');
+		}
+
+		function aciSelectValue(fieldName, value) {
+			if (value === undefined || value === null) {
+				value = '';
+			}
+			aciSetFormValue('Form1', fieldName, value);
 		}
 
 		function aciSelectStockSource(payload, sourceType, sourceLabel) {
@@ -2832,24 +2851,27 @@ $(document).ready(function(){
 				return;
 			}
 
-			aciSetFormValue('Form1', 'Fld_Qty', stock.qty);
-			aciSetFormValue('Form1', 'Fld_Condition_ID', stock.condition_id);
-			aciSetFormValue('Form1', 'Fld_Release_ID', stock.release_id);
-			aciSetFormValue('Form1', 'Fld_Tag_Info_ID', stock.tag_info);
-			aciSetFormValue('Form1', 'Fld_Tag_Date', stock.tag_date);
-			aciSetFormValue('Form1', 'Fld_Traceability_ID', stock.traceability);
-			aciSetFormValue('Form1', 'lead_time', stock.lead_time);
-			aciSetFormValue('Form1', 'Fld_Price', stock.price);
-			aciSetFormValue('Form1', 'FldCurrencyID', stock.currency_id);
-			aciSetFormValue('Form1', 'Fld_Remark', stock.remark);
-			aciSetFormValue('Form1', 'Fld_Part_SN', stock.sn);
-			aciSetFormValue('Form1', 'selected_source_type', sourceType);
-			aciSetFormValue('Form1', 'selected_source_id', stock.id);
-			aciSetFormValue('Form1', 'source_type', sourceType);
-			aciSetFormValue('Form1', 'source_id', stock.id);
+			aciSelectValue('pn_rfq', stock.pn);
+			aciSelectValue('description_rfq', stock.description);
+			aciSelectValue('Fld_Qty', stock.qty);
+			aciSelectValue('Fld_Condition_ID', stock.condition_id);
+			aciSelectValue('Fld_Release_ID', stock.release_id);
+			aciSelectValue('Fld_Tag_Info_ID', stock.tag_info);
+			aciSelectValue('Fld_Tag_Date', stock.tag_date);
+			aciSelectValue('Fld_Traceability_ID', stock.traceability);
+			aciSelectValue('lead_time', stock.lead_time);
+			aciSelectValue('Fld_Price', stock.price);
+			aciSelectValue('FldCurrencyID', stock.currency_id);
+			aciSelectValue('Fld_Remark', stock.remark);
+			aciSelectValue('Fld_Part_SN', stock.sn);
+			aciSelectValue('selected_source_type', sourceType);
+			aciSelectValue('selected_source_id', stock.id);
+			aciSelectValue('source_type', sourceType);
+			aciSelectValue('source_id', stock.id);
 
-			$('#blocquotecustomer, #blocrecuprfqquote').hide();
-			$('#divquotecustomer, #divrecuprfqquote').empty();
+			$('#blocrecuprfqquote').show();
+			$('#blocquotecustomer').hide();
+			$('#divquotecustomer').empty();
 
 			if ($('#stock-selected-source').length === 0) {
 				$('#rfq_collapse .panel-body').first().prepend('<div id="stock-selected-source" class="alert alert-success" style="margin-bottom:10px;"></div>');
@@ -2865,7 +2887,7 @@ $(document).ready(function(){
 		}
 
 		function quote_the_customer_external(payload) {
-			aciSelectStockSource(payload, 'External', 'External Stock');
+			aciSelectStockSource(payload, 'EXTERNAL', 'External Stock');
 		}
 
 		function quote_the_customer_sq_source(payload) {
