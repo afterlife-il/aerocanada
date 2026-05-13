@@ -1137,10 +1137,24 @@ if ($numrows_rfq > 0) {
 					$datacn = mysqli_fetch_array($reqcomn);
 					//Fin recuperation du nom de la compagnie
 					
-                    echo "<tr>
+						$aciStockPayload = htmlspecialchars(json_encode(array(
+							'id' => $datast['Fld_Stock_ID'],
+							'qty' => $datast['Fld_Qty'],
+							'condition_id' => $datast['Fld_Condition_ID'],
+							'price' => $datast['Fld_Part_Price'],
+							'currency_id' => $datast['Fld_Price_Currency_ID'],
+							'release_id' => $datast['Fld_Release_ID'],
+							'tag_info' => trim($datast['Fld_Tag_Info_ID'] . ',' . $datacn['Fld_Company_Name'], ','),
+							'tag_date' => $datast['Fld_Tag_Date'],
+							'traceability' => $datast['Fld_Traceability_ID'],
+							'lead_time' => $datasl['Fld_Stock_Location_Text'],
+							'remark' => $datast['Fld_Sales_Remark']
+						)), ENT_QUOTES, 'UTF-8');
+
+	                    echo "<tr>
 					  <td>
 					    <input type=\"radio\" name=\"stock_choice\" value=\"".$datast['Fld_Stock_ID']."\"
-					           onchange=\"quote_the_customer(".$datast['Fld_Stock_ID'].")\">
+					           onchange=\"quote_the_customer_aci(this.getAttribute('data-stock'))\" data-stock=\"".$aciStockPayload."\">
 					  </td>
 
 					  <td><a href='javascript:addstock(".$datast['Fld_Stock_ID'].")'>".$datast['Fld_Stock_ID']."</a>
@@ -2477,6 +2491,8 @@ $.ajax({
     $btn.prop('disabled', false).text('Save');
   }
 });
+  });
+})();
 
 </script>
 
@@ -2651,6 +2667,11 @@ $.ajax({
 
     <!-- Metis Menu Plugin JavaScript -->
     <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+    <script>
+    if (window.jQuery && !jQuery.fn.metisMenu) {
+        jQuery.fn.metisMenu = function() { return this; };
+    }
+    </script>
 
     <!-- DataTables JavaScript -->
     <script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
@@ -2783,7 +2804,7 @@ $(document).ready(function(){
 			}
 		}
 
-		function aciSelectExternalStock(payload) {
+		function aciSelectStockSource(payload, sourceLabel) {
 			var stock = {};
 			try {
 				stock = JSON.parse(payload || '{}');
@@ -2802,17 +2823,24 @@ $(document).ready(function(){
 			aciSetFormValue('Form1', 'FldCurrencyID', stock.currency_id);
 			aciSetFormValue('Form1', 'Fld_Remark', stock.remark);
 
-			if ($('#external-stock-selected-source').length === 0) {
-				$('#rfq_collapse .panel-body').first().prepend('<div id="external-stock-selected-source" class="alert alert-success" style="margin-bottom:10px;"></div>');
+			$('#blocquotecustomer, #blocrecuprfqquote').hide();
+			$('#divquotecustomer, #divrecuprfqquote').empty();
+
+			if ($('#stock-selected-source').length === 0) {
+				$('#rfq_collapse .panel-body').first().prepend('<div id="stock-selected-source" class="alert alert-success" style="margin-bottom:10px;"></div>');
 			}
-			$('#external-stock-selected-source').text('Selected source: External Stock #' + (stock.id || ''));
+			$('#stock-selected-source').text('Selected source: ' + sourceLabel + ' #' + (stock.id || ''));
 			if (window.location.hash !== '#rfq_collapse') {
 				window.location.hash = 'rfq_collapse';
 			}
 		}
 
+		function quote_the_customer_aci(payload) {
+			aciSelectStockSource(payload, 'ACI770 Stock');
+		}
+
 		function quote_the_customer_external(payload) {
-			aciSelectExternalStock(payload);
+			aciSelectStockSource(payload, 'External Stock');
 		}
 
         $(document).ready(function() {
