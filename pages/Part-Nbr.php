@@ -1583,6 +1583,7 @@ if ($numrows_rfq > 0) {
                                 <table class="table table-striped table-bordered table-hover">
                                     <thead>
                                         <tr>
+                                            <th></th>
                                             <th>ID</th>
                                             <th>PART NUMBER</th>
                                             <th>DESCRIPTION</th>
@@ -1600,33 +1601,42 @@ if ($numrows_rfq > 0) {
 					{
 					//recuperation condition 
 					// ** tbl_Condition ** Fld_Condition_ID  Fld_Condition_Text
-					$sqlc="SELECT * FROM tbl_Condition where Fld_Condition_ID=".$datastex['Fld_Condition_ID'];
-					
-					$reqc = mysql2_query($sqlc);
-					$datac = mysqli_fetch_array($reqc);
+						$externalConditionId = (int)$datastex['Fld_Condition_ID'];
+						$datac = array('Fld_Condition_Text' => '');
+						if ($externalConditionId > 0) {
+							$sqlc="SELECT * FROM tbl_Condition where Fld_Condition_ID=".$externalConditionId;
+							$reqc = mysql2_query($sqlc);
+							$datac = mysqli_fetch_array($reqc);
+						}
 					// echo $datac['Fld_Condition_Text'];
 					//Fin recuperation condition 
 
 					//recuperation stock location
 					// ** tbl_Stock_Location ** Fld_Stock_Location_ID  Fld_Stock_Location_Text
-					$sqlsl="SELECT * from tbl_Stock_Location where Fld_Stock_Location_ID=".$datastex['Fld_Stock_Location_ID'];
-					
-					$reqsl = mysql2_query($sqlsl);
-					$datasl = mysqli_fetch_array($reqsl);
+						$externalLocationId = (int)$datastex['Fld_Stock_Location_ID'];
+						$datasl = array('Fld_Stock_Location_Text' => '');
+						if ($externalLocationId > 0) {
+							$sqlsl="SELECT * from tbl_Stock_Location where Fld_Stock_Location_ID=".$externalLocationId;
+							$reqsl = mysql2_query($sqlsl);
+							$datasl = mysqli_fetch_array($reqsl);
+						}
 					// echo $datasl['Fld_Stock_Location_Text'];
 					//Fin recuperation stock location
 					
 					//recuperation du nom de la compagnie
-					$sqlcomn="SELECT Fld_Company_Name FROM tb_company where Fld_Company_ID=".$datastex['Fld_Company_ID'];
-					
-					$reqcomn = mysql2_query($sqlcomn);
-					$datacn = mysqli_fetch_array($reqcomn);
+						$externalCompanyId = (int)$datastex['Fld_Company_ID'];
+						$datacn = array('Fld_Company_Name' => '');
+						if ($externalCompanyId > 0) {
+							$sqlcomn="SELECT Fld_Company_Name FROM tb_company where Fld_Company_ID=".$externalCompanyId;
+							$reqcomn = mysql2_query($sqlcomn);
+							$datacn = mysqli_fetch_array($reqcomn);
+						}
 					//Fin recuperation du nom de la compagnie
 					
 					//recuperation du nom du aircraft	
-					if (!empty($datastex["Fld_AC_ID"])){
+						if (!empty($datastex["Fld_AC_ID"])){
 					// Fld_AC_ID  Fld_AC_Model  Fld_AC_Series  Fld_AC_Manufacturer  Fld_AC_Engine_Model  Fld_AC_Engine_Series
-					$sqlacse="SELECT Fld_AC_Model FROM tbl_Aircraft where Fld_AC_ID=".$datastex["Fld_AC_ID"];
+						$sqlacse="SELECT Fld_AC_Model FROM tbl_Aircraft where Fld_AC_ID=".(int)$datastex["Fld_AC_ID"];
 					
 					$reqacse=mysql2_query($sqlacse);
 					$dataacse = mysqli_fetch_array($reqacse);
@@ -1636,7 +1646,20 @@ if ($numrows_rfq > 0) {
 					//Fin recuperation du nom du aircraft
 					
 					
-                                            echo "<tr><td>".$datastex['Fld_Stock_externe_ID']."</td><td>".$data["Fld_Part_Nbr"]."</td><td>".$data['Fld_Part_Desc']."</td><td>".$Aircraft_modelse."</td><td>".$datastex['Fld_Qty']."</td><td>".$datac['Fld_Condition_Text']."</td><td>".$datacn['Fld_Company_Name']."</td><td>".$datastex['Fld_Entry_Date']."</td><td>".$datastex['Fld_Stock_Remark']."</td></tr>";
+											$externalStockPayload = htmlspecialchars(json_encode(array(
+												'id' => $datastex['Fld_Stock_externe_ID'],
+												'qty' => $datastex['Fld_Qty'],
+												'condition_id' => $datastex['Fld_Condition_ID'],
+												'price' => $datastex['Fld_Part_Price'],
+												'currency_id' => $datastex['Fld_Price_Currency_ID'],
+												'release_id' => $datastex['Fld_Release_ID'],
+												'tag_info' => trim($datastex['Fld_Tag_Info_ID'] . ',' . $datacn['Fld_Company_Name'], ','),
+												'tag_date' => $datastex['Fld_Tag_Date'],
+												'traceability' => $datastex['Fld_Traceability_ID'],
+												'lead_time' => $datastex['Fld_External_Location'],
+												'remark' => $datastex['Fld_Stock_Remark']
+											)), ENT_QUOTES, 'UTF-8');
+	                                            echo "<tr><td><input type=\"radio\" name=\"external_stock_choice\" value=\"".$datastex['Fld_Stock_externe_ID']."\" onchange=\"quote_the_customer_external(this.getAttribute('data-stock'))\" data-stock=\"".$externalStockPayload."\"></td><td>".$datastex['Fld_Stock_externe_ID']."</td><td>".$data["Fld_Part_Nbr"]."</td><td>".$data['Fld_Part_Desc']."</td><td>".$Aircraft_modelse."</td><td>".$datastex['Fld_Qty']."</td><td>".$datac['Fld_Condition_Text']."</td><td>".$datacn['Fld_Company_Name']."</td><td>".$datastex['Fld_Entry_Date']."</td><td>".$datastex['Fld_Stock_Remark']."</td></tr>";
 					}
 ?>					
 
@@ -2749,6 +2772,49 @@ $(document).ready(function(){
         }
     </style>
     <script>
+		function aciCompanyId(value) {
+			return String(value || '').split(',')[0].replace(/^\s+|\s+$/g, '');
+		}
+
+		function aciSetFormValue(formName, fieldName, value) {
+			var form = document.forms[formName];
+			if (form && form.elements[fieldName]) {
+				$(form.elements[fieldName]).val(value || '');
+			}
+		}
+
+		function aciSelectExternalStock(payload) {
+			var stock = {};
+			try {
+				stock = JSON.parse(payload || '{}');
+			} catch (e) {
+				return;
+			}
+
+			aciSetFormValue('Form1', 'Fld_Qty', stock.qty);
+			aciSetFormValue('Form1', 'Fld_Condition_ID', stock.condition_id);
+			aciSetFormValue('Form1', 'Fld_Release_ID', stock.release_id);
+			aciSetFormValue('Form1', 'Fld_Tag_Info_ID', stock.tag_info);
+			aciSetFormValue('Form1', 'Fld_Tag_Date', stock.tag_date);
+			aciSetFormValue('Form1', 'Fld_Traceability_ID', stock.traceability);
+			aciSetFormValue('Form1', 'lead_time', stock.lead_time);
+			aciSetFormValue('Form1', 'Fld_Price', stock.price);
+			aciSetFormValue('Form1', 'FldCurrencyID', stock.currency_id);
+			aciSetFormValue('Form1', 'Fld_Remark', stock.remark);
+
+			if ($('#external-stock-selected-source').length === 0) {
+				$('#rfq_collapse .panel-body').first().prepend('<div id="external-stock-selected-source" class="alert alert-success" style="margin-bottom:10px;"></div>');
+			}
+			$('#external-stock-selected-source').text('Selected source: External Stock #' + (stock.id || ''));
+			if (window.location.hash !== '#rfq_collapse') {
+				window.location.hash = 'rfq_collapse';
+			}
+		}
+
+		function quote_the_customer_external(payload) {
+			aciSelectExternalStock(payload);
+		}
+
         $(document).ready(function() {
 
             $('input.companyid').typeahead({
@@ -2787,6 +2853,13 @@ $(document).ready(function(){
 				id: 'Fld_Company_ID',
                 remote: 'list-company.php?query=%QUERY'
             });
+
+			if (window.location.hash === '#rfq_collapse' && $('#rfq_collapse').length) {
+				$('#rfq_collapse').collapse('show');
+				setTimeout(function() {
+					document.getElementById('rfq_collapse').scrollIntoView();
+				}, 100);
+			}
         });
 //Fin Ajout pour autocompression Roy
 
@@ -2876,7 +2949,7 @@ $(function () {
 	function majtarea(id)
 {
 var bloccontactname=document.getElementById('bloccontactname');
-var companyidval=document.getElementById('companyid').value;
+var companyidval=aciCompanyId(document.getElementById('companyid').value);
 
 bloccontactname.style.display='inline';
 
@@ -2917,7 +2990,7 @@ if (xhr.readyState==4)
 	function majtareapopup(id)
 {
 var bloccontactnamepopup=document.getElementById('bloccontactnamepopup');
-var companyidvalpopup=document.getElementById('companyidpopup').value;
+var companyidvalpopup=aciCompanyId(document.getElementById('companyidpopup').value);
 
 bloccontactnamepopup.style.display='inline';
            
@@ -2991,7 +3064,7 @@ if (xhr.readyState==4)
 	function majtarea2(id)
 {
 var bloccontactname2=document.getElementById('bloccontactname2');
-var companyidval=document.getElementById('companyid2').value;
+var companyidval=aciCompanyId(document.getElementById('companyid2').value);
 
 bloccontactname2.style.display='inline';
            
@@ -3037,7 +3110,7 @@ if (xhr.readyState==4)
 	function majtareaemailrfq(id)    
 {
 var bloccontactnameemailrfq=document.getElementById('bloccontactnameemailrfq');
-var companyidval=document.getElementById('companyiderq').value;
+var companyidval=aciCompanyId(document.getElementById('companyiderq').value);
 
 bloccontactnameemailrfq.style.display='inline';
            
@@ -3172,11 +3245,11 @@ var xhr=null;
                    
             xhr.open("POST", "quote_the_customer.php?id="+id, true);/*si jamais je veux recuperer les infos sous form de get je met les infos dans le lien cad ajax.php?variable=...*/
             xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function() { open_quote_customer(xhr,id); };
+            xhr.onreadystatechange = function() { open_quote_customer_stock(xhr,id); };
             xhr.send("id="+id);/*si je veux mettre la variable sous forme de post je la met la*/
    // }
 }
-function open_quote_customer(xhr,id)
+function open_quote_customer_stock(xhr,id)
 {
 if (xhr.readyState==4)
     {
@@ -3209,11 +3282,11 @@ var xhr=null;
                    
             xhr.open("POST", "sq_for_quote.php?id="+id, true);/*si jamais je veux recuperer les infos sous form de get je met les infos dans le lien cad ajax.php?variable=...*/
             xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function() { open_quote_customer(xhr,id); };
+            xhr.onreadystatechange = function() { open_quote_customer_sq(xhr,id); };
             xhr.send("id="+id);/*si je veux mettre la variable sous forme de post je la met la*/
    
 }
-function open_quote_customer(xhr,id)
+function open_quote_customer_sq(xhr,id)
 {
 if (xhr.readyState==4)
     {
@@ -3437,8 +3510,19 @@ $(function() {
 
   // company (other sections)
   $('input.companyid').bind('typeahead:selected typeahead:autocompleted', function(ev, datum) {
-    var companyId = datum.value.split(',')[0];
-    $('#Fld_Customer_ID').val(companyId);
+    var companyId = aciCompanyId(datum.value);
+	var inputId = $(this).attr('id');
+
+	if (inputId === 'companyid') {
+		$('#Fld_Customer_ID').val(companyId);
+		setTimeout(function() { majtarea('divcontactname'); }, 50);
+	}
+	if (inputId === 'companyid2') {
+		setTimeout(function() { majtarea2('divcontactname2'); }, 50);
+	}
+	if (inputId === 'companyiderq') {
+		setTimeout(function() { majtareaemailrfq('divcontactnameemailrfq'); }, 50);
+	}
   });
 
   // PN
