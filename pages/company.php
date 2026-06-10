@@ -567,7 +567,7 @@ $varaddresstypeselect .= "</select>";
     if (div) div.innerHTML='<div id="divcontactcompany" align="center"><img src="../images/loader.gif" border="0"></div>';
 
     var xhr=new XMLHttpRequest();
-    xhr.open("POST", "modif_contact_company.php?id="+encodeURIComponent(id), true);
+    xhr.open("POST", "modif_contact_company.php?id="+encodeURIComponent(id)+"&Fld_Company_ID="+encodeURIComponent(companyIDPhp || '')+"&page="+encodeURIComponent(pageParam || '1'), true);
     xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
     xhr.onreadystatechange=function(){ window.up_donnee_contact_company(xhr,id); };
     xhr.send("id="+encodeURIComponent(id));

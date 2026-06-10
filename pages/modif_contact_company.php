@@ -1,8 +1,17 @@
 <?php
 
-$id_company_contact=$_GET['id'];
+if (session_status() === PHP_SESSION_NONE) {
+	session_start();
+}
 include_once "conf.php";
+if (!isset($_SESSION["conectroy"]) || $_SESSION["conectroy"] !== "parfait") {
+	http_response_code(401);
+	echo "Unauthorized";
+	exit;
+}
 include_once "page_titles.php";
+
+$id_company_contact = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 /*Table tb_company_contact
 *************************************
@@ -98,9 +107,9 @@ if(0<$nbrows){
 
                                
                            <input type="hidden" name="Fld_Company_ID" value="<?php echo $data['Fld_Company_ID'];?>">
+                           <input type="hidden" name="return_page" value="<?php echo isset($_GET['page']) ? (int)$_GET['page'] : 1;?>">
+                           <input type="hidden" name="return_anchor" value="bloccontactcompany">
 						</form>
-<?php		
+<?php
 }
 			//**************************************************************Fin Details Company****************************
-			
-		
