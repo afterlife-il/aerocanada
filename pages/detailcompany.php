@@ -357,6 +357,55 @@ if($nbrows > 0) {
            status  aci_contact  entry_date
         */
 
+        if (!function_exists('aci_contact_h')) {
+            function aci_contact_h($value) {
+                return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+            }
+            function aci_contact_value($row, $key) {
+                return isset($row[$key]) ? trim((string)$row[$key]) : '';
+            }
+            function aci_contact_date_text($value) {
+                $value = trim((string)$value);
+                if ($value === '' || $value === '0000-00-00' || $value === '0000-00-00 00:00:00') {
+                    return '';
+                }
+                return $value;
+            }
+            function aci_contact_link($url, $label, $iconClass) {
+                $url = trim((string)$url);
+                if ($url === '') return '';
+                if (!preg_match('/^https?:\/\//i', $url)) {
+                    $url = 'https://' . $url;
+                }
+                return "<a href=\"".aci_contact_h($url)."\" target=\"_blank\" rel=\"noopener\"><i class=\"fa ".aci_contact_h($iconClass)."\"></i> ".aci_contact_h($label)."</a>";
+            }
+            function aci_contact_social_html($row) {
+                $items = array();
+                $fax = aci_contact_value($row, 'Fld_Contact_Fax');
+                if ($fax !== '') $items[] = "Fax: ".aci_contact_h($fax);
+
+                $whatsapp = aci_contact_value($row, 'whatsapp_number');
+                if ($whatsapp !== '') {
+                    $waDigits = preg_replace('/[^0-9]/', '', $whatsapp);
+                    $items[] = $waDigits !== ''
+                        ? "<a href=\"https://wa.me/".aci_contact_h($waDigits)."\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-whatsapp\"></i> WhatsApp: ".aci_contact_h($whatsapp)."</a>"
+                        : "WhatsApp: ".aci_contact_h($whatsapp);
+                }
+
+                $link = aci_contact_link(aci_contact_value($row, 'linkedin_url'), 'LinkedIn', 'fa-linkedin');
+                if ($link !== '') $items[] = $link;
+                $link = aci_contact_link(aci_contact_value($row, 'facebook_url'), 'Facebook', 'fa-facebook');
+                if ($link !== '') $items[] = $link;
+                $link = aci_contact_link(aci_contact_value($row, 'instagram_url'), 'Instagram', 'fa-instagram');
+                if ($link !== '') $items[] = $link;
+
+                $notes = aci_contact_value($row, 'social_network_notes');
+                if ($notes !== '') $items[] = "Social notes: ".aci_contact_h($notes);
+
+                return count($items) ? implode(" &nbsp;|&nbsp; ", $items) : "No social / WhatsApp info";
+            }
+        }
+
         // Contacts ACTIFS uniquement
         $sql = "SELECT * FROM tb_company_contact
                 WHERE Fld_Company_ID=".$id_company."
@@ -373,6 +422,8 @@ if($nbrows > 0) {
 
         <form id="formContactsActive" name="formContactsActive" method="post" action="valid_modif_contact_company_multi.php">
             <input type="hidden" name="Fld_Company_ID" value="<?php echo $id_company;?>">
+            <input type="hidden" name="return_page" value="<?php echo $page;?>">
+            <input type="hidden" name="return_anchor" value="bloccontactcompany">
 
             <div class="table-responsive">
                 <table class="table table-striped table-bordered table-hover" id="tableaddcontactcompany">
@@ -381,12 +432,9 @@ if($nbrows > 0) {
                             <th>Name</th>
                             <th>Phone</th>
                             <th>Phone 2</th>
-                            <th>Fax</th>
-                            <th>Mobile</th>
-                            <th>Division</th>
+                            <th>Mobile / WhatsApp</th>
                             <th>E-mail</th>
-                            <th>Title</th>
-                            <th>Remark</th>
+                            <th>Division / Title</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -406,7 +454,7 @@ if($nbrows > 0) {
                         
                         echo "<tr id=\"row_".$data['id_company_contact']."\">";
 
-                        echo "<td $statustab>".$data['Fld_Contact_Name']."</td>";
+                        echo "<td $statustab>".aci_contact_h($data['Fld_Contact_Name'])."</td>";
 
                         echo "<td $statustab>";
                         if (!empty($data['Fld_Contact_Phone'])) {
@@ -414,37 +462,30 @@ if($nbrows > 0) {
                                     <i style=\"margin-left:10px;position:relative;top:4px;font-size:23px;\" class=\"fa fa-phone\"></i>
                                   </a> ";
                         }
-                        echo $data['Fld_Contact_Phone']."</td>";
+                        echo aci_contact_h($data['Fld_Contact_Phone'])."</td>";
 
-                        echo "<td $statustab>".$data['Fld_Contact_Phone2']."</td>";
-                        echo "<td $statustab>".$data['Fld_Contact_Fax']."</td>";
-                        echo "<td $statustab>".$data['Fld_Company_Mobile']."</td>";
+                        echo "<td $statustab>".aci_contact_h($data['Fld_Contact_Phone2'])."</td>";
+                        echo "<td $statustab>".aci_contact_h($data['Fld_Company_Mobile']);
+                        if (aci_contact_value($data, 'whatsapp_number') !== '') {
+                            echo "<br><span style='color:#187a2f;'><i class='fa fa-whatsapp'></i> ".aci_contact_h($data['whatsapp_number'])."</span>";
+                        }
+                        echo "</td>";
 
                         // Division
-                        echo "<td $statustab>";
+                        $divisionText = '';
                         $sqldiv = "SELECT Fld_Division_Text
                                    FROM tbl_Division
                                    WHERE Fld_Division_ID='".$data['Fld_Contact_Division_ID']."'";
                         $reqemp = mysql2_query($sqldiv);
                         if ($datadiv = mysqli_fetch_assoc($reqemp)) {
-                            echo $datadiv['Fld_Division_Text'];
+                            $divisionText = $datadiv['Fld_Division_Text'];
+                        }
+                        echo "<td $statustab><a href='mailto:".aci_contact_h($data['Fld_Contact_Email'])."'>".aci_contact_h($data['Fld_Contact_Email'])."</a></td>";
+                        echo "<td $statustab>".aci_contact_h($divisionText);
+                        if (trim((string)$data['Fld_Contact_Title']) !== '') {
+                            echo "<br>".aci_contact_h($data['Fld_Contact_Title']);
                         }
                         echo "</td>";
-
-                        echo "<td $statustab>".$data['Fld_Contact_Email']."</td>";
-                        echo "<td $statustab>".$data['Fld_Contact_Title']."</td>";
-
-                        echo "<td $statustab>
-                                Entry date : ".$data['entry_date']."
-                                <br>
-                                <textarea class=\"form-control\"
-                                          name='Fld_Contact_Remark".$data['id_company_contact']."'
-                                          style='width:400px;height:50px;'
-                                          id='recupmessageremark".$data['id_company_contact']."'
-                                          onmouseleave='javascript:majtarea(".$data['id_company_contact'].")'>"
-                                .$data['Fld_Contact_Remark'].
-                                "</textarea>
-                              </td>";
 
                         // Actions pour un contact ACTIF : archiver + crayon
                         echo "<td id='case".$data['id_company_contact']."'>
@@ -461,6 +502,15 @@ if($nbrows > 0) {
 
 
                         echo "</tr>";
+                        $modifiedDate = aci_contact_date_text(aci_contact_value($data, 'modified_date'));
+                        echo "<tr class='contact-extra-row' id=\"row_extra_".$data['id_company_contact']."\">";
+                        echo "<td colspan='7' style='background:#f7f7f7;'>";
+                        echo "<div style='margin-bottom:6px;'><strong>Entry date:</strong> ".aci_contact_h($data['entry_date']);
+                        echo " &nbsp; | &nbsp; <strong>Modified date:</strong> ".aci_contact_h($modifiedDate !== '' ? $modifiedDate : 'Not modified yet');
+                        echo "</div>";
+                        echo "<div style='margin-bottom:6px;'><strong>Social / direct channels:</strong> ".aci_contact_social_html($data)."</div>";
+                        echo "<textarea class=\"form-control\" name='Fld_Contact_Remark".$data['id_company_contact']."' style='width:100%;height:50px;' id='recupmessageremark".$data['id_company_contact']."' onmouseleave='javascript:majtarea(".$data['id_company_contact'].")'>".aci_contact_h($data['Fld_Contact_Remark'])."</textarea>";
+                        echo "</td></tr>";
                     }
                     ?>
                     </tbody>
@@ -503,6 +553,8 @@ if($nbrows > 0) {
         ?>
         <form id="formContactsArchived" name="formContactsArchived" method="post" action="valid_modif_contact_company_multi.php">
             <input type="hidden" name="Fld_Company_ID" value="<?php echo $id_company;?>">
+            <input type="hidden" name="return_page" value="<?php echo $page;?>">
+            <input type="hidden" name="return_anchor" value="collapseFour">
 
             <div class="table-responsive">
                 <table class="table table-striped table-bordered table-hover">
@@ -511,12 +563,9 @@ if($nbrows > 0) {
                             <th>Name</th>
                             <th>Phone</th>
                             <th>Phone 2</th>
-                            <th>Fax</th>
-                            <th>Mobile</th>
-                            <th>Division</th>
+                            <th>Mobile / WhatsApp</th>
                             <th>E-mail</th>
-                            <th>Title</th>
-                            <th>Remark</th>
+                            <th>Division / Title</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -537,7 +586,7 @@ if($nbrows > 0) {
                         echo "<tr id=\"row_".$data['id_company_contact']."\">";
 
                         // Name
-                        echo "<td $statustab>".$data['Fld_Contact_Name']."</td>";
+                        echo "<td $statustab>".aci_contact_h($data['Fld_Contact_Name'])."</td>";
 
                         // Phone
                         echo "<td $statustab>";
@@ -546,38 +595,30 @@ if($nbrows > 0) {
                                     <i style='margin-left:10px;position:relative;top:4px;font-size:23px;' class='fa fa-phone'></i>
                                   </a> ";
                         }
-                        echo $data['Fld_Contact_Phone']."</td>";
+                        echo aci_contact_h($data['Fld_Contact_Phone'])."</td>";
 
-                        echo "<td $statustab>".$data['Fld_Contact_Phone2']."</td>";
-                        echo "<td $statustab>".$data['Fld_Contact_Fax']."</td>";
-                        echo "<td $statustab>".$data['Fld_Company_Mobile']."</td>";
+                        echo "<td $statustab>".aci_contact_h($data['Fld_Contact_Phone2'])."</td>";
+                        echo "<td $statustab>".aci_contact_h($data['Fld_Company_Mobile']);
+                        if (aci_contact_value($data, 'whatsapp_number') !== '') {
+                            echo "<br><span style='color:#187a2f;'><i class='fa fa-whatsapp'></i> ".aci_contact_h($data['whatsapp_number'])."</span>";
+                        }
+                        echo "</td>";
 
                         // Division (texte)
-                        echo "<td $statustab>";
+                        $divisionText = '';
                         $sqldiv = "SELECT Fld_Division_Text
                                    FROM tbl_Division
                                    WHERE Fld_Division_ID='".$data['Fld_Contact_Division_ID']."'";
                         $reqemp = mysql2_query($sqldiv);
                         if ($datadiv = mysqli_fetch_assoc($reqemp)) {
-                            echo $datadiv['Fld_Division_Text'];
+                            $divisionText = $datadiv['Fld_Division_Text'];
+                        }
+                        echo "<td $statustab><a href='mailto:".aci_contact_h($data['Fld_Contact_Email'])."'>".aci_contact_h($data['Fld_Contact_Email'])."</a></td>";
+                        echo "<td $statustab>".aci_contact_h($divisionText);
+                        if (trim((string)$data['Fld_Contact_Title']) !== '') {
+                            echo "<br>".aci_contact_h($data['Fld_Contact_Title']);
                         }
                         echo "</td>";
-
-                        echo "<td $statustab>".$data['Fld_Contact_Email']."</td>";
-                        echo "<td $statustab>".$data['Fld_Contact_Title']."</td>";
-
-                        // Remark => tu gardes l’édition si tu veux
-                        echo "<td $statustab>
-                                Entry date : ".$data['entry_date']."
-                                <br>
-                                <textarea class=\"form-control\"
-                                          name='Fld_Contact_Remark".$data['id_company_contact']."'
-                                          style='width:400px;height:50px;'
-                                          id='recupmessageremark".$data['id_company_contact']."'
-                                          onmouseleave='javascript:majtarea(".$data['id_company_contact'].")'>"
-                                .$data['Fld_Contact_Remark'].
-                                "</textarea>
-                              </td>";
 
                         // Actions pour un contact ARCHIVÉ : restaurer + supprimer définitivement
                         echo "<td id='case".$data['id_company_contact']."'>";
@@ -601,6 +642,15 @@ if($nbrows > 0) {
                         echo "</td>";
 
                         echo "</tr>";
+                        $modifiedDate = aci_contact_date_text(aci_contact_value($data, 'modified_date'));
+                        echo "<tr class='contact-extra-row' id=\"row_extra_".$data['id_company_contact']."\">";
+                        echo "<td colspan='7' style='background:#f2d7dc;color:#000;'>";
+                        echo "<div style='margin-bottom:6px;'><strong>Entry date:</strong> ".aci_contact_h($data['entry_date']);
+                        echo " &nbsp; | &nbsp; <strong>Modified date:</strong> ".aci_contact_h($modifiedDate !== '' ? $modifiedDate : 'Not modified yet');
+                        echo "</div>";
+                        echo "<div style='margin-bottom:6px;'><strong>Social / direct channels:</strong> ".aci_contact_social_html($data)."</div>";
+                        echo "<textarea class=\"form-control\" name='Fld_Contact_Remark".$data['id_company_contact']."' style='width:100%;height:50px;' id='recupmessageremark".$data['id_company_contact']."' onmouseleave='javascript:majtarea(".$data['id_company_contact'].")'>".aci_contact_h($data['Fld_Contact_Remark'])."</textarea>";
+                        echo "</td></tr>";
                     }
                     ?>
                     </tbody>

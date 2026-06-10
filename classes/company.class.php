@@ -403,7 +403,7 @@ class company
 								
 								public function valid_modif_contact_company()
 								{
-									$sql="update tb_company_contact set Fld_Contact_Name='".addslashes($_POST['Fld_Contact_Name'])."',Fld_Contact_Phone='".$_POST['Fld_Contact_Phone']."',Fld_Contact_Phone2='".$_POST['Fld_Contact_Phone2']."',Fld_Contact_Fax='".$_POST['Fld_Contact_Fax']."',Fld_Company_Mobile='".$_POST['Fld_Company_Mobile']."',Fld_Contact_Division_ID='".$_POST['Fld_Contact_Division_ID']."',Fld_Contact_Email='".$_POST['Fld_Contact_Email']."',Fld_Contact_Title='".$_POST['Fld_Contact_Title']."',Fld_Contact_Remark='".addslashes($_POST['Fld_Contact_Remark'])."' where id_company_contact='".$_POST['id_company_contact']."'";
+									$sql="update tb_company_contact set Fld_Contact_Name='".addslashes($_POST['Fld_Contact_Name'])."',Fld_Contact_Phone='".$_POST['Fld_Contact_Phone']."',Fld_Contact_Phone2='".$_POST['Fld_Contact_Phone2']."',Fld_Contact_Fax='".$_POST['Fld_Contact_Fax']."',Fld_Company_Mobile='".$_POST['Fld_Company_Mobile']."',Fld_Contact_Division_ID='".$_POST['Fld_Contact_Division_ID']."',Fld_Contact_Email='".$_POST['Fld_Contact_Email']."',Fld_Contact_Title='".$_POST['Fld_Contact_Title']."',Fld_Contact_Remark='".addslashes($_POST['Fld_Contact_Remark'])."',whatsapp_number='".addslashes($_POST['whatsapp_number'])."',linkedin_url='".addslashes($_POST['linkedin_url'])."',facebook_url='".addslashes($_POST['facebook_url'])."',instagram_url='".addslashes($_POST['instagram_url'])."',social_network_notes='".addslashes($_POST['social_network_notes'])."',modified_date=NOW() where id_company_contact='".$_POST['id_company_contact']."'";
 									//echo $sql;
 									
 									$query=mysql2_query($sql);
@@ -413,7 +413,7 @@ class company
 									for($i=1;$i<=$_POST['nbcontact'];$i++)
 									{
 										$idcontact=$_POST['id_company_contact'.$i];
-									$sql="update tb_company_contact set Fld_Contact_Name='".addslashes($_POST['Fld_Contact_Name'.$i])."',Fld_Contact_Phone='".$_POST['Fld_Contact_Phone'.$i]."',Fld_Contact_Phone2='".$_POST['Fld_Contact_Phone2'.$i]."',Fld_Contact_Fax='".$_POST['Fld_Contact_Fax'.$i]."',Fld_Company_Mobile='".$_POST['Fld_Company_Mobile'.$i]."',Fld_Contact_Division_ID='".$_POST['Fld_Contact_Division_ID'.$i]."',Fld_Contact_Email='".$_POST['Fld_Contact_Email'.$i]."',Fld_Contact_Title='".$_POST['Fld_Contact_Title'.$i]."',Fld_Contact_Remark='".addslashes($_POST['Fld_Contact_Remark'.$idcontact])."' where id_company_contact='".$idcontact."'";
+									$sql="update tb_company_contact set Fld_Contact_Name='".addslashes($_POST['Fld_Contact_Name'.$i])."',Fld_Contact_Phone='".$_POST['Fld_Contact_Phone'.$i]."',Fld_Contact_Phone2='".$_POST['Fld_Contact_Phone2'.$i]."',Fld_Contact_Fax='".$_POST['Fld_Contact_Fax'.$i]."',Fld_Company_Mobile='".$_POST['Fld_Company_Mobile'.$i]."',Fld_Contact_Division_ID='".$_POST['Fld_Contact_Division_ID'.$i]."',Fld_Contact_Email='".$_POST['Fld_Contact_Email'.$i]."',Fld_Contact_Title='".$_POST['Fld_Contact_Title'.$i]."',Fld_Contact_Remark='".addslashes($_POST['Fld_Contact_Remark'.$idcontact])."',whatsapp_number='".addslashes($_POST['whatsapp_number'.$i])."',linkedin_url='".addslashes($_POST['linkedin_url'.$i])."',facebook_url='".addslashes($_POST['facebook_url'.$i])."',instagram_url='".addslashes($_POST['instagram_url'.$i])."',social_network_notes='".addslashes($_POST['social_network_notes'.$i])."',modified_date=NOW() where id_company_contact='".$idcontact."'";
 									//echo $sql;
 									
 									$query=mysql2_query($sql);
@@ -431,8 +431,8 @@ class company
 										$today = date("Y-m-d");
 								for($i=1;$i<=$_POST['nbcontactcompanyajout'];$i++)
 								{
-								$req="INSERT INTO tb_company_contact (`id_company_contact`,`Fld_Linked_ID`,`Fld_Company_ID`,`Company_Old_Id`,`Fld_Contact_Name`,`Fld_Contact_Phone`,`Fld_Contact_Phone2`,`Fld_Contact_Fax`,`Fld_Company_Mobile`,`Fld_Contact_Division_ID`,`Fld_Contact_Email`,`Fld_Contact_Title`,`Fld_Contact_Remark`,`status`,`aci_contact`,`entry_date`)
-								VALUES ('','','".$Fld_Company_ID."','','".addslashes($_POST['Fld_Contact_Name'.$i])."','".addslashes($_POST['Fld_Contact_Phone'.$i])."','".$_POST['Fld_Contact_Phone2'.$i]."','".$_POST['Fld_Contact_Fax'.$i]."','".$_POST['Fld_Company_Mobile'.$i]."','".$_POST['Fld_Contact_Division_ID'.$i]."','".$_POST['Fld_Contact_Email'.$i]."','".addslashes($_POST['Fld_Contact_Title'.$i])."','".addslashes($_POST['Fld_Contact_Remark'.$i])."','Available','".$_SESSION['id_utilisateur']."','".$today."')";
+								$req="INSERT INTO tb_company_contact (`id_company_contact`,`Fld_Linked_ID`,`Fld_Company_ID`,`Company_Old_Id`,`Fld_Contact_Name`,`Fld_Contact_Phone`,`Fld_Contact_Phone2`,`Fld_Contact_Fax`,`Fld_Company_Mobile`,`Fld_Contact_Division_ID`,`Fld_Contact_Email`,`Fld_Contact_Title`,`Fld_Contact_Remark`,`status`,`aci_contact`,`entry_date`,`modified_date`,`whatsapp_number`,`linkedin_url`,`facebook_url`,`instagram_url`,`social_network_notes`)
+								VALUES ('','','".$Fld_Company_ID."','','".addslashes($_POST['Fld_Contact_Name'.$i])."','".addslashes($_POST['Fld_Contact_Phone'.$i])."','".$_POST['Fld_Contact_Phone2'.$i]."','".$_POST['Fld_Contact_Fax'.$i]."','".$_POST['Fld_Company_Mobile'.$i]."','".$_POST['Fld_Contact_Division_ID'.$i]."','".$_POST['Fld_Contact_Email'.$i]."','".addslashes($_POST['Fld_Contact_Title'.$i])."','".addslashes($_POST['Fld_Contact_Remark'.$i])."','Available','".$_SESSION['id_utilisateur']."','".$today."',NOW(),'".addslashes($_POST['whatsapp_number'.$i])."','".addslashes($_POST['linkedin_url'.$i])."','".addslashes($_POST['facebook_url'.$i])."','".addslashes($_POST['instagram_url'.$i])."','".addslashes($_POST['social_network_notes'.$i])."')";
 								
 								$requete = mysql2_query($req);
 								}
@@ -478,6 +478,11 @@ class company
     $email      = isset($_POST['Fld_Contact_Email'])     ? $_POST['Fld_Contact_Email']     : '';
     $title      = isset($_POST['Fld_Contact_Title'])     ? $_POST['Fld_Contact_Title']     : '';
     $remark     = isset($_POST['Fld_Contact_Remark'])    ? $_POST['Fld_Contact_Remark']    : '';
+    $whatsapp   = isset($_POST['whatsapp_number'])       ? $_POST['whatsapp_number']       : '';
+    $linkedin   = isset($_POST['linkedin_url'])          ? $_POST['linkedin_url']          : '';
+    $facebook   = isset($_POST['facebook_url'])          ? $_POST['facebook_url']          : '';
+    $instagram  = isset($_POST['instagram_url'])         ? $_POST['instagram_url']         : '';
+    $socialNotes = isset($_POST['social_network_notes']) ? $_POST['social_network_notes']  : '';
 
     // 5) Requête d'insert
     $req = "
@@ -497,7 +502,13 @@ class company
             `Fld_Contact_Remark`,
             `status`,
             `aci_contact`,
-            `entry_date`
+            `entry_date`,
+            `modified_date`,
+            `whatsapp_number`,
+            `linkedin_url`,
+            `facebook_url`,
+            `instagram_url`,
+            `social_network_notes`
         ) VALUES (
             '',
             '',
@@ -514,7 +525,13 @@ class company
             '".addslashes($remark)."',
             'Available',
             '".$_SESSION['id_utilisateur']."',
-            '".$today."'
+            '".$today."',
+            NOW(),
+            '".addslashes($whatsapp)."',
+            '".addslashes($linkedin)."',
+            '".addslashes($facebook)."',
+            '".addslashes($instagram)."',
+            '".addslashes($socialNotes)."'
         )
     ";
 

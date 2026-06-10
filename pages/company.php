@@ -401,37 +401,32 @@ $varaddresstypeselect .= "</select>";
     var ligne = tableau.insertRow(1); // sous l’en-tête
     ligne.id='row_'+(nbLignes+1);
 
-    var cell;
-
-    cell = ligne.insertCell(0);
-    cell.innerHTML = "<input class=\"form-control\" name=\"Fld_Contact_Name\" id=\"Fld_Contact_Name\" placeholder=\"\">";
-
-    cell = ligne.insertCell(1);
-    cell.innerHTML = "<input class=\"form-control\" name=\"Fld_Contact_Phone\" id=\"Fld_Contact_Phone\" placeholder=\"\">";
-
-    cell = ligne.insertCell(2);
-    cell.innerHTML = "<input class=\"form-control\" name=\"Fld_Contact_Phone2\" id=\"Fld_Contact_Phone2\" placeholder=\"\">";
-
-    cell = ligne.insertCell(3);
-    cell.innerHTML = "<input class=\"form-control\" name=\"Fld_Contact_Fax\" id=\"Fld_Contact_Fax\" placeholder=\"\">";
-
-    cell = ligne.insertCell(4);
-    cell.innerHTML = "<input class=\"form-control\" name=\"Fld_Company_Mobile\" id=\"Fld_Company_Mobile\" placeholder=\"\">";
-
-    cell = ligne.insertCell(5);
-    cell.innerHTML = "<select class=\"form-control\" name=\"Fld_Contact_Division_ID\"><option value=\"1\" selected=\"\">Sales</option><option value=\"2\">Account</option><option value=\"3\">Logistics / Shipping1</option><option value=\"5\">Technical</option><option value=\"6\">Purchasing</option><option value=\"7\">AOG</option><option value=\"8\">Customer Service Administrator</option><option value=\"9\">Management</option><option value=\"10\">Quality</option><option value=\"11\">Sales Technical</option><option value=\"12\">Shipping2</option><option value=\"13\">***No Longer Valid***</option><option value=\"14\">DROP SHIPMENT</option></select>";
-
-    cell = ligne.insertCell(6);
-    cell.innerHTML = "<input class=\"form-control\" name=\"Fld_Contact_Email\" id=\"Fld_Contact_Email\" placeholder=\"\">";
-
-    cell = ligne.insertCell(7);
-    cell.innerHTML = "<input class=\"form-control\" name=\"Fld_Contact_Title\" id=\"Fld_Contact_Title\" placeholder=\"\">";
-
-    cell = ligne.insertCell(8);
-    cell.innerHTML = "<input class=\"form-control\" name=\"Fld_Contact_Remark\" id=\"Fld_Contact_Remark\" placeholder=\"\"><input type='hidden' name='nbcontact' value='"+nbLignes+"'><input type='hidden' name='act' value='addcontact'>";
-
-    cell = ligne.insertCell(9);
-    cell.innerHTML = "<input type='submit' value='submit' class=\"form-control\">";
+    var cell = ligne.insertCell(0);
+    cell.colSpan = 7;
+    cell.innerHTML =
+      "<div class='row'>" +
+      "<div class='col-lg-3'><label>Name</label><input class=\"form-control\" name=\"Fld_Contact_Name\" id=\"Fld_Contact_Name\"></div>" +
+      "<div class='col-lg-3'><label>Phone</label><input class=\"form-control\" name=\"Fld_Contact_Phone\" id=\"Fld_Contact_Phone\"></div>" +
+      "<div class='col-lg-3'><label>Phone 2</label><input class=\"form-control\" name=\"Fld_Contact_Phone2\" id=\"Fld_Contact_Phone2\"></div>" +
+      "<div class='col-lg-3'><label>Mobile</label><input class=\"form-control\" name=\"Fld_Company_Mobile\" id=\"Fld_Company_Mobile\"></div>" +
+      "</div>" +
+      "<div class='row'>" +
+      "<div class='col-lg-3'><label>WhatsApp</label><input class=\"form-control\" name=\"whatsapp_number\" id=\"whatsapp_number\"></div>" +
+      "<div class='col-lg-3'><label>E-mail</label><input class=\"form-control\" name=\"Fld_Contact_Email\" id=\"Fld_Contact_Email\"></div>" +
+      "<div class='col-lg-3'><label>Title</label><input class=\"form-control\" name=\"Fld_Contact_Title\" id=\"Fld_Contact_Title\"></div>" +
+      "<div class='col-lg-3'><label>Division</label><select class=\"form-control\" name=\"Fld_Contact_Division_ID\"><option value=\"1\" selected=\"\">Sales</option><option value=\"2\">Account</option><option value=\"3\">Logistics / Shipping1</option><option value=\"5\">Technical</option><option value=\"6\">Purchasing</option><option value=\"7\">AOG</option><option value=\"8\">Customer Service Administrator</option><option value=\"9\">Management</option><option value=\"10\">Quality</option><option value=\"11\">Sales Technical</option><option value=\"12\">Shipping2</option><option value=\"13\">***No Longer Valid***</option><option value=\"14\">DROP SHIPMENT</option></select></div>" +
+      "</div>" +
+      "<div class='row'>" +
+      "<div class='col-lg-3'><label>Fax</label><input class=\"form-control\" name=\"Fld_Contact_Fax\" id=\"Fld_Contact_Fax\"></div>" +
+      "<div class='col-lg-3'><label>LinkedIn</label><input class=\"form-control\" name=\"linkedin_url\" id=\"linkedin_url\"></div>" +
+      "<div class='col-lg-3'><label>Facebook</label><input class=\"form-control\" name=\"facebook_url\" id=\"facebook_url\"></div>" +
+      "<div class='col-lg-3'><label>Instagram</label><input class=\"form-control\" name=\"instagram_url\" id=\"instagram_url\"></div>" +
+      "</div>" +
+      "<div class='row'>" +
+      "<div class='col-lg-8'><label>Remark</label><textarea class=\"form-control\" name=\"Fld_Contact_Remark\" id=\"Fld_Contact_Remark\"></textarea></div>" +
+      "<div class='col-lg-4'><label>Social network notes</label><textarea class=\"form-control\" name=\"social_network_notes\" id=\"social_network_notes\"></textarea></div>" +
+      "</div>" +
+      "<div class='row'><div class='col-lg-12'><input type='hidden' name='nbcontact' value='"+nbLignes+"'><input type='hidden' name='act' value='addcontact'><input type='submit' value='submit' class=\"form-control\"></div></div>";
   };
 
   // --- AJOUT Aircraft (Fleet) ---
