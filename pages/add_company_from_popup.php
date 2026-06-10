@@ -1,6 +1,6 @@
 <?php
-require_once 'bootstrap.php';
-require_auth();
+session_start();
+include_once "conf.php";
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -55,11 +55,6 @@ try {
     echo json_encode(['ok' => true, 'company_id' => $lastid, 'company_name' => $companyname]);
 
 } catch (Throwable $e) {
-    log_error("add_company_from_popup FAILED: ".$e->getMessage(), [
-        'user' => $_SESSION['nom_utilisateur'] ?? 'unknown',
-        'get'  => $_GET,
-        'post' => $_POST,
-    ]);
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'Server error']);
 }
