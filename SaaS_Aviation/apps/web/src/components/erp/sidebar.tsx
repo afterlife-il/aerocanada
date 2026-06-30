@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { currentSession } from "@/lib/data";
 
 const sections = [
   {
@@ -26,8 +27,8 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border bg-panel lg:block">
       <div className="border-b border-border px-4 py-4">
-        <div className="text-sm font-semibold text-foreground">AeroCanada ERP</div>
-        <div className="mt-1 text-xs text-muted">Aviation SaaS foundation</div>
+        <div className="text-sm font-semibold text-foreground">SaaS Aviation</div>
+        <div className="mt-1 text-xs text-muted">{currentSession.tenant.code} workspace</div>
       </div>
       <nav className="space-y-5 px-3 py-4">
         {sections.map((section) => (

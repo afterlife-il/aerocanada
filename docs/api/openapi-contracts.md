@@ -13,6 +13,8 @@ The first API contract pass covers the existing Express API read routes in `SaaS
 ## Covered Routes
 
 - `GET /health`
+- `POST /v1/auth/login`
+- `POST /v1/auth/logout`
 - `GET /v1/session`
 - `GET /v1/companies`
 - `GET /v1/parts`
@@ -25,6 +27,10 @@ The first API contract pass covers the existing Express API read routes in `SaaS
 - `HealthResponse`
 - `SessionUser`
 - `SessionResponse`
+- `LoginRequest`
+- `AuthSession`
+- `AuthSessionResponse`
+- `Tenant`
 - `Company`
 - `PartNumber`
 - `StockItem`
@@ -36,3 +42,5 @@ The first API contract pass covers the existing Express API read routes in `SaaS
 Mutation routes are intentionally absent until RBAC, tenant isolation, validation, audit persistence, and rollback behavior are designed.
 
 `RFQ_ID` remains the business workflow key for future workflow routes.
+
+Business read routes require bearer sessions. Repository methods must receive tenant context before returning business data.

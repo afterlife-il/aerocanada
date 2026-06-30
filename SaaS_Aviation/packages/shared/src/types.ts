@@ -1,6 +1,24 @@
 export type TenantId = string;
 export type LegacyId = string | number;
 
+export type AuthProviderKind = "password" | "google" | "linkedin" | "microsoft" | "apple";
+
+export type UserStatus = "active" | "invited" | "disabled";
+
+export type Role = "owner_admin" | "tenant_admin" | "inventory_manager" | "sales_manager" | "read_only";
+
+export type Permission =
+  | "tenant.read"
+  | "tenant.manage"
+  | "user.read"
+  | "user.manage"
+  | "company.read"
+  | "part.read"
+  | "stock.read"
+  | "rfq.read"
+  | "audit.read"
+  | "auth.manage";
+
 export type EntityStatus =
   | "available"
   | "reserved"
@@ -18,6 +36,45 @@ export interface Tenant {
   name: string;
   code: string;
   verifiedDomains: string[];
+  status: "active" | "suspended";
+  primaryCompanyId: string;
+}
+
+export interface User {
+  id: string;
+  tenantId: TenantId;
+  email: string;
+  name: string;
+  status: UserStatus;
+  roles: Role[];
+  permissions: Permission[];
+  mfaEnabled: boolean;
+  authProviders: AuthProviderKind[];
+  createdAt: string;
+}
+
+export interface AuthUserRecord extends User {
+  passwordHash?: string;
+}
+
+export interface TenantContext {
+  tenantId: TenantId;
+  tenantCode: string;
+  tenantName: string;
+  userId: string;
+  roles: Role[];
+  permissions: Permission[];
+}
+
+export interface RequestContext {
+  tenant: TenantContext;
+}
+
+export interface AuthSession {
+  token: string;
+  user: User;
+  tenant: Tenant;
+  expiresAt: string;
 }
 
 export interface Company {
@@ -38,6 +95,7 @@ export interface Company {
 export interface Contact {
   id: string;
   legacyId: LegacyId;
+  tenantId: TenantId;
   companyId: string;
   name: string;
   title?: string;
@@ -49,6 +107,7 @@ export interface Contact {
 export interface PartNumber {
   id: string;
   legacyId: LegacyId;
+  tenantId: TenantId;
   pn: string;
   description: string;
   ata?: string;
@@ -85,6 +144,7 @@ export interface StockItem {
 
 export interface RfqSummary {
   id: string;
+  tenantId: TenantId;
   rfqId: string;
   customerName: string;
   partNumber: string;

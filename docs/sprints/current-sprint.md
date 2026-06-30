@@ -4,7 +4,7 @@ Last updated: 2026-06-30
 
 ## Sprint Goal
 
-Continue the next-generation AeroCanada Aviation SaaS ERP from the current repository state, without restarting from zero and without deploying unless explicitly requested.
+Continue the next-generation AeroCanada Aviation SaaS ERP from the current repository state, with Auth/Tenant foundation and deployment guard in place before business mutations.
 
 ## Track A: UI / UX
 
@@ -16,7 +16,7 @@ Preserve `RFQ_ID` as the canonical workflow key. Prepare RFQ, quote, PO, stock l
 
 ## Track C: Security
 
-Select auth strategy and design tenant isolation, RBAC, audit logs, secure sessions, MFA/TOTP, OAuth/OIDC, rate limiting, and secret management.
+Auth/Tenant foundation now includes password-session shape, tenant-scoped repository contracts, protected API reads, roles, and permissions. Next security work is persistent sessions, rate limiting, secure cookies, password reset, MFA/TOTP, OAuth/OIDC, and secret management.
 
 ## Track D: SaaS Foundation
 
@@ -32,4 +32,4 @@ Keep `APP_RECAP.md` short, keep `PROJECT_STATE.json` synchronized, and move deta
 
 ## Next Highest-Value Task
 
-Create read-only legacy adapter query mapping with tests or fixtures.
+Replace in-memory auth/session foundation with persistent provider-backed sessions, then create read-only legacy adapter query mapping with tests or fixtures.

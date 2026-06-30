@@ -6,14 +6,18 @@
       "status": "active_reference",
       "rewrite_allowed": false
     },
-    "saas_aviation": {
-      "purpose": "next-generation aviation ERP",
-      "status": "static_frontend_deployed_to_staging",
-      "path": "SaaS_Aviation"
-    },
-    "company_360": {
-      "status": "foundation_shell"
-    },
+        "saas_aviation": {
+            "purpose": "next-generation aviation ERP",
+            "status": "auth_tenant_foundation_local_pending_deploy",
+            "path": "SaaS_Aviation"
+        },
+        "auth_tenant_foundation": {
+            "status": "foundation_implemented_pending_deploy",
+            "scope": "email/password foundation, tenant context, roles, permissions, bearer sessions, protected API reads"
+        },
+        "company_360": {
+            "status": "foundation_shell"
+        },
     "part_360": {
       "status": "foundation_shell"
     },
@@ -48,7 +52,7 @@
   "tracks": {
     "A_ui_ux": "active",
     "B_business_workflow": "planned",
-    "C_security": "planned",
+        "C_security": "active",
     "D_saas_foundation": "active",
     "E_performance": "planned",
     "F_documentation": "active"
@@ -79,12 +83,13 @@
     ],
     "needs_reverification_before_deploy": true
   },
-  "pending_tasks": [
-    "Create read-only legacy MySQL adapter query map and fixtures.",
-    "Expand Stock 360 into a complete aviation workspace.",
-    "Define auth provider, RBAC, tenant isolation, and audit persistence strategy.",
-    "Inventory Yoyamic deployed hashes before any future staging deploy."
-  ],
+        "pending_tasks": [
+        "Replace in-memory auth/session storage with persistent provider-backed implementation.",
+        "Add rate limiting, secure cookies, CSRF strategy, password reset, and MFA/TOTP.",
+        "Create read-only legacy MySQL adapter query map and fixtures.",
+        "Expand Stock 360 into a complete aviation workspace.",
+        "Inventory Yoyamic deployed hashes before any future staging deploy."
+    ],
   "blocked_tasks": [
     {
       "task": "Authenticated Yoyamic browser verification",
@@ -103,8 +108,11 @@
     "root_reports": "many untracked legacy audit and deployment reports exist at repo root",
     "saas_report": "SaaS_Aviation/IMPLEMENTATION_REPORT.md",
     "deployment_inventory": "docs/deployment/legacy-yoyamic-status.md",
-    "openapi_contracts": "docs/api/openapi-contracts.md",
-    "saas_deployment_report": "SaaS_Aviation/DEPLOYMENT_REPORT.md"
+        "openapi_contracts": "docs/api/openapi-contracts.md",
+        "saas_deployment_report": "SaaS_Aviation/DEPLOYMENT_REPORT.md",
+        "auth_tenant_foundation": "docs/security/auth-tenant-foundation.md",
+        "auth_tenant_boundaries": "docs/architecture/auth-tenant-boundaries.md",
+        "saas_deploy_checklist": "docs/deployment/saas-deployment-checklist.md"
   },
   "documentation": {
     "executive_dashboard": "APP_RECAP.md",
@@ -115,9 +123,9 @@
   "architecture": {
     "strategy": "adapter-first SaaS application separate from legacy Yoyamic",
     "frontend": "Next.js App Router",
-    "api": "Express REST API shell plus web route handlers with OpenAPI component schemas",
-    "shared_contracts": "TypeScript package",
-    "data_source": "sample adapter now; read-only legacy adapter next"
+        "api": "Express REST API shell plus web route handlers with OpenAPI component schemas and bearer-protected business reads",
+        "shared_contracts": "TypeScript package",
+        "data_source": "tenant-scoped sample adapter now; read-only legacy adapter next"
   },
   "business_rules": [
     "RFQ_ID remains the canonical business workflow key.",
@@ -128,12 +136,12 @@
   ],
   "security_status": {
     "hardcoded_secrets": "none_added_in_saas_foundation",
-    "auth": "mock_provider_abstraction_only",
-    "mfa": "not_implemented",
-    "rbac": "not_implemented",
-    "tenant_isolation": "documented_not_enforced",
-    "audit_logs": "abstraction_only",
-    "rate_limiting": "not_implemented"
+        "auth": "email_password_foundation_with_in_memory_sessions",
+        "mfa": "not_implemented",
+        "rbac": "role_and_permission_foundation",
+        "tenant_isolation": "repository_contract_and_sample_adapter_enforced",
+        "audit_logs": "abstraction_only",
+        "rate_limiting": "not_implemented"
   },
   "ui_status": {
     "target_quality": "Linear, Stripe Dashboard, Vercel, Notion, Odoo Enterprise, Salesforce Lightning, SAP Fiori",
@@ -142,12 +150,12 @@
   },
   "saas_status": {
     "foundation": "implemented",
-    "legacy_read_integration": "pending",
-    "mutations": "blocked_until_auth_tenant_audit",
-    "deployment": "static_frontend_deployed_to_staging",
-    "openapi_contracts": "current_read_routes_have_component_schemas",
-    "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
-    "static_export": "enabled_for_frontend_visual_inspection"
+        "legacy_read_integration": "pending",
+        "mutations": "blocked_until_persistent_auth_tenant_audit",
+        "deployment": "static_frontend_deployed_to_staging_previous_version",
+        "openapi_contracts": "current_read_routes_have_component_schemas_and_auth_session_routes",
+        "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
+        "static_export": "enabled_for_frontend_visual_inspection"
   },
   "migration_status": {
     "source": "Yoyamic",
@@ -155,7 +163,7 @@
     "strategy": "read-only adapter first, migration after business rule validation",
     "schema_changes": "not_approved"
   },
-  "current_sprint": "Project memory stabilization and SaaS Phase 2 planning",
-  "last_completed_task": "Deployed SaaS_Aviation static frontend to staging and captured visual inspection screenshots.",
-  "next_recommended_task": "Visually inspect staging screenshots and then map read-only legacy adapter queries and fixtures."
+    "current_sprint": "Auth/Tenant foundation and SaaS deployment guard",
+    "last_completed_task": "Implemented local Auth/Tenant foundation with tenant-scoped repository contracts and protected API reads.",
+    "next_recommended_task": "Run deployment validation, then replace in-memory auth with persistent provider-backed sessions before mutations."
 }

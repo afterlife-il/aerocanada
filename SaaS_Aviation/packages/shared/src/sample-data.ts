@@ -1,10 +1,53 @@
-import type { AuditEvent, Company, Contact, Kpi, PartNumber, RfqSummary, StockItem, Tenant } from "./types.js";
+import type { AuditEvent, AuthUserRecord, Company, Contact, Kpi, PartNumber, RfqSummary, StockItem, Tenant } from "./types.js";
 
 export const sampleTenant: Tenant = {
   id: "tenant-aci",
-  name: "AeroCanada Industries",
-  code: "ACI",
-  verifiedDomains: ["aerocanada-industries.com"]
+  name: "AEROCANADA INDUSTRIES 770 INC.",
+  code: "ACI770",
+  verifiedDomains: ["aerocanada-industries.com"],
+  status: "active",
+  primaryCompanyId: "company-5263"
+};
+
+export const sampleUsers: AuthUserRecord[] = [
+  {
+    id: "user-aci-admin",
+    tenantId: sampleTenant.id,
+    email: "ops@aerocanada-industries.com",
+    name: "AeroCanada Admin",
+    status: "active",
+    roles: ["owner_admin", "tenant_admin", "inventory_manager", "sales_manager"],
+    permissions: [
+      "tenant.read",
+      "tenant.manage",
+      "user.read",
+      "user.manage",
+      "company.read",
+      "part.read",
+      "stock.read",
+      "rfq.read",
+      "audit.read",
+      "auth.manage"
+    ],
+    mfaEnabled: false,
+    authProviders: ["password"],
+    createdAt: "2026-06-30T00:00:00Z",
+    passwordHash: "sha256:a7bf62c36e02ac549dbc324498a300142489c9258f826fc7c113858d73690553"
+  }
+];
+
+export const sampleTenants: Tenant[] = [sampleTenant];
+export const sampleAdminUser = sampleUsers[0] as AuthUserRecord;
+
+export const sampleRequestContext = {
+  tenant: {
+    tenantId: sampleTenant.id,
+    tenantCode: sampleTenant.code,
+    tenantName: sampleTenant.name,
+    userId: sampleAdminUser.id,
+    roles: sampleAdminUser.roles,
+    permissions: sampleAdminUser.permissions
+  }
 };
 
 export const sampleCompanies: Company[] = [
@@ -51,6 +94,7 @@ export const sampleContacts: Contact[] = [
   {
     id: "contact-1",
     legacyId: 101,
+    tenantId: sampleTenant.id,
     companyId: "company-1527",
     name: "Maria Alvarez",
     title: "Sales Manager",
@@ -60,6 +104,7 @@ export const sampleContacts: Contact[] = [
   {
     id: "contact-2",
     legacyId: 102,
+    tenantId: sampleTenant.id,
     companyId: "company-4188",
     name: "Thomas Weber",
     title: "Repair Coordinator",
@@ -72,6 +117,7 @@ export const sampleParts: PartNumber[] = [
   {
     id: "part-1",
     legacyId: 1,
+    tenantId: sampleTenant.id,
     pn: "03-1802-2001",
     description: "LIGHT",
     ata: "33",
@@ -83,6 +129,7 @@ export const sampleParts: PartNumber[] = [
   {
     id: "part-2",
     legacyId: 2,
+    tenantId: sampleTenant.id,
     pn: "8260-124",
     description: "CONTROL UNIT",
     ata: "22",
@@ -94,6 +141,7 @@ export const sampleParts: PartNumber[] = [
   {
     id: "part-3",
     legacyId: 3,
+    tenantId: sampleTenant.id,
     pn: "DMC-45-12",
     description: "DUCT MOUNT CLAMP",
     ata: "36",
@@ -173,6 +221,7 @@ export const sampleExternalStock: StockItem[] = [
 export const sampleRfqs: RfqSummary[] = [
   {
     id: "rfq-row-1",
+    tenantId: sampleTenant.id,
     rfqId: "RFQ-2026-1044",
     customerName: "Northern Charter",
     partNumber: "03-1802-2001",
@@ -183,6 +232,7 @@ export const sampleRfqs: RfqSummary[] = [
   },
   {
     id: "rfq-row-2",
+    tenantId: sampleTenant.id,
     rfqId: "RFQ-2026-1051",
     customerName: "Regional Airline MRO",
     partNumber: "8260-124",
@@ -202,7 +252,7 @@ export const sampleAuditEvents: AuditEvent[] = [
     entityType: "user",
     entityId: "mock-user",
     occurredAt: "2026-06-29T14:00:00Z",
-    summary: "Mock login event created by the local auth bridge"
+    summary: "Foundation login event for the seeded admin session"
   },
   {
     id: "audit-2",

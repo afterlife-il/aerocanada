@@ -84,6 +84,7 @@ Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untrac
 
 ## Changelog
 
+- 2026-06-30: Added Auth/Tenant foundation with shared user/tenant/session types, tenant-scoped repository contracts, API password session endpoints, protected business reads, and QA deployment checklist.
 - 2026-06-30: Created permanent project recap and machine-readable state.
 - 2026-06-30: Added OpenAPI component schemas for current SaaS API read routes.
 - 2026-06-30: Deployed `SaaS_Aviation` static frontend to staging for visual inspection.
@@ -92,4 +93,4 @@ Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untrac
 
 ## Next Sprint
 
-Create read-only legacy adapter mapping, expand Stock 360, and decide auth/tenant architecture.
+Harden Auth/Tenant beyond the foundation, then create read-only legacy adapter mapping and expand Stock 360.

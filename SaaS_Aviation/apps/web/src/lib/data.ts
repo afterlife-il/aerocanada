@@ -3,15 +3,24 @@ import {
   sampleCompanies,
   sampleContacts,
   sampleExternalStock,
+  sampleAdminUser,
   sampleInternalStock,
   sampleKpis,
   sampleParts,
   sampleRfqs,
-  sampleTenant
+  sampleTenant,
+  sampleUsers
 } from "@saas-aviation/shared";
+
+export const currentSession = {
+  user: sampleAdminUser,
+  tenant: sampleTenant
+};
 
 export const data = {
   tenant: sampleTenant,
+  users: sampleUsers,
+  session: currentSession,
   companies: sampleCompanies,
   contacts: sampleContacts,
   parts: sampleParts,

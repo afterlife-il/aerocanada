@@ -43,6 +43,13 @@ Every request must eventually resolve:
 
 Tenant isolation must be enforced in repositories and APIs.
 
+Current foundation:
+
+- Shared repository contracts now require `RequestContext` for business reads.
+- Express business read routes require bearer sessions.
+- Sample data source filters records by `context.tenant.tenantId`.
+- Static web UI is not treated as the security boundary.
+
 ## Password Migration
 
 Legacy Yoyamic users should be migrated by:

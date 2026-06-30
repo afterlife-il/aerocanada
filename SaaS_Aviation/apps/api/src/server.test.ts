@@ -1,14 +1,41 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { SampleDataSource } from "./adapters/sample-data-source.js";
+import { InMemoryAuthProvider, requestContextFromSession } from "./auth/auth-provider.js";
 import { openApiDocument } from "./openapi/openapi.js";
+import { sampleRequestContext } from "@saas-aviation/shared";
 
 test("sample data source preserves internal and external stock separation", async () => {
   const data = new SampleDataSource();
-  assert.equal((await data.listInternalStock()).every((item) => item.source === "internal"), true);
-  assert.equal((await data.listExternalStock()).every((item) => item.source === "external"), true);
+  assert.equal((await data.listInternalStock(sampleRequestContext)).every((item) => item.source === "internal"), true);
+  assert.equal((await data.listExternalStock(sampleRequestContext)).every((item) => item.source === "external"), true);
 });
 
+test("sample data source enforces tenant scoping", async () => {
+  const data = new SampleDataSource();
+  const emptyContext = {
+    tenant: {
+      ...sampleRequestContext.tenant,
+      tenantId: "tenant-other"
+    }
+  };
+
+  assert.equal((await data.listInternalStock(emptyContext)).length, 0);
+  assert.equal((await data.listCompanies(emptyContext)).length, 0);
+});
+
+test("password auth creates a tenant-scoped session", async () => {
+  const auth = new InMemoryAuthProvider();
+  const session = await auth.authenticateWithPassword("ops@aerocanada-industries.com", "ChangeMe!ACI770!");
+
+  assert.ok(session);
+  assert.equal(session?.tenant.code, "ACI770");
+  assert.equal(session?.user.roles.includes("owner_admin"), true);
+  assert.equal(session?.user.permissions.includes("stock.read"), true);
+
+  const context = requestContextFromSession(session!);
+  assert.equal(context.tenant.tenantId, "tenant-aci");
+});
 
 test("openapi document covers current read routes with component schemas", () => {
   assert.ok(openApiDocument.components.schemas.Company);
@@ -16,5 +43,6 @@ test("openapi document covers current read routes with component schemas", () =>
   assert.ok(openApiDocument.components.schemas.StockItem);
   assert.ok(openApiDocument.components.schemas.AuditEvent);
   assert.equal(openApiDocument.paths["/v1/session"].get.operationId, "getSession");
+  assert.equal(openApiDocument.paths["/v1/auth/login"].post.operationId, "loginWithPassword");
   assert.equal(openApiDocument.paths["/v1/audit"].get.operationId, "listAuditEvents");
 });

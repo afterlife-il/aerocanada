@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button";
+import { currentSession } from "@/lib/data";
 
 export function Topbar() {
   return (
@@ -15,11 +16,15 @@ export function Topbar() {
           />
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <div className="hidden text-right sm:block">
+            <div className="text-xs font-semibold text-foreground">{currentSession.user.name}</div>
+            <div className="text-[11px] text-muted">{currentSession.tenant.code}</div>
+          </div>
           <ButtonLink href="/stock/internal" variant="secondary">
             Find Stock
           </ButtonLink>
           <ButtonLink href="/login" variant="quiet">
-            Auth Bridge
+            Session
           </ButtonLink>
         </div>
       </div>

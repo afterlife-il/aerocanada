@@ -13,6 +13,8 @@
 
 - `GET /health`
 - `GET /openapi.json`
+- `POST /v1/auth/login`
+- `POST /v1/auth/logout`
 - `GET /v1/companies`
 - `GET /v1/parts`
 - `GET /v1/stock/internal`
@@ -33,6 +35,8 @@
 - list response wrappers for companies, parts, stock, and audit events
 
 The current OpenAPI contract covers all existing API service read routes. Mutation routes remain intentionally absent.
+
+Business read routes now require bearer sessions and tenant context.
 
 ## Future Mutations
 

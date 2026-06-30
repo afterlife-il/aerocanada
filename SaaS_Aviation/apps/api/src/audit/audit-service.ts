@@ -1,10 +1,10 @@
-import type { AuditEvent, AuditRepository } from "@saas-aviation/shared";
+import type { AuditEvent, AuditRepository, RequestContext } from "@saas-aviation/shared";
 
 export class AuditService {
   constructor(private readonly repository: AuditRepository) {}
 
-  list(): Promise<AuditEvent[]> {
-    return this.repository.listAuditEvents();
+  list(context: RequestContext): Promise<AuditEvent[]> {
+    return this.repository.listAuditEvents(context);
   }
 
   recordView(actor: string, tenantId: string, entityType: string, entityId: string): Promise<AuditEvent> {

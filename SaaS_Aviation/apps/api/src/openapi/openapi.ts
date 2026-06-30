@@ -18,7 +18,7 @@ export const openApiDocument = {
   },
   tags: [
     { name: "System", description: "Health and contract metadata." },
-    { name: "Session", description: "Current authenticated session." },
+    { name: "Session", description: "Password auth, session lifecycle, and current tenant context." },
     { name: "Companies", description: "Company 360 source data." },
     { name: "Parts", description: "Part Number 360 source data." },
     { name: "Stock", description: "Internal and external stock source data." },
@@ -59,11 +59,57 @@ export const openApiDocument = {
         }
       }
     },
+    "/v1/auth/login": {
+      post: {
+        tags: ["Session"],
+        operationId: "loginWithPassword",
+        summary: "Create an email/password session",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        responses: {
+          "200": {
+            description: "Session created.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/AuthSessionResponse" }
+              }
+            }
+          },
+          "401": {
+            description: "Invalid credentials.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/logout": {
+      post: {
+        tags: ["Session"],
+        operationId: "logout",
+        summary: "Revoke current bearer session",
+        responses: {
+          "204": {
+            description: "Session revoked."
+          }
+        }
+      }
+    },
     "/v1/companies": {
       get: {
         tags: ["Companies"],
         operationId: "listCompanies",
         summary: "List companies",
+        security: [{ bearerAuth: [] }],
         responses: {
           "200": {
             description: "Company list.",
@@ -72,7 +118,8 @@ export const openApiDocument = {
                 schema: { $ref: "#/components/schemas/CompanyListResponse" }
               }
             }
-          }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" }
         }
       }
     },
@@ -81,6 +128,7 @@ export const openApiDocument = {
         tags: ["Parts"],
         operationId: "listParts",
         summary: "List part numbers",
+        security: [{ bearerAuth: [] }],
         responses: {
           "200": {
             description: "Part number list.",
@@ -89,7 +137,8 @@ export const openApiDocument = {
                 schema: { $ref: "#/components/schemas/PartNumberListResponse" }
               }
             }
-          }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" }
         }
       }
     },
@@ -98,6 +147,7 @@ export const openApiDocument = {
         tags: ["Stock"],
         operationId: "listInternalStock",
         summary: "List internal ACI770 stock",
+        security: [{ bearerAuth: [] }],
         responses: {
           "200": {
             description: "Internal ACI770 stock list.",
@@ -106,7 +156,8 @@ export const openApiDocument = {
                 schema: { $ref: "#/components/schemas/StockItemListResponse" }
               }
             }
-          }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" }
         }
       }
     },
@@ -115,6 +166,7 @@ export const openApiDocument = {
         tags: ["Stock"],
         operationId: "listExternalStock",
         summary: "List external stock",
+        security: [{ bearerAuth: [] }],
         responses: {
           "200": {
             description: "External stock list.",
@@ -123,7 +175,8 @@ export const openApiDocument = {
                 schema: { $ref: "#/components/schemas/StockItemListResponse" }
               }
             }
-          }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" }
         }
       }
     },
@@ -132,6 +185,7 @@ export const openApiDocument = {
         tags: ["Audit"],
         operationId: "listAuditEvents",
         summary: "List audit events",
+        security: [{ bearerAuth: [] }],
         responses: {
           "200": {
             description: "Audit event list.",
@@ -140,12 +194,29 @@ export const openApiDocument = {
                 schema: { $ref: "#/components/schemas/AuditEventListResponse" }
               }
             }
-          }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" }
         }
       }
     }
   },
   components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer"
+      }
+    },
+    responses: {
+      Unauthorized: {
+        description: "Missing, expired, or invalid bearer session.",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" }
+          }
+        }
+      }
+    },
     schemas: {
       HealthResponse: {
         type: "object",
@@ -157,20 +228,71 @@ export const openApiDocument = {
       },
       SessionUser: {
         type: "object",
-        required: ["id", "email", "name", "roles", "tenantId"],
+        required: ["id", "email", "name", "roles", "permissions", "tenantId", "mfaEnabled", "authProviders", "status"],
         properties: {
           id: { type: "string" },
           email: { type: "string", format: "email" },
           name: { type: "string" },
           roles: { type: "array", items: { type: "string" } },
-          tenantId: { type: "string" }
+          permissions: { type: "array", items: { type: "string" } },
+          tenantId: { type: "string" },
+          status: { type: "string", enum: ["active", "invited", "disabled"] },
+          mfaEnabled: { type: "boolean" },
+          authProviders: { type: "array", items: { type: "string", enum: ["password", "google", "linkedin", "microsoft", "apple"] } },
+          createdAt: { type: "string", format: "date-time" }
+        }
+      },
+      Tenant: {
+        type: "object",
+        required: ["id", "name", "code", "verifiedDomains", "status", "primaryCompanyId"],
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          code: { type: "string" },
+          verifiedDomains: { type: "array", items: { type: "string" } },
+          status: { type: "string", enum: ["active", "suspended"] },
+          primaryCompanyId: { type: "string" }
         }
       },
       SessionResponse: {
         type: "object",
-        required: ["user"],
+        required: ["session"],
         properties: {
-          user: { $ref: "#/components/schemas/SessionUser" }
+          session: {
+            oneOf: [{ $ref: "#/components/schemas/AuthSession" }, { type: "null" }]
+          }
+        }
+      },
+      LoginRequest: {
+        type: "object",
+        required: ["email", "password"],
+        properties: {
+          email: { type: "string", format: "email" },
+          password: { type: "string", minLength: 8 }
+        }
+      },
+      AuthSession: {
+        type: "object",
+        required: ["token", "user", "tenant", "expiresAt"],
+        properties: {
+          token: { type: "string" },
+          user: { $ref: "#/components/schemas/SessionUser" },
+          tenant: { $ref: "#/components/schemas/Tenant" },
+          expiresAt: { type: "string", format: "date-time" }
+        }
+      },
+      AuthSessionResponse: {
+        type: "object",
+        required: ["session"],
+        properties: {
+          session: { $ref: "#/components/schemas/AuthSession" }
+        }
+      },
+      ErrorResponse: {
+        type: "object",
+        required: ["error"],
+        properties: {
+          error: { type: "string" }
         }
       },
       Company: {
@@ -193,10 +315,11 @@ export const openApiDocument = {
       },
       PartNumber: {
         type: "object",
-        required: ["id", "legacyId", "pn", "description", "alternates"],
+        required: ["id", "legacyId", "tenantId", "pn", "description", "alternates"],
         properties: {
           id: { type: "string" },
           legacyId: { oneOf: [{ type: "string" }, { type: "number" }] },
+          tenantId: { type: "string" },
           pn: { type: "string" },
           description: { type: "string" },
           ata: { type: "string" },

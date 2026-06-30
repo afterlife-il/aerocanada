@@ -1,31 +1,84 @@
+import { currentSession } from "@/lib/data";
 import { Button } from "@/components/ui/button";
+
+const providers = ["Google", "LinkedIn", "Microsoft", "Apple"];
 
 export default function LoginPage() {
   return (
-    <main className="grid min-h-screen place-items-center bg-background px-4">
-      <section className="w-full max-w-md rounded-lg border border-border bg-panel p-6 shadow-sm">
-        <div className="text-xs font-semibold uppercase text-muted">SaaS auth bridge</div>
-        <h1 className="mt-2 text-2xl font-semibold text-foreground">Sign in to AeroCanada ERP</h1>
-        <p className="mt-2 text-sm text-muted">
-          Local mock flow for the foundation build. Provider integrations remain behind the auth abstraction until approved.
-        </p>
-        <form className="mt-5 space-y-3">
-          <label className="block text-sm font-semibold">
-            Email
-            <input className="mt-1 h-10 w-full rounded-md border border-border px-3 text-sm outline-none focus:border-accent" defaultValue="ops@example.test" />
-          </label>
-          <label className="block text-sm font-semibold">
-            Password
-            <input className="mt-1 h-10 w-full rounded-md border border-border px-3 text-sm outline-none focus:border-accent" type="password" defaultValue="password" />
-          </label>
-          <Button className="w-full" variant="primary" type="button">
-            Continue to dashboard
-          </Button>
-        </form>
-        <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-muted">
-          <div className="rounded-md border border-border bg-panel-muted p-2 text-center">Google later</div>
-          <div className="rounded-md border border-border bg-panel-muted p-2 text-center">Microsoft later</div>
-          <div className="rounded-md border border-border bg-panel-muted p-2 text-center">TOTP later</div>
+    <main className="min-h-screen bg-background px-4 py-8 text-foreground">
+      <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-5xl items-center gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="max-w-xl">
+          <div className="text-sm font-semibold text-accent">SaaS Aviation ERP</div>
+          <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground">Secure tenant access for aviation operations.</h1>
+          <p className="mt-3 max-w-prose text-sm leading-6 text-muted">
+            Sign in to a tenant-scoped workspace for inventory, company, RFQ, quote, and audit workflows.
+          </p>
+          <div className="mt-6 grid max-w-lg gap-3 sm:grid-cols-3">
+            <div className="rounded-md border border-border bg-panel px-3 py-3">
+              <div className="text-xs text-muted">Tenant</div>
+              <div className="mt-1 text-sm font-semibold">{currentSession.tenant.code}</div>
+            </div>
+            <div className="rounded-md border border-border bg-panel px-3 py-3">
+              <div className="text-xs text-muted">Role</div>
+              <div className="mt-1 text-sm font-semibold">Admin</div>
+            </div>
+            <div className="rounded-md border border-border bg-panel px-3 py-3">
+              <div className="text-xs text-muted">MFA</div>
+              <div className="mt-1 text-sm font-semibold">Planned</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-panel p-5">
+          <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
+            <div>
+              <h2 className="text-xl font-semibold">Sign in</h2>
+              <p className="mt-1 text-sm text-muted">{currentSession.tenant.name}</p>
+            </div>
+            <div className="rounded-md border border-border bg-panel-muted px-2 py-1 text-xs font-semibold text-muted">Password</div>
+          </div>
+
+          <form className="mt-5 space-y-4">
+            <label className="block text-sm font-semibold">
+              Email
+              <input
+                className="mt-1 h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-accent"
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="name@company.com"
+              />
+            </label>
+            <label className="block text-sm font-semibold">
+              Password
+              <input
+                className="mt-1 h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-accent"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Enter password"
+              />
+            </label>
+            <Button className="w-full" variant="primary" type="button">
+              Continue
+            </Button>
+          </form>
+
+          <div className="mt-5 border-t border-border pt-4">
+            <div className="text-xs font-semibold text-muted">Provider-ready</div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {providers.map((provider) => (
+                <button
+                  key={provider}
+                  className="h-9 rounded-md border border-border bg-background px-3 text-sm font-semibold text-muted"
+                  type="button"
+                  disabled
+                >
+                  {provider}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     </main>
