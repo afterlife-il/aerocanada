@@ -1,0 +1,161 @@
+{
+  "last_updated": "2026-06-30",
+  "modules": {
+    "legacy_yoyamic": {
+      "purpose": "staging workflow, legacy reference, migration source",
+      "status": "active_reference",
+      "rewrite_allowed": false
+    },
+    "saas_aviation": {
+      "purpose": "next-generation aviation ERP",
+      "status": "static_frontend_deployed_to_staging",
+      "path": "SaaS_Aviation"
+    },
+    "company_360": {
+      "status": "foundation_shell"
+    },
+    "part_360": {
+      "status": "foundation_shell"
+    },
+    "stock_360": {
+      "status": "foundation_shell"
+    },
+    "rfq": {
+      "status": "pending_saas_module"
+    },
+    "supplier_quote": {
+      "status": "pending_saas_module"
+    },
+    "customer_quote": {
+      "status": "pending_saas_module"
+    },
+    "purchase_orders": {
+      "status": "pending_saas_module"
+    },
+    "sales_orders": {
+      "status": "pending_saas_module"
+    },
+    "repair_exchange_leasing_loan": {
+      "status": "pending_saas_module"
+    },
+    "documents_certificates": {
+      "status": "pending_saas_module"
+    },
+    "ai_assistance": {
+      "status": "architecture_pending"
+    }
+  },
+  "tracks": {
+    "A_ui_ux": "active",
+    "B_business_workflow": "planned",
+    "C_security": "planned",
+    "D_saas_foundation": "active",
+    "E_performance": "planned",
+    "F_documentation": "active"
+  },
+  "deployment_status": {
+    "legacy_yoyamic_staging": "report_based_partial_deployments",
+    "saas_aviation": "static_frontend_deployed_to_staging",
+    "production": "not_requested",
+    "saas_aviation_url": "https://aerocanada-industries.com/SaaS_Aviation/",
+    "saas_aviation_target": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation/",
+    "saas_aviation_backup": "not_created_target_did_not_exist",
+    "saas_aviation_last_deployed_at": "2026-06-30T11:16:25Z"
+  },
+  "review_status": {
+    "read_before_patch": [
+      "AGENTS.md",
+      "SaaS_Aviation/VISION.md",
+      "SaaS_Aviation/README.md",
+      "SaaS_Aviation/IMPLEMENTATION_REPORT.md",
+      "SaaS_Aviation/ARCHITECTURE.md",
+      "SaaS_Aviation/SECURITY.md",
+      "SaaS_Aviation/SAAS_ROADMAP.md",
+      "SaaS_Aviation/API_ROUTES.md",
+      "SaaS_Aviation/BUSINESS_RULES.md",
+      "STOCK_OWNERSHIP_SPRINT_DEPLOY_REPORT.md",
+      "ACI770_STOCK_LIST_ACTIONS_DEPLOY_REPORT.md",
+      "STOCK_PHASE1A_DEPLOY_REPORT.md"
+    ],
+    "needs_reverification_before_deploy": true
+  },
+  "pending_tasks": [
+    "Create read-only legacy MySQL adapter query map and fixtures.",
+    "Expand Stock 360 into a complete aviation workspace.",
+    "Define auth provider, RBAC, tenant isolation, and audit persistence strategy.",
+    "Inventory Yoyamic deployed hashes before any future staging deploy."
+  ],
+  "blocked_tasks": [
+    {
+      "task": "Authenticated Yoyamic browser verification",
+      "reason": "No authenticated session or credentials available."
+    },
+    {
+      "task": "Production deployment",
+      "reason": "Not requested and requires explicit approval."
+    },
+    {
+      "task": "Database schema changes",
+      "reason": "Not approved."
+    }
+  ],
+  "reports": {
+    "root_reports": "many untracked legacy audit and deployment reports exist at repo root",
+    "saas_report": "SaaS_Aviation/IMPLEMENTATION_REPORT.md",
+    "deployment_inventory": "docs/deployment/legacy-yoyamic-status.md",
+    "openapi_contracts": "docs/api/openapi-contracts.md",
+    "saas_deployment_report": "SaaS_Aviation/DEPLOYMENT_REPORT.md"
+  },
+  "documentation": {
+    "executive_dashboard": "APP_RECAP.md",
+    "machine_state": "PROJECT_STATE.json",
+    "vision": "VISION.md",
+    "docs_root": "docs"
+  },
+  "architecture": {
+    "strategy": "adapter-first SaaS application separate from legacy Yoyamic",
+    "frontend": "Next.js App Router",
+    "api": "Express REST API shell plus web route handlers with OpenAPI component schemas",
+    "shared_contracts": "TypeScript package",
+    "data_source": "sample adapter now; read-only legacy adapter next"
+  },
+  "business_rules": [
+    "RFQ_ID remains the canonical business workflow key.",
+    "quote_id may only be used for email idempotency.",
+    "Owner / Company and Tag Info are independent.",
+    "Qty 0 must render as 0.",
+    "Stock lifecycle changes require auditability."
+  ],
+  "security_status": {
+    "hardcoded_secrets": "none_added_in_saas_foundation",
+    "auth": "mock_provider_abstraction_only",
+    "mfa": "not_implemented",
+    "rbac": "not_implemented",
+    "tenant_isolation": "documented_not_enforced",
+    "audit_logs": "abstraction_only",
+    "rate_limiting": "not_implemented"
+  },
+  "ui_status": {
+    "target_quality": "Linear, Stripe Dashboard, Vercel, Notion, Odoo Enterprise, Salesforce Lightning, SAP Fiori",
+    "saas_shell": "implemented_foundation",
+    "legacy_ui": "do_not_rewrite_without_approval"
+  },
+  "saas_status": {
+    "foundation": "implemented",
+    "legacy_read_integration": "pending",
+    "mutations": "blocked_until_auth_tenant_audit",
+    "deployment": "static_frontend_deployed_to_staging",
+    "openapi_contracts": "current_read_routes_have_component_schemas",
+    "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
+    "static_export": "enabled_for_frontend_visual_inspection"
+  },
+  "migration_status": {
+    "source": "Yoyamic",
+    "target": "SaaS_Aviation",
+    "strategy": "read-only adapter first, migration after business rule validation",
+    "schema_changes": "not_approved"
+  },
+  "current_sprint": "Project memory stabilization and SaaS Phase 2 planning",
+  "last_completed_task": "Deployed SaaS_Aviation static frontend to staging and captured visual inspection screenshots.",
+  "next_recommended_task": "Visually inspect staging screenshots and then map read-only legacy adapter queries and fixtures."
+}

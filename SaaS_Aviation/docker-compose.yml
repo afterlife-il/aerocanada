@@ -1,0 +1,28 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    command: npm run dev -w @saas-aviation/web
+    env_file:
+      - .env
+    ports:
+      - "3007:3007"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: npm run dev -w @saas-aviation/api
+    env_file:
+      - .env
+    ports:
+      - "4107:4107"
+    volumes:
+      - .:/app
+      - /app/node_modules
