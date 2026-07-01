@@ -1,4 +1,4 @@
-import type { AuditEvent, AuthSession, Company, PartNumber, RequestContext, RfqSummary, StockItem, Tenant, User } from "./types.js";
+import type { AuditEvent, AuthSession, Company, DashboardData, PartNumber, RequestContext, RfqSummary, StockItem, Tenant, User } from "./types.js";
 
 export interface CompanyRepository {
   listCompanies(context: RequestContext): Promise<Company[]>;
@@ -18,6 +18,10 @@ export interface StockRepository {
 
 export interface RfqRepository {
   listRfqSummaries(context: RequestContext): Promise<RfqSummary[]>;
+}
+
+export interface DashboardRepository {
+  getDashboard(context: RequestContext): Promise<DashboardData>;
 }
 
 export interface AuditRepository {
@@ -44,6 +48,7 @@ export interface AviationErpDataSource
     PartRepository,
     StockRepository,
     RfqRepository,
+    DashboardRepository,
     AuditRepository,
     TenantRepository,
     UserRepository {}

@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-export function DetailPanel({ title, children, className }: { title: string; children: ReactNode; className?: string }) {
+export function DetailPanel({ id, title, children, className }: { id?: string; title: string; children: ReactNode; className?: string }) {
   return (
-    <section className={cn("rounded-lg border border-border bg-panel", className)}>
+    <section id={id} className={cn("rounded-lg border border-border bg-panel", className)}>
       <header className="border-b border-border px-4 py-3">
         <h2 className="text-sm font-semibold uppercase text-foreground">{title}</h2>
       </header>

@@ -1,4 +1,20 @@
-import type { AuditEvent, AuthUserRecord, Company, Contact, Kpi, PartNumber, RfqSummary, StockItem, Tenant } from "./types.js";
+import type {
+  AccountingAlert,
+  AuditEvent,
+  AuthUserRecord,
+  Company,
+  Contact,
+  DocumentAlert,
+  Kpi,
+  OrderSummary,
+  PartNumber,
+  QuoteSummary,
+  RfqSummary,
+  ServiceWorkflowSummary,
+  StockItem,
+  SupplierQuoteSummary,
+  Tenant
+} from "./types.js";
 
 export const sampleTenant: Tenant = {
   id: "tenant-aci",
@@ -240,6 +256,221 @@ export const sampleRfqs: RfqSummary[] = [
     status: "open",
     priority: "critical",
     createdAt: "2026-06-28"
+  },
+  {
+    id: "rfq-row-3",
+    tenantId: sampleTenant.id,
+    rfqId: "RFQ-2026-1057",
+    customerName: "Atlantic Spares Desk",
+    partNumber: "DMC-45-12",
+    qty: 12,
+    status: "open",
+    priority: "normal",
+    createdAt: "2026-06-30"
+  }
+];
+
+export const sampleQuotes: QuoteSummary[] = [
+  {
+    id: "quote-64639",
+    tenantId: sampleTenant.id,
+    quoteNumber: "Q-64639",
+    rfqId: "RFQ-2026-1044",
+    customerName: "Northern Charter",
+    partNumber: "03-1802-2001",
+    status: "pending-customer",
+    value: 3150,
+    cost: 2200,
+    currency: "USD",
+    marginPct: 30.2,
+    dueAt: "2026-07-02"
+  },
+  {
+    id: "quote-64642",
+    tenantId: sampleTenant.id,
+    quoteNumber: "Q-64642",
+    rfqId: "RFQ-2026-1051",
+    customerName: "Regional Airline MRO",
+    partNumber: "8260-124",
+    status: "draft",
+    value: 18600,
+    cost: 13250,
+    currency: "USD",
+    marginPct: 28.8,
+    dueAt: "2026-07-01"
+  },
+  {
+    id: "quote-64645",
+    tenantId: sampleTenant.id,
+    quoteNumber: "Q-64645",
+    rfqId: "RFQ-2026-1057",
+    customerName: "Atlantic Spares Desk",
+    partNumber: "DMC-45-12",
+    status: "sent",
+    value: 2140,
+    cost: 1020,
+    currency: "USD",
+    marginPct: 52.3,
+    dueAt: "2026-07-03"
+  }
+];
+
+export const sampleSupplierQuotes: SupplierQuoteSummary[] = [
+  {
+    id: "sq-7901",
+    tenantId: sampleTenant.id,
+    rfqId: "RFQ-2026-1051",
+    supplierName: "Better Aviation Products",
+    partNumber: "8260-124",
+    qty: 2,
+    status: "pending",
+    dueAt: "2026-07-01"
+  },
+  {
+    id: "sq-7902",
+    tenantId: sampleTenant.id,
+    rfqId: "RFQ-2026-1057",
+    supplierName: "Regional Airline MRO",
+    partNumber: "DMC-45-12",
+    qty: 12,
+    status: "requested",
+    dueAt: "2026-07-02"
+  }
+];
+
+export const sampleOrders: OrderSummary[] = [
+  {
+    id: "po-31008",
+    tenantId: sampleTenant.id,
+    orderNumber: "PO-31008",
+    kind: "purchase",
+    companyName: "Better Aviation Products",
+    rfqId: "RFQ-2026-1051",
+    status: "open",
+    value: 13250,
+    currency: "USD",
+    dueAt: "2026-07-05"
+  },
+  {
+    id: "po-31009",
+    tenantId: sampleTenant.id,
+    orderNumber: "PO-31009",
+    kind: "purchase",
+    companyName: "Regional Airline MRO",
+    status: "partially-received",
+    value: 7400,
+    currency: "USD",
+    dueAt: "2026-07-08"
+  },
+  {
+    id: "so-42017",
+    tenantId: sampleTenant.id,
+    orderNumber: "SO-42017",
+    kind: "sales",
+    companyName: "Northern Charter",
+    rfqId: "RFQ-2026-1044",
+    status: "ready-to-ship",
+    value: 3150,
+    currency: "USD",
+    dueAt: "2026-07-02"
+  },
+  {
+    id: "so-42018",
+    tenantId: sampleTenant.id,
+    orderNumber: "SO-42018",
+    kind: "sales",
+    companyName: "Atlantic Spares Desk",
+    rfqId: "RFQ-2026-1057",
+    status: "invoicing",
+    value: 2140,
+    currency: "USD",
+    dueAt: "2026-07-04"
+  }
+];
+
+export const sampleServiceWorkflows: ServiceWorkflowSummary[] = [
+  {
+    id: "svc-ex-8260",
+    tenantId: sampleTenant.id,
+    kind: "exchange",
+    reference: "EX-8260-124-24",
+    companyName: "Regional Airline MRO",
+    partNumber: "8260-124",
+    status: "due-back",
+    dueAt: "2026-07-12"
+  },
+  {
+    id: "svc-repair-light",
+    tenantId: sampleTenant.id,
+    kind: "repair",
+    reference: "REP-03-1802",
+    companyName: "Regional Airline MRO",
+    partNumber: "03-1802-2001",
+    status: "vendor-pending",
+    dueAt: "2026-07-18"
+  },
+  {
+    id: "svc-lease-dmc",
+    tenantId: sampleTenant.id,
+    kind: "lease",
+    reference: "LS-DMC-45",
+    companyName: "Atlantic Spares Desk",
+    partNumber: "DMC-45-12",
+    status: "customer-pending",
+    dueAt: "2026-07-09"
+  }
+];
+
+export const sampleDocumentAlerts: DocumentAlert[] = [
+  {
+    id: "doc-8130-stock-1",
+    tenantId: sampleTenant.id,
+    documentType: "8130-3",
+    entityType: "stock",
+    entityId: "stock-1",
+    status: "pending-review",
+    dueAt: "2026-07-01"
+  },
+  {
+    id: "doc-trace-po-31008",
+    tenantId: sampleTenant.id,
+    documentType: "Trace",
+    entityType: "purchase-order",
+    entityId: "PO-31008",
+    status: "missing",
+    dueAt: "2026-07-03"
+  },
+  {
+    id: "doc-invoice-so-42018",
+    tenantId: sampleTenant.id,
+    documentType: "Invoice",
+    entityType: "sales-order",
+    entityId: "SO-42018",
+    status: "pending-review",
+    dueAt: "2026-07-04"
+  }
+];
+
+export const sampleAccountingAlerts: AccountingAlert[] = [
+  {
+    id: "acct-ar-northern",
+    tenantId: sampleTenant.id,
+    title: "Invoice hold before shipment",
+    companyName: "Northern Charter",
+    amount: 3150,
+    currency: "USD",
+    severity: "warning",
+    dueAt: "2026-07-02"
+  },
+  {
+    id: "acct-ap-bap",
+    tenantId: sampleTenant.id,
+    title: "Supplier prepayment approval",
+    companyName: "Better Aviation Products",
+    amount: 13250,
+    currency: "USD",
+    severity: "critical",
+    dueAt: "2026-07-01"
   }
 ];
 

@@ -1,14 +1,21 @@
 import {
+  buildTenantDashboard,
+  sampleAccountingAlerts,
   sampleAuditEvents,
   sampleCompanies,
+  sampleDocumentAlerts,
   sampleExternalStock,
   sampleInternalStock,
+  sampleOrders,
   sampleParts,
+  sampleQuotes,
   sampleRfqs,
+  sampleServiceWorkflows,
+  sampleSupplierQuotes,
   sampleTenants,
   sampleUsers
 } from "@saas-aviation/shared";
-import type { AuditEvent, AviationErpDataSource, Company, PartNumber, RequestContext, RfqSummary, StockItem, Tenant, User } from "@saas-aviation/shared";
+import type { AuditEvent, AviationErpDataSource, Company, DashboardData, PartNumber, RequestContext, RfqSummary, StockItem, Tenant, User } from "@saas-aviation/shared";
 
 function matchesTenant<T extends { tenantId: string }>(context: RequestContext, item: T): boolean {
   return item.tenantId === context.tenant.tenantId;
@@ -45,6 +52,22 @@ export class SampleDataSource implements AviationErpDataSource {
 
   async listRfqSummaries(context: RequestContext): Promise<RfqSummary[]> {
     return sampleRfqs.filter((rfq) => matchesTenant(context, rfq));
+  }
+
+  async getDashboard(context: RequestContext): Promise<DashboardData> {
+    return buildTenantDashboard(context, {
+      companies: sampleCompanies,
+      internalStock: sampleInternalStock,
+      externalStock: sampleExternalStock,
+      rfqs: sampleRfqs,
+      quotes: sampleQuotes,
+      supplierQuotes: sampleSupplierQuotes,
+      orders: sampleOrders,
+      serviceWorkflows: sampleServiceWorkflows,
+      documents: sampleDocumentAlerts,
+      accountingAlerts: sampleAccountingAlerts,
+      auditEvents: sampleAuditEvents
+    });
   }
 
   async listAuditEvents(context: RequestContext): Promise<AuditEvent[]> {

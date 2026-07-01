@@ -1,6 +1,6 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-06-30
+Last updated: 2026-07-01
 
 ## Vision
 
@@ -27,7 +27,7 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 ## Completed Modules
 
 - SaaS foundation scaffold in `SaaS_Aviation/`.
-- Login shell, dashboard, Company 360 shell, Part 360 shell, internal Stock 360 shell, external stock list.
+- Login shell, tenant-aware ERP dashboard, Company 360 shell, Part 360 shell, internal Stock 360 shell, external stock list.
 - Sample-data route handlers and Express read routes.
 - OpenAPI component schemas for current Express read routes.
 - Yoyamic stock ownership and tag-info display work, with several staging deployments documented in reports.
@@ -42,7 +42,7 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 
 ## Pending Modules
 
-RFQ, supplier quote, customer quote, purchase orders, sales orders, repair, exchange, leasing, loan, certificates, documents, inventory lifecycle, AI workflows, tenant administration, RBAC, and observability.
+Detailed RFQ, supplier quote, customer quote, purchase orders, sales orders, repair, exchange, leasing, loan, certificates, documents, inventory lifecycle, AI workflows, tenant administration, RBAC, and observability modules.
 
 ## Business Rules
 
@@ -84,6 +84,7 @@ Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untrac
 
 ## Changelog
 
+- 2026-07-01: Added first tenant-aware ERP dashboard for ACI770 with dashboard service/adapters, workflow fixtures, dense cockpit UI, tests, and business/UI docs. No deployment performed.
 - 2026-06-30: Added Auth/Tenant foundation with shared user/tenant/session types, tenant-scoped repository contracts, API password session endpoints, protected business reads, and QA deployment checklist.
 - 2026-06-30: Created permanent project recap and machine-readable state.
 - 2026-06-30: Added OpenAPI component schemas for current SaaS API read routes.
@@ -93,4 +94,4 @@ Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untrac
 
 ## Next Sprint
 
-Harden Auth/Tenant beyond the foundation, then create read-only legacy adapter mapping and expand Stock 360.
+Create read-only legacy adapter mapping for dashboard/ERP workflows, then harden Auth/Tenant persistence before any mutations.

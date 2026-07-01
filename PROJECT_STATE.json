@@ -1,23 +1,23 @@
 {
-  "last_updated": "2026-06-30",
+  "last_updated": "2026-07-01",
   "modules": {
     "legacy_yoyamic": {
       "purpose": "staging workflow, legacy reference, migration source",
       "status": "active_reference",
       "rewrite_allowed": false
     },
-        "saas_aviation": {
-            "purpose": "next-generation aviation ERP",
-            "status": "auth_tenant_foundation_local_pending_deploy",
-            "path": "SaaS_Aviation"
-        },
-        "auth_tenant_foundation": {
-            "status": "foundation_implemented_pending_deploy",
-            "scope": "email/password foundation, tenant context, roles, permissions, bearer sessions, protected API reads"
-        },
-        "company_360": {
-            "status": "foundation_shell"
-        },
+    "saas_aviation": {
+      "purpose": "next-generation aviation ERP",
+      "status": "tenant_dashboard_local_pending_deploy",
+      "path": "SaaS_Aviation"
+    },
+    "auth_tenant_foundation": {
+      "status": "foundation_implemented_pending_deploy",
+      "scope": "email/password foundation, tenant context, roles, permissions, bearer sessions, protected API reads"
+    },
+    "company_360": {
+      "status": "foundation_shell"
+    },
     "part_360": {
       "status": "foundation_shell"
     },
@@ -25,34 +25,38 @@
       "status": "foundation_shell"
     },
     "rfq": {
-      "status": "pending_saas_module"
+      "status": "represented_in_dashboard_sample_read_model"
     },
     "supplier_quote": {
-      "status": "pending_saas_module"
+      "status": "represented_in_dashboard_sample_read_model"
     },
     "customer_quote": {
-      "status": "pending_saas_module"
+      "status": "represented_in_dashboard_sample_read_model"
     },
     "purchase_orders": {
-      "status": "pending_saas_module"
+      "status": "represented_in_dashboard_sample_read_model"
     },
     "sales_orders": {
-      "status": "pending_saas_module"
+      "status": "represented_in_dashboard_sample_read_model"
     },
     "repair_exchange_leasing_loan": {
-      "status": "pending_saas_module"
+      "status": "repair_exchange_lease_represented_in_dashboard_sample_read_model"
     },
     "documents_certificates": {
-      "status": "pending_saas_module"
+      "status": "documents_represented_in_dashboard_sample_read_model"
     },
     "ai_assistance": {
       "status": "architecture_pending"
+    },
+    "dashboard": {
+      "status": "tenant_aware_sample_adapter_implemented_pending_deploy",
+      "scope": "ACI770 ERP cockpit metrics, RFQs, quotes, supplier quotes, POs, sales orders, stock value, company inventory, service workflows, documents, accounting alerts, recent activity, quick actions"
     }
   },
   "tracks": {
     "A_ui_ux": "active",
     "B_business_workflow": "planned",
-        "C_security": "active",
+    "C_security": "active",
     "D_saas_foundation": "active",
     "E_performance": "planned",
     "F_documentation": "active"
@@ -83,13 +87,13 @@
     ],
     "needs_reverification_before_deploy": true
   },
-        "pending_tasks": [
-        "Replace in-memory auth/session storage with persistent provider-backed implementation.",
-        "Add rate limiting, secure cookies, CSRF strategy, password reset, and MFA/TOTP.",
-        "Create read-only legacy MySQL adapter query map and fixtures.",
-        "Expand Stock 360 into a complete aviation workspace.",
-        "Inventory Yoyamic deployed hashes before any future staging deploy."
-    ],
+  "pending_tasks": [
+    "Create read-only legacy MySQL adapter query map for dashboard workflow data.",
+    "Replace in-memory auth/session storage with persistent provider-backed implementation.",
+    "Add rate limiting, secure cookies, CSRF strategy, password reset, and MFA/TOTP.",
+    "Add dashboard API/OpenAPI contract once web is served by authenticated runtime instead of static fixtures.",
+    "Inventory Yoyamic deployed hashes before any future staging deploy."
+  ],
   "blocked_tasks": [
     {
       "task": "Authenticated Yoyamic browser verification",
@@ -108,24 +112,26 @@
     "root_reports": "many untracked legacy audit and deployment reports exist at repo root",
     "saas_report": "SaaS_Aviation/IMPLEMENTATION_REPORT.md",
     "deployment_inventory": "docs/deployment/legacy-yoyamic-status.md",
-        "openapi_contracts": "docs/api/openapi-contracts.md",
-        "saas_deployment_report": "SaaS_Aviation/DEPLOYMENT_REPORT.md",
-        "auth_tenant_foundation": "docs/security/auth-tenant-foundation.md",
-        "auth_tenant_boundaries": "docs/architecture/auth-tenant-boundaries.md",
-        "saas_deploy_checklist": "docs/deployment/saas-deployment-checklist.md"
+    "openapi_contracts": "docs/api/openapi-contracts.md",
+    "saas_deployment_report": "SaaS_Aviation/DEPLOYMENT_REPORT.md",
+    "auth_tenant_foundation": "docs/security/auth-tenant-foundation.md",
+    "auth_tenant_boundaries": "docs/architecture/auth-tenant-boundaries.md",
+    "saas_deploy_checklist": "docs/deployment/saas-deployment-checklist.md"
   },
   "documentation": {
     "executive_dashboard": "APP_RECAP.md",
     "machine_state": "PROJECT_STATE.json",
     "vision": "VISION.md",
-    "docs_root": "docs"
+    "docs_root": "docs",
+    "dashboard_ui": "docs/ui/tenant-erp-dashboard.md",
+    "dashboard_business": "docs/business/tenant-dashboard-workflows.md"
   },
   "architecture": {
     "strategy": "adapter-first SaaS application separate from legacy Yoyamic",
     "frontend": "Next.js App Router",
-        "api": "Express REST API shell plus web route handlers with OpenAPI component schemas and bearer-protected business reads",
-        "shared_contracts": "TypeScript package",
-        "data_source": "tenant-scoped sample adapter now; read-only legacy adapter next"
+    "api": "Express REST API shell plus web route handlers with OpenAPI component schemas and bearer-protected business reads",
+    "shared_contracts": "TypeScript package",
+    "data_source": "tenant-scoped sample adapter now; read-only legacy adapter next"
   },
   "business_rules": [
     "RFQ_ID remains the canonical business workflow key.",
@@ -136,12 +142,12 @@
   ],
   "security_status": {
     "hardcoded_secrets": "none_added_in_saas_foundation",
-        "auth": "email_password_foundation_with_in_memory_sessions",
-        "mfa": "not_implemented",
-        "rbac": "role_and_permission_foundation",
-        "tenant_isolation": "repository_contract_and_sample_adapter_enforced",
-        "audit_logs": "abstraction_only",
-        "rate_limiting": "not_implemented"
+    "auth": "email_password_foundation_with_in_memory_sessions",
+    "mfa": "not_implemented",
+    "rbac": "role_and_permission_foundation",
+    "tenant_isolation": "repository_contract_and_sample_adapter_enforced",
+    "audit_logs": "abstraction_only",
+    "rate_limiting": "not_implemented"
   },
   "ui_status": {
     "target_quality": "Linear, Stripe Dashboard, Vercel, Notion, Odoo Enterprise, Salesforce Lightning, SAP Fiori",
@@ -150,12 +156,13 @@
   },
   "saas_status": {
     "foundation": "implemented",
-        "legacy_read_integration": "pending",
-        "mutations": "blocked_until_persistent_auth_tenant_audit",
-        "deployment": "static_frontend_deployed_to_staging_previous_version",
-        "openapi_contracts": "current_read_routes_have_component_schemas_and_auth_session_routes",
-        "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
-        "static_export": "enabled_for_frontend_visual_inspection"
+    "legacy_read_integration": "pending",
+    "mutations": "blocked_until_persistent_auth_tenant_audit",
+    "deployment": "previous static_frontend_deployed_to_staging; new dashboard not deployed",
+    "openapi_contracts": "current_read_routes_have_component_schemas_and_auth_session_routes",
+    "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
+    "static_export": "enabled_for_frontend_visual_inspection",
+    "dashboard": "tenant-aware ACI770 dashboard implemented locally with sample adapter fixtures; not deployed"
   },
   "migration_status": {
     "source": "Yoyamic",
@@ -163,7 +170,7 @@
     "strategy": "read-only adapter first, migration after business rule validation",
     "schema_changes": "not_approved"
   },
-    "current_sprint": "Auth/Tenant foundation and SaaS deployment guard",
-    "last_completed_task": "Implemented local Auth/Tenant foundation with tenant-scoped repository contracts and protected API reads.",
-    "next_recommended_task": "Run deployment validation, then replace in-memory auth with persistent provider-backed sessions before mutations."
+  "current_sprint": "Tenant-aware SaaS ERP dashboard and adapter-first workflow read model",
+  "last_completed_task": "Implemented first tenant-aware ACI770 ERP dashboard with shared dashboard service, sample adapter data, dense cockpit UI, tests, and docs.",
+  "next_recommended_task": "Map dashboard service to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
 }

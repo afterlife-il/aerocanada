@@ -1,4 +1,5 @@
 import {
+  sampleAccountingAlerts,
   sampleAuditEvents,
   sampleCompanies,
   sampleContacts,
@@ -6,8 +7,12 @@ import {
   sampleAdminUser,
   sampleInternalStock,
   sampleKpis,
+  sampleOrders,
   sampleParts,
+  sampleQuotes,
   sampleRfqs,
+  sampleServiceWorkflows,
+  sampleSupplierQuotes,
   sampleTenant,
   sampleUsers
 } from "@saas-aviation/shared";
@@ -27,6 +32,12 @@ export const data = {
   internalStock: sampleInternalStock,
   externalStock: sampleExternalStock,
   rfqs: sampleRfqs,
+  quotes: sampleQuotes,
+  supplierQuotes: sampleSupplierQuotes,
+  orders: sampleOrders,
+  serviceWorkflows: sampleServiceWorkflows,
+  documents: sampleDocumentAlerts,
+  accountingAlerts: sampleAccountingAlerts,
   audit: sampleAuditEvents,
   kpis: sampleKpis
 };
