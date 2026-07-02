@@ -1,5 +1,7 @@
 import {
   buildCompanyInventoryReadModel,
+  buildDocumentCenterReadModel,
+  buildEntityDocumentReadModel,
   buildPart360ReadModel,
   buildStock360ReadModel,
   buildTenantDashboard,
@@ -7,6 +9,9 @@ import {
   sampleAuditEvents,
   sampleCompanies,
   sampleDocumentAlerts,
+  sampleDocumentLinks,
+  sampleDocuments,
+  sampleDocumentVersions,
   sampleExternalStock,
   sampleInternalStock,
   sampleOrders,
@@ -16,7 +21,8 @@ import {
   sampleServiceWorkflows,
   sampleSupplierQuotes,
   sampleTenants,
-  sampleUsers
+  sampleUsers,
+  validateDocumentUploadRequest
 } from "@saas-aviation/shared";
 import type {
   AuditEvent,
@@ -24,6 +30,12 @@ import type {
   Company,
   CompanyInventoryReadModel,
   DashboardData,
+  DocumentCenterReadModel,
+  DocumentOwnerModule,
+  DocumentReadModel,
+  DocumentUploadRequest,
+  DocumentUploadValidationResult,
+  EntityDocumentReadModel,
   Part360ReadModel,
   PartNumber,
   RequestContext,
@@ -113,6 +125,33 @@ export class SampleDataSource implements AviationErpDataSource {
       documents: sampleDocumentAlerts,
       auditEvents: sampleAuditEvents
     });
+  }
+
+  async listDocuments(context: RequestContext): Promise<DocumentCenterReadModel> {
+    return buildDocumentCenterReadModel(context, {
+      documents: sampleDocuments,
+      versions: sampleDocumentVersions,
+      links: sampleDocumentLinks,
+      auditEvents: sampleAuditEvents
+    });
+  }
+
+  async getDocument(context: RequestContext, id: string): Promise<DocumentReadModel | null> {
+    const documents = await this.listDocuments(context);
+    return documents.documents.find((document) => document.id === id) ?? null;
+  }
+
+  async listEntityDocuments(context: RequestContext, ownerModule: DocumentOwnerModule, ownerRecordId: string): Promise<EntityDocumentReadModel> {
+    return buildEntityDocumentReadModel(context, ownerModule, ownerRecordId, {
+      documents: sampleDocuments,
+      versions: sampleDocumentVersions,
+      links: sampleDocumentLinks,
+      auditEvents: sampleAuditEvents
+    });
+  }
+
+  async validateDocumentUpload(context: RequestContext, request: DocumentUploadRequest): Promise<DocumentUploadValidationResult> {
+    return validateDocumentUploadRequest(context, request);
   }
 
   async listRfqSummaries(context: RequestContext): Promise<RfqSummary[]> {

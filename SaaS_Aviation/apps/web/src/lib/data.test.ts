@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { sampleRequestContext } from "@saas-aviation/shared";
 import { currentSession, data, getStock } from "./data.js";
 import { getDashboardData } from "./dashboard.js";
+import { getDocumentCenterReadModel, getEntityDocumentReadModel, validateDocumentUpload } from "./documents.js";
 import { getCompanyInventoryReadModel, getPart360ReadModel, getStock360ReadModel } from "./part-stock.js";
 
 test("web data keeps internal and external stock separated", () => {
@@ -68,4 +69,28 @@ test("web Company Inventory adapter counts unique stock totals", () => {
   assert.equal(inventory.tenantId, currentSession.tenant.id);
   assert.equal(inventory.totals.zeroQtyRows, 1);
   assert.equal(inventory.rows.every((row) => row.tenantId === currentSession.tenant.id), true);
+});
+
+test("web documents adapter returns tenant-scoped document center and entity documents", () => {
+  const center = getDocumentCenterReadModel();
+  const stockDocuments = getEntityDocumentReadModel("stock", "stock-1");
+
+  assert.equal(center.tenantId, currentSession.tenant.id);
+  assert.equal(center.documents.every((document) => document.tenantId === currentSession.tenant.id), true);
+  assert.equal(stockDocuments.documents.length, 2);
+});
+
+test("web documents upload adapter validates unsafe upload metadata", () => {
+  const rejected = validateDocumentUpload({
+    ownerModule: "stock",
+    ownerRecordId: "stock-1",
+    documentType: "Certificate",
+    fileName: "malware.exe",
+    mimeType: "application/x-msdownload",
+    sizeBytes: 200,
+    visibility: "restricted"
+  });
+
+  assert.equal(rejected.accepted, false);
+  assert.ok(rejected.errors.includes("mime_type_not_allowed"));
 });

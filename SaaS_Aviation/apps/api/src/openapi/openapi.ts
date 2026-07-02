@@ -23,6 +23,7 @@ export const openApiDocument = {
     { name: "Parts", description: "Part Number 360 source data." },
     { name: "Stock", description: "Internal and external stock source data." },
     { name: "Inventory", description: "Tenant-scoped stock and company inventory read models." },
+    { name: "Documents", description: "Tenant-scoped document metadata, links, and upload validation." },
     { name: "Audit", description: "Audit timeline events." }
   ],
   paths: {
@@ -235,6 +236,104 @@ export const openApiDocument = {
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/CompanyInventoryResponse" }
+              }
+            }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/v1/documents": {
+      get: {
+        tags: ["Documents"],
+        operationId: "listDocuments",
+        summary: "List tenant-scoped document metadata",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": {
+            description: "Document center read model.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/DocumentCenterResponse" }
+              }
+            }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/v1/documents/{id}": {
+      get: {
+        tags: ["Documents"],
+        operationId: "getDocument",
+        summary: "Get one tenant-scoped document read model",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            description: "Document read model.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/DocumentResponse" }
+              }
+            }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "404": { $ref: "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/documents/upload-intent": {
+      post: {
+        tags: ["Documents"],
+        operationId: "validateDocumentUpload",
+        summary: "Validate a document upload request and return a metadata-only upload intent",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/DocumentUploadRequest" }
+            }
+          }
+        },
+        responses: {
+          "200": {
+            description: "Upload request accepted for future storage pipeline.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/DocumentUploadValidationResponse" }
+              }
+            }
+          },
+          "400": {
+            description: "Upload request rejected by validation.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/DocumentUploadValidationResponse" }
+              }
+            }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/v1/entities/{ownerModule}/{ownerRecordId}/documents": {
+      get: {
+        tags: ["Documents"],
+        operationId: "listEntityDocuments",
+        summary: "List documents linked to one entity",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "ownerModule", in: "path", required: true, schema: { $ref: "#/components/schemas/DocumentOwnerModule" } },
+          { name: "ownerRecordId", in: "path", required: true, schema: { type: "string" } }
+        ],
+        responses: {
+          "200": {
+            description: "Documents linked to the entity.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/EntityDocumentResponse" }
               }
             }
           },
@@ -665,6 +764,147 @@ export const openApiDocument = {
           dueAt: { type: "string" }
         }
       },
+      DocumentOwnerModule: {
+        type: "string",
+        enum: ["company", "contact", "part", "stock", "rfq", "supplier-quote", "customer-quote", "purchase-order", "sales-order", "invoice", "repair-exchange-lease"]
+      },
+      DocumentType: {
+        type: "string",
+        enum: ["Certificate", "Trace", "Invoice", "Quote", "PO", "SO", "Packing slip", "Airway bill", "Email attachment", "Contract", "Photo", "Other"]
+      },
+      DocumentVersionRecord: {
+        type: "object",
+        required: ["id", "tenantId", "documentId", "version", "fileName", "mimeType", "sizeBytes", "uploadedBy", "uploadedAt", "scanStatus", "storageState"],
+        properties: {
+          id: { type: "string" },
+          tenantId: { type: "string" },
+          documentId: { type: "string" },
+          version: { type: "number" },
+          fileName: { type: "string" },
+          mimeType: { type: "string" },
+          sizeBytes: { type: "number" },
+          checksumSha256: { type: "string" },
+          uploadedBy: { type: "string" },
+          uploadedAt: { type: "string", format: "date-time" },
+          scanStatus: { type: "string", enum: ["pending", "clean", "blocked"] },
+          storageState: { type: "string", enum: ["metadata-only", "quarantine", "stored"] }
+        }
+      },
+      DocumentLinkRecord: {
+        type: "object",
+        required: ["id", "tenantId", "documentId", "ownerModule", "ownerRecordId", "relation", "linkedAt", "linkedBy"],
+        properties: {
+          id: { type: "string" },
+          tenantId: { type: "string" },
+          documentId: { type: "string" },
+          ownerModule: { $ref: "#/components/schemas/DocumentOwnerModule" },
+          ownerRecordId: { type: "string" },
+          relation: { type: "string", enum: ["primary", "supporting", "reference"] },
+          linkedAt: { type: "string", format: "date-time" },
+          linkedBy: { type: "string" }
+        }
+      },
+      DocumentReadModel: {
+        type: "object",
+        required: ["id", "tenantId", "ownerModule", "ownerRecordId", "documentType", "title", "fileName", "mimeType", "sizeBytes", "uploadedBy", "uploadedAt", "version", "visibility", "status", "currentVersionId", "tags", "currentVersion", "versions", "links"],
+        properties: {
+          id: { type: "string" },
+          tenantId: { type: "string" },
+          ownerModule: { $ref: "#/components/schemas/DocumentOwnerModule" },
+          ownerRecordId: { type: "string" },
+          documentType: { $ref: "#/components/schemas/DocumentType" },
+          title: { type: "string" },
+          fileName: { type: "string" },
+          mimeType: { type: "string" },
+          sizeBytes: { type: "number" },
+          uploadedBy: { type: "string" },
+          uploadedAt: { type: "string", format: "date-time" },
+          version: { type: "number" },
+          visibility: { type: "string", enum: ["internal", "customer-shareable", "restricted"] },
+          status: { type: "string", enum: ["active", "pending-review", "scan-required", "quarantined", "archived"] },
+          notes: { type: "string" },
+          currentVersionId: { type: "string" },
+          tags: { type: "array", items: { type: "string" } },
+          currentVersion: { oneOf: [{ $ref: "#/components/schemas/DocumentVersionRecord" }, { type: "null" }] },
+          versions: { type: "array", items: { $ref: "#/components/schemas/DocumentVersionRecord" } },
+          links: { type: "array", items: { $ref: "#/components/schemas/DocumentLinkRecord" } }
+        }
+      },
+      DocumentCenterReadModel: {
+        type: "object",
+        required: ["tenantId", "tenantCode", "documents", "summary"],
+        properties: {
+          tenantId: { type: "string" },
+          tenantCode: { type: "string" },
+          documents: { type: "array", items: { $ref: "#/components/schemas/DocumentReadModel" } },
+          summary: {
+            type: "object",
+            required: ["total", "clean", "needsReview", "restricted", "totalSizeBytes"],
+            properties: {
+              total: { type: "number" },
+              clean: { type: "number" },
+              needsReview: { type: "number" },
+              restricted: { type: "number" },
+              totalSizeBytes: { type: "number" }
+            }
+          }
+        }
+      },
+      EntityDocumentReadModel: {
+        type: "object",
+        required: ["tenantId", "tenantCode", "entityType", "entityId", "documents"],
+        properties: {
+          tenantId: { type: "string" },
+          tenantCode: { type: "string" },
+          entityType: { $ref: "#/components/schemas/DocumentOwnerModule" },
+          entityId: { type: "string" },
+          documents: { type: "array", items: { $ref: "#/components/schemas/DocumentReadModel" } }
+        }
+      },
+      DocumentUploadRequest: {
+        type: "object",
+        required: ["ownerModule", "ownerRecordId", "documentType", "fileName", "mimeType", "sizeBytes", "visibility"],
+        properties: {
+          ownerModule: { $ref: "#/components/schemas/DocumentOwnerModule" },
+          ownerRecordId: { type: "string" },
+          documentType: { $ref: "#/components/schemas/DocumentType" },
+          fileName: { type: "string" },
+          mimeType: { type: "string" },
+          sizeBytes: { type: "number" },
+          visibility: { type: "string", enum: ["internal", "customer-shareable", "restricted"] },
+          notes: { type: "string" }
+        }
+      },
+      DocumentUploadIntent: {
+        type: "object",
+        required: ["status", "tenantId", "ownerModule", "ownerRecordId", "documentType", "fileName", "mimeType", "sizeBytes", "uploadedBy", "uploadedAt", "visibility", "version", "persistence", "securityChecks", "futureStorageOwner"],
+        properties: {
+          status: { type: "string", const: "validated" },
+          tenantId: { type: "string" },
+          ownerModule: { $ref: "#/components/schemas/DocumentOwnerModule" },
+          ownerRecordId: { type: "string" },
+          documentType: { $ref: "#/components/schemas/DocumentType" },
+          fileName: { type: "string" },
+          mimeType: { type: "string" },
+          sizeBytes: { type: "number" },
+          uploadedBy: { type: "string" },
+          uploadedAt: { type: "string", format: "date-time" },
+          visibility: { type: "string" },
+          version: { type: "number" },
+          persistence: { type: "string", const: "metadata-only" },
+          securityChecks: { type: "array", items: { type: "string" } },
+          futureStorageOwner: { type: "string" }
+        }
+      },
+      DocumentUploadValidationResult: {
+        type: "object",
+        required: ["accepted", "errors", "intent"],
+        properties: {
+          accepted: { type: "boolean" },
+          errors: { type: "array", items: { type: "string" } },
+          intent: { oneOf: [{ $ref: "#/components/schemas/DocumentUploadIntent" }, { type: "null" }] }
+        }
+      },
       CompanyListResponse: listResponse("#/components/schemas/Company"),
       PartNumberListResponse: listResponse("#/components/schemas/PartNumber"),
       StockItemListResponse: listResponse("#/components/schemas/StockItem"),
@@ -682,6 +922,26 @@ export const openApiDocument = {
         type: "object",
         required: ["data"],
         properties: { data: { $ref: "#/components/schemas/CompanyInventoryReadModel" } }
+      },
+      DocumentCenterResponse: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { $ref: "#/components/schemas/DocumentCenterReadModel" } }
+      },
+      DocumentResponse: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { $ref: "#/components/schemas/DocumentReadModel" } }
+      },
+      EntityDocumentResponse: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { $ref: "#/components/schemas/EntityDocumentReadModel" } }
+      },
+      DocumentUploadValidationResponse: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { $ref: "#/components/schemas/DocumentUploadValidationResult" } }
       },
       AuditEventListResponse: listResponse("#/components/schemas/AuditEvent")
     }

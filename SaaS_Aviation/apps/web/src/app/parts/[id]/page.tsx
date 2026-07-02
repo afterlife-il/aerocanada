@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/erp/app-shell";
 import { PageHeader } from "@/components/erp/page-header";
+import { DocumentPanel } from "@/components/modules/document-panel";
 import { EntityTabs } from "@/components/modules/entity-tabs";
 import { stockColumns } from "@/components/modules/stock-columns";
 import { WorkflowBoundaryPanel } from "@/components/modules/workflow-boundary-panel";
@@ -7,6 +8,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { DetailPanel, KeyValue } from "@/components/ui/panels";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { data, getPart } from "@/lib/data";
+import { getEntityDocumentReadModel } from "@/lib/documents";
 import { getPart360ReadModel } from "@/lib/part-stock";
 
 export const dynamicParams = false;
@@ -19,6 +21,7 @@ export default async function PartDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const part = getPart(id);
   const part360 = getPart360ReadModel(part.id);
+  const documents = getEntityDocumentReadModel("part", part.id);
   const internalStock = part360?.internalStock ?? [];
   const externalStock = part360?.externalStock ?? [];
   const rfqs = part360?.rfqs ?? [];
@@ -83,18 +86,19 @@ export default async function PartDetailPage({ params }: { params: Promise<{ id:
         <DetailPanel title="External Supplier Stock">
           <DataTable rows={externalStock} columns={stockColumns()} />
         </DetailPanel>
-        <DetailPanel title="History / Documents / Traceability">
+        <DetailPanel title="History / Traceability">
           <DataTable
-            rows={[...(part360?.purchaseHistory ?? []), ...(part360?.salesHistory ?? []), ...(part360?.serviceHistory ?? []), ...(part360?.documents ?? [])]}
+            rows={[...(part360?.purchaseHistory ?? []), ...(part360?.salesHistory ?? []), ...(part360?.serviceHistory ?? [])]}
             columns={[
-              { key: "kind", header: "Kind", cell: (row) => ("documentType" in row ? "Document" : "orderNumber" in row ? row.kind : row.kind) },
-              { key: "ref", header: "Reference", cell: (row) => <span className="font-mono">{("documentType" in row ? row.documentType : "orderNumber" in row ? row.orderNumber : row.reference)}</span> },
+              { key: "kind", header: "Kind", cell: (row) => ("orderNumber" in row ? row.kind : row.kind) },
+              { key: "ref", header: "Reference", cell: (row) => <span className="font-mono">{"orderNumber" in row ? row.orderNumber : row.reference}</span> },
               { key: "company", header: "Company", cell: (row) => ("companyName" in row ? row.companyName : "-") },
               { key: "status", header: "Status", cell: (row) => row.status },
               { key: "due", header: "Date", cell: (row) => ("dueAt" in row ? row.dueAt : "-") }
             ]}
           />
         </DetailPanel>
+        <DocumentPanel title="Linked Documents" documents={documents.documents} />
         {part360 ? <WorkflowBoundaryPanel title="Quick Action Boundaries" actions={part360.quickActions} /> : null}
       </div>
     </AppShell>

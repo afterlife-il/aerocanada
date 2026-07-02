@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import type { DocumentOwnerModule } from "@saas-aviation/shared";
 import { getLegacyDataSource } from "./adapters/legacy-mysql-adapter.js";
 import { AuditService } from "./audit/audit-service.js";
 import { InMemoryAuthProvider } from "./auth/auth-provider.js";
@@ -12,6 +13,19 @@ const port = Number(process.env.API_PORT ?? 4107);
 const dataSource = getLegacyDataSource();
 const auth = new InMemoryAuthProvider();
 const audit = new AuditService(dataSource);
+const documentOwnerModules = new Set<DocumentOwnerModule>([
+  "company",
+  "contact",
+  "part",
+  "stock",
+  "rfq",
+  "supplier-quote",
+  "customer-quote",
+  "purchase-order",
+  "sales-order",
+  "invoice",
+  "repair-exchange-lease"
+]);
 
 app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:3007"] }));
@@ -106,6 +120,40 @@ app.get("/v1/company-inventory", async (req, res) => {
   const context = await requireSession(req, res, auth);
   if (!context) return;
   res.json({ data: await dataSource.getCompanyInventory(context) });
+});
+
+app.get("/v1/documents", async (req, res) => {
+  const context = await requireSession(req, res, auth);
+  if (!context) return;
+  res.json({ data: await dataSource.listDocuments(context) });
+});
+
+app.get("/v1/documents/:id", async (req, res) => {
+  const context = await requireSession(req, res, auth);
+  if (!context) return;
+  const document = await dataSource.getDocument(context, req.params.id);
+  if (!document) {
+    res.status(404).json({ error: "document_not_found" });
+    return;
+  }
+  res.json({ data: document });
+});
+
+app.post("/v1/documents/upload-intent", async (req, res) => {
+  const context = await requireSession(req, res, auth);
+  if (!context) return;
+  const result = await dataSource.validateDocumentUpload(context, req.body);
+  res.status(result.accepted ? 200 : 400).json({ data: result });
+});
+
+app.get("/v1/entities/:ownerModule/:ownerRecordId/documents", async (req, res) => {
+  const context = await requireSession(req, res, auth);
+  if (!context) return;
+  if (!documentOwnerModules.has(req.params.ownerModule as DocumentOwnerModule)) {
+    res.status(400).json({ error: "unsupported_document_owner_module" });
+    return;
+  }
+  res.json({ data: await dataSource.listEntityDocuments(context, req.params.ownerModule as DocumentOwnerModule, req.params.ownerRecordId) });
 });
 
 app.get("/v1/audit", async (req, res) => {

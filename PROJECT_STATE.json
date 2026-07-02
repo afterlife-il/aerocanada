@@ -49,7 +49,9 @@
       "status": "repair_exchange_lease_represented_in_dashboard_sample_read_model"
     },
     "documents_certificates": {
-      "status": "documents_represented_in_dashboard_sample_read_model"
+      "status": "phase_1_foundation_implemented_pending_deploy",
+      "scope": "tenant-scoped document/version/link metadata, reusable DocumentPanel, Document Center UI, upload-intent validation, protected API contracts, sample-data-backed read models, no object storage or malware scanning yet",
+      "architecture_doc": "SaaS_Aviation/DOCUMENTS_ARCHITECTURE.md"
     },
     "ai_assistance": {
       "status": "architecture_pending"
@@ -69,12 +71,12 @@
   },
   "deployment_status": {
     "legacy_yoyamic_staging": "report_based_partial_deployments",
-    "saas_aviation": "static_frontend_deployed_to_staging_prior_snapshot_new_part_stock_inventory_local_only",
+    "saas_aviation": "static_frontend_deployed_to_staging_documents_phase_1",
     "production": "not_requested",
     "saas_aviation_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "saas_aviation_target": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation/",
     "saas_aviation_backup": "not_created_target_did_not_exist",
-    "saas_aviation_last_deployed_at": "2026-06-30T11:16:25Z"
+    "saas_aviation_last_deployed_at": "2026-07-02T13:43:21Z"
   },
   "review_status": {
     "read_before_patch": [
@@ -98,6 +100,7 @@
     "Replace in-memory auth/session storage with persistent provider-backed implementation.",
     "Add rate limiting, secure cookies, CSRF strategy, password reset, and MFA/TOTP.",
     "Map Part 360, Stock 360, and Company Inventory read models to read-only Yoyamic adapter queries.",
+    "Implement Documents Phase 2 object storage, quarantine, malware scanning, checksum, signed URL, persisted audit, and retention workflow after infrastructure approval.",
     "Add dashboard API/OpenAPI contract once web is served by authenticated runtime instead of static fixtures.",
     "Inventory Yoyamic deployed hashes before any future staging deploy."
   ],
@@ -134,7 +137,12 @@
     "dashboard_business": "docs/business/tenant-dashboard-workflows.md",
     "part_360_business": "docs/business/part-360.md",
     "stock_business": "docs/business/stock.md",
-    "stock_database": "docs/database/stock.md"
+    "stock_database": "docs/database/stock.md",
+    "documents_architecture": "SaaS_Aviation/DOCUMENTS_ARCHITECTURE.md",
+    "documents_business": "docs/business/documents.md",
+    "documents_database": "docs/database/documents.md",
+    "documents_security": "docs/security/documents.md",
+    "aviation_erp_benchmark": "SaaS_Aviation/AVIATION_ERP_BENCHMARK.md"
   },
   "architecture": {
     "strategy": "adapter-first SaaS application separate from legacy Yoyamic",
@@ -169,7 +177,8 @@
     "legacy_read_integration": "pending",
     "mutations": "blocked_until_persistent_auth_tenant_audit",
     "part_stock_inventory": "read-model foundation implemented locally with protected API contracts and static fixture-backed UI; no mutations or deployment",
-    "deployment": "previous static_frontend_deployed_to_staging; new dashboard not deployed",
+    "documents": "phase 1 metadata, link, reusable UI, and upload-intent validation foundation implemented and static frontend deployed; no byte storage, OCR, or AI analysis yet",
+    "deployment": "static frontend deployed to staging after Documents Phase 1; API runtime still not deployed",
     "openapi_contracts": "current_read_routes_have_component_schemas_and_auth_session_routes",
     "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "static_export": "enabled_for_frontend_visual_inspection",
@@ -182,6 +191,6 @@
     "schema_changes": "not_approved"
   },
   "current_sprint": "Tenant-aware SaaS ERP dashboard and adapter-first workflow read model",
-  "last_completed_task": "Implemented read-only Part 360, Stock 360, and Company Inventory foundation with shared tenant-scoped read models, API contracts, dense UI, boundary actions, tests, and docs.",
-  "next_recommended_task": "Map dashboard and Part/Stock/Company Inventory read models to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
+  "last_completed_task": "Implemented Documents Phase 1 foundation with tenant-scoped metadata, versions, entity links, reusable document UI, upload-intent validation, protected API contracts, tests, and docs. No byte storage or Yoyamic/live DB writes.",
+  "next_recommended_task": "Documents Phase 2 after infrastructure approval: object storage, quarantine, malware scanning, checksum, signed download/preview URLs, persisted audit, and retention/legal-hold workflow. Also still pending: map dashboard and Part/Stock/Company Inventory read models to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
 }

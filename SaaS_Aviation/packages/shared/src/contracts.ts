@@ -4,6 +4,12 @@ import type {
   Company,
   CompanyInventoryReadModel,
   DashboardData,
+  DocumentCenterReadModel,
+  DocumentOwnerModule,
+  DocumentReadModel,
+  DocumentUploadRequest,
+  DocumentUploadValidationResult,
+  EntityDocumentReadModel,
   Part360ReadModel,
   PartNumber,
   RequestContext,
@@ -41,6 +47,13 @@ export interface DashboardRepository {
   getDashboard(context: RequestContext): Promise<DashboardData>;
 }
 
+export interface DocumentRepository {
+  listDocuments(context: RequestContext): Promise<DocumentCenterReadModel>;
+  getDocument(context: RequestContext, id: string): Promise<DocumentReadModel | null>;
+  listEntityDocuments(context: RequestContext, ownerModule: DocumentOwnerModule, ownerRecordId: string): Promise<EntityDocumentReadModel>;
+  validateDocumentUpload(context: RequestContext, request: DocumentUploadRequest): Promise<DocumentUploadValidationResult>;
+}
+
 export interface AuditRepository {
   listAuditEvents(context: RequestContext): Promise<AuditEvent[]>;
   recordAuditEvent(event: Omit<AuditEvent, "id" | "occurredAt">): Promise<AuditEvent>;
@@ -65,6 +78,7 @@ export interface AviationErpDataSource
     PartRepository,
     StockRepository,
     RfqRepository,
+    DocumentRepository,
     DashboardRepository,
     AuditRepository,
     TenantRepository,

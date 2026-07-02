@@ -28,7 +28,7 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 
 - SaaS foundation scaffold in `SaaS_Aviation/`.
 - Login shell, tenant-aware ERP dashboard, Company 360 shell, Part 360 read-model foundation, Stock 360 read-model foundation, Company Inventory read-model foundation, internal stock list, external stock list.
-- Sample-data route handlers and Express read routes.
+- Sample-data route handlers and Express read routes, including Documents metadata and upload-intent validation contracts.
 - OpenAPI component schemas for current Express read routes.
 - Yoyamic stock ownership and tag-info display work, with several staging deployments documented in reports.
 
@@ -42,7 +42,10 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 
 ## Pending Modules
 
-Detailed RFQ, supplier quote, customer quote, purchase orders, sales orders, repair, exchange, leasing, loan, certificates, documents, inventory lifecycle, AI workflows, tenant administration, RBAC, and observability modules.
+Detailed RFQ, supplier quote, customer quote, purchase orders, sales orders, repair, exchange, leasing, loan,
+inventory lifecycle, AI workflows, tenant administration, RBAC, and observability modules. Documents/certificates
+now have a Phase 1 metadata, link, reusable UI, and upload-validation foundation; object storage and scanning are
+not implemented yet.
 
 ## Business Rules
 
@@ -62,7 +65,7 @@ Early foundation. The app builds, has sample read screens, and the static fronte
 
 ## Current Deployments
 
-Report-based Yoyamic staging deployments exist for stock ownership and stock list work. `SaaS_Aviation/` static frontend is deployed to staging at `https://aerocanada-industries.com/SaaS_Aviation/`. See `docs/deployment/legacy-yoyamic-status.md`.
+Report-based Yoyamic staging deployments exist for stock ownership and stock list work. `SaaS_Aviation/` static frontend is deployed to staging at `https://aerocanada-industries.com/SaaS_Aviation/`, most recently for the Documents Phase 1 UI on 2026-07-02. See `docs/deployment/legacy-yoyamic-status.md`.
 
 ## Current Working Tree
 
@@ -84,6 +87,21 @@ Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untrac
 
 ## Changelog
 
+- 2026-07-02: Completed an Aviation Business Architect benchmark of every implemented module (Auth/Tenant,
+  Dashboard, Company 360, Part 360, Stock 360, Company Inventory) against IFS Aerospace, Ramco Aviation, Quantum
+  Control, AvSight, Traxxall, SAP Aviation, AMOS, Rusada ENVISION, and OASES. Verdict: architecture is strong,
+  but the product is pre-MVP functionally — no RFQ/Quote/PO/SO transaction can yet be created, only displayed.
+  See `SaaS_Aviation/AVIATION_ERP_BENCHMARK.md`. No code implemented.
+- 2026-07-02: Designed the complete Documents ecosystem architecture — entity model, storage/naming strategy,
+  malware scanning, versioning, permissions, tenant isolation, preview, OCR, AI document analysis, search/
+  indexing, audit trail, retention/archive/soft-delete/legal-hold, API proposal, UI proposal, workflow proposal,
+  migration strategy from Yoyamic, risks, and phased recommendations. See `SaaS_Aviation/DOCUMENTS_ARCHITECTURE.md`,
+  `docs/business/documents.md`, `docs/database/documents.md`. No code implemented.
+- 2026-07-02: Implemented Documents Phase 1 foundation with tenant-scoped document/version/link metadata,
+  reusable DocumentPanel and UploadFoundationPanel, Document Center UI, protected API contracts, upload-intent
+  validation, tests, and security/business/database docs. No Yoyamic or live DB writes.
+- 2026-07-02: Deployed the `SaaS_Aviation` static frontend for Documents Phase 1 to staging. No API runtime,
+  Yoyamic, or live database deployment was performed.
 - 2026-07-01: Added first tenant-aware ERP dashboard for ACI770 with dashboard service/adapters, workflow fixtures, dense cockpit UI, tests, and business/UI docs. No deployment performed.
 - 2026-07-02: Added read-only Part 360, Stock 360, and Company Inventory foundation with tenant-scoped shared read models, API contracts, dense connected UI, workflow boundary panels, tests, and docs. No deployment performed.
 - 2026-06-30: Added Auth/Tenant foundation with shared user/tenant/session types, tenant-scoped repository contracts, API password session endpoints, protected business reads, and QA deployment checklist.

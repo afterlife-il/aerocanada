@@ -1,12 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildTenantDashboard } from "./dashboard-service.js";
+import { buildDocumentCenterReadModel, buildEntityDocumentReadModel, validateDocumentUploadRequest } from "./document-service.js";
 import { buildCompanyInventoryReadModel, buildPart360ReadModel, buildStock360ReadModel } from "./part-stock-service.js";
 import {
   sampleAccountingAlerts,
   sampleAuditEvents,
   sampleCompanies,
   sampleDocumentAlerts,
+  sampleDocuments,
+  sampleDocumentVersions,
+  sampleDocumentLinks,
   sampleExternalStock,
   sampleInternalStock,
   sampleOrders,
@@ -190,4 +194,81 @@ test("Company Inventory read model summarizes stock by company without leaking o
   assert.equal(inventory.totals.zeroQtyRows, 1);
   assert.ok(inventory.rows.find((row) => row.companyName === "AeroCanada Industries 770")?.stockLines.length);
   assert.ok(inventory.quickActions.find((action) => action.id === "add-stock")?.requiredData.includes("ownerCompanyId"));
+});
+
+test("Documents read model is tenant-scoped and links documents to aviation entities", () => {
+  const center = buildDocumentCenterReadModel(sampleRequestContext, {
+    documents: sampleDocuments,
+    versions: sampleDocumentVersions,
+    links: sampleDocumentLinks,
+    auditEvents: sampleAuditEvents
+  });
+
+  assert.equal(center.tenantId, sampleTenant.id);
+  assert.equal(center.documents.every((document) => document.tenantId === sampleTenant.id), true);
+  assert.ok(center.documents.find((document) => document.documentType === "Certificate"));
+  assert.ok(center.documents.find((document) => document.links.some((link) => link.ownerModule === "stock")));
+  assert.equal(center.summary.clean, 5);
+  assert.equal(center.summary.needsReview, 2);
+});
+
+test("Entity documents read model returns only documents linked to the requested entity", () => {
+  const stockDocuments = buildEntityDocumentReadModel(sampleRequestContext, "stock", "stock-1", {
+    documents: sampleDocuments,
+    versions: sampleDocumentVersions,
+    links: sampleDocumentLinks,
+    auditEvents: sampleAuditEvents
+  });
+
+  assert.equal(stockDocuments.entityType, "stock");
+  assert.equal(stockDocuments.entityId, "stock-1");
+  assert.equal(stockDocuments.documents.length, 2);
+  assert.equal(stockDocuments.documents.every((document) => document.links.some((link) => link.ownerModule === "stock" && link.ownerRecordId === "stock-1")), true);
+});
+
+test("Document upload validation rejects unsafe files and builds a non-persistent upload intent for valid files", () => {
+  const accepted = validateDocumentUploadRequest(sampleRequestContext, {
+    ownerModule: "stock",
+    ownerRecordId: "stock-1",
+    documentType: "Certificate",
+    fileName: "../8130 light.pdf",
+    mimeType: "application/pdf",
+    sizeBytes: 512000,
+    visibility: "customer-shareable",
+    notes: "FAA 8130 for stock-1"
+  });
+
+  assert.equal(accepted.accepted, true);
+  assert.equal(accepted.intent?.status, "validated");
+  assert.equal(accepted.intent?.fileName, "8130-light.pdf");
+  assert.equal(accepted.intent?.persistence, "metadata-only");
+  assert.equal(accepted.intent?.securityChecks.includes("tenant-context"), true);
+
+  const executable = validateDocumentUploadRequest(sampleRequestContext, {
+    ownerModule: "stock",
+    ownerRecordId: "stock-1",
+    documentType: "Certificate",
+    fileName: "danger.exe",
+    mimeType: "application/x-msdownload",
+    sizeBytes: 12,
+    visibility: "internal",
+    notes: ""
+  });
+
+  assert.equal(executable.accepted, false);
+  assert.ok(executable.errors.includes("mime_type_not_allowed"));
+
+  const tooLarge = validateDocumentUploadRequest(sampleRequestContext, {
+    ownerModule: "stock",
+    ownerRecordId: "stock-1",
+    documentType: "Trace",
+    fileName: "trace.pdf",
+    mimeType: "application/pdf",
+    sizeBytes: 30 * 1024 * 1024,
+    visibility: "restricted",
+    notes: ""
+  });
+
+  assert.equal(tooLarge.accepted, false);
+  assert.ok(tooLarge.errors.includes("file_too_large"));
 });

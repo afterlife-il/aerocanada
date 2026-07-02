@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/erp/app-shell";
 import { PageHeader } from "@/components/erp/page-header";
+import { DocumentPanel } from "@/components/modules/document-panel";
 import { EntityTabs } from "@/components/modules/entity-tabs";
 import { WorkflowBoundaryPanel } from "@/components/modules/workflow-boundary-panel";
 import { DataTable } from "@/components/ui/data-table";
@@ -7,6 +8,7 @@ import { DetailPanel, KeyValue } from "@/components/ui/panels";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EntityTimeline } from "@/components/ui/entity-timeline";
 import { data, getStock } from "@/lib/data";
+import { getEntityDocumentReadModel } from "@/lib/documents";
 import { getStock360ReadModel } from "@/lib/part-stock";
 
 export const dynamicParams = false;
@@ -19,6 +21,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const stock = getStock(id);
   const stock360 = getStock360ReadModel(stock.id);
+  const documents = getEntityDocumentReadModel("stock", stock.id);
 
   return (
     <AppShell>
@@ -57,17 +60,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ id
         <DetailPanel title="Lifecycle Timeline">
           <EntityTimeline events={stock360?.lifecycle.length ? stock360.lifecycle : data.audit.filter((event) => event.entityId === stock.id)} />
         </DetailPanel>
-        <DetailPanel title="Documents / Certificates">
-          <DataTable
-            rows={stock360?.documents ?? []}
-            columns={[
-              { key: "type", header: "Type", cell: (row) => row.documentType },
-              { key: "entity", header: "Entity", cell: (row) => <span className="font-mono">{row.entityId}</span> },
-              { key: "status", header: "Status", cell: (row) => row.status },
-              { key: "due", header: "Due", cell: (row) => row.dueAt }
-            ]}
-          />
-        </DetailPanel>
+        <DocumentPanel title="Documents / Certificates" documents={documents.documents} />
       </div>
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_1fr]">
         <DetailPanel title="RFQ / Quote / Order Links">

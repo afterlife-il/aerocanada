@@ -38,6 +38,28 @@ test("sample data source exposes tenant-scoped Part 360, Stock 360, and Company 
   assert.equal(inventory.rows.every((row) => row.tenantId === sampleRequestContext.tenant.tenantId), true);
 });
 
+test("sample data source exposes tenant-scoped documents and upload validation", async () => {
+  const data = new SampleDataSource();
+  const documents = await data.listDocuments(sampleRequestContext);
+  const stockDocuments = await data.listEntityDocuments(sampleRequestContext, "stock", "stock-1");
+  const upload = await data.validateDocumentUpload(sampleRequestContext, {
+    ownerModule: "stock",
+    ownerRecordId: "stock-1",
+    documentType: "Certificate",
+    fileName: "8130.pdf",
+    mimeType: "application/pdf",
+    sizeBytes: 1000,
+    visibility: "customer-shareable",
+    notes: ""
+  });
+
+  assert.equal(documents.tenantId, sampleRequestContext.tenant.tenantId);
+  assert.equal(documents.documents.every((document) => document.tenantId === sampleRequestContext.tenant.tenantId), true);
+  assert.equal(stockDocuments.documents.length, 2);
+  assert.equal(upload.accepted, true);
+  assert.equal(upload.intent?.persistence, "metadata-only");
+});
+
 test("password auth creates a tenant-scoped session", async () => {
   const auth = new InMemoryAuthProvider();
   const session = await auth.authenticateWithPassword("ops@aerocanada-industries.com", "ChangeMe!ACI770!");
@@ -58,6 +80,8 @@ test("openapi document covers current read routes with component schemas", () =>
   assert.ok(openApiDocument.components.schemas.Part360ReadModel);
   assert.ok(openApiDocument.components.schemas.Stock360ReadModel);
   assert.ok(openApiDocument.components.schemas.CompanyInventoryReadModel);
+  assert.ok(openApiDocument.components.schemas.DocumentReadModel);
+  assert.ok(openApiDocument.components.schemas.DocumentUploadRequest);
   assert.ok(openApiDocument.components.schemas.AuditEvent);
   assert.equal(openApiDocument.paths["/v1/session"].get.operationId, "getSession");
   assert.equal(openApiDocument.paths["/v1/auth/login"].post.operationId, "loginWithPassword");
@@ -65,4 +89,7 @@ test("openapi document covers current read routes with component schemas", () =>
   assert.equal(openApiDocument.paths["/v1/parts/{id}/360"].get.operationId, "getPart360");
   assert.equal(openApiDocument.paths["/v1/stock/{id}/360"].get.operationId, "getStock360");
   assert.equal(openApiDocument.paths["/v1/company-inventory"].get.operationId, "getCompanyInventory");
+  assert.equal(openApiDocument.paths["/v1/documents"].get.operationId, "listDocuments");
+  assert.equal(openApiDocument.paths["/v1/documents/upload-intent"].post.operationId, "validateDocumentUpload");
+  assert.equal(openApiDocument.paths["/v1/entities/{ownerModule}/{ownerRecordId}/documents"].get.operationId, "listEntityDocuments");
 });

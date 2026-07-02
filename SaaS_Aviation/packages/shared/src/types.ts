@@ -15,6 +15,8 @@ export type Permission =
   | "company.read"
   | "part.read"
   | "stock.read"
+  | "document.read"
+  | "document.upload"
   | "rfq.read"
   | "audit.read"
   | "auth.manage";
@@ -212,6 +214,145 @@ export interface DocumentAlert {
   entityId: string;
   status: "missing" | "pending-review" | "expires-soon";
   dueAt: string;
+}
+
+export type DocumentOwnerModule =
+  | "company"
+  | "contact"
+  | "part"
+  | "stock"
+  | "rfq"
+  | "supplier-quote"
+  | "customer-quote"
+  | "purchase-order"
+  | "sales-order"
+  | "invoice"
+  | "repair-exchange-lease";
+
+export type DocumentType =
+  | "Certificate"
+  | "Trace"
+  | "Invoice"
+  | "Quote"
+  | "PO"
+  | "SO"
+  | "Packing slip"
+  | "Airway bill"
+  | "Email attachment"
+  | "Contract"
+  | "Photo"
+  | "Other";
+
+export type DocumentStatus = "active" | "pending-review" | "scan-required" | "quarantined" | "archived";
+export type DocumentVisibility = "internal" | "customer-shareable" | "restricted";
+export type UploadIntentStatus = "validated" | "rejected";
+
+export interface DocumentRecord {
+  id: string;
+  tenantId: TenantId;
+  ownerModule: DocumentOwnerModule;
+  ownerRecordId: string;
+  documentType: DocumentType;
+  title: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  uploadedBy: string;
+  uploadedAt: string;
+  version: number;
+  visibility: DocumentVisibility;
+  status: DocumentStatus;
+  notes?: string;
+  currentVersionId: string;
+  tags: string[];
+}
+
+export interface DocumentVersionRecord {
+  id: string;
+  tenantId: TenantId;
+  documentId: string;
+  version: number;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksumSha256?: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  scanStatus: "pending" | "clean" | "blocked";
+  storageState: "metadata-only" | "quarantine" | "stored";
+}
+
+export interface DocumentLinkRecord {
+  id: string;
+  tenantId: TenantId;
+  documentId: string;
+  ownerModule: DocumentOwnerModule;
+  ownerRecordId: string;
+  relation: "primary" | "supporting" | "reference";
+  linkedAt: string;
+  linkedBy: string;
+}
+
+export interface DocumentReadModel extends DocumentRecord {
+  currentVersion: DocumentVersionRecord | null;
+  versions: DocumentVersionRecord[];
+  links: DocumentLinkRecord[];
+}
+
+export interface DocumentCenterReadModel {
+  tenantId: TenantId;
+  tenantCode: string;
+  documents: DocumentReadModel[];
+  summary: {
+    total: number;
+    clean: number;
+    needsReview: number;
+    restricted: number;
+    totalSizeBytes: number;
+  };
+}
+
+export interface EntityDocumentReadModel {
+  tenantId: TenantId;
+  tenantCode: string;
+  entityType: DocumentOwnerModule;
+  entityId: string;
+  documents: DocumentReadModel[];
+}
+
+export interface DocumentUploadRequest {
+  ownerModule: DocumentOwnerModule;
+  ownerRecordId: string;
+  documentType: DocumentType;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  visibility: DocumentVisibility;
+  notes?: string;
+}
+
+export interface DocumentUploadIntent {
+  status: UploadIntentStatus;
+  tenantId: TenantId;
+  ownerModule: DocumentOwnerModule;
+  ownerRecordId: string;
+  documentType: DocumentType;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  uploadedBy: string;
+  uploadedAt: string;
+  visibility: DocumentVisibility;
+  version: number;
+  persistence: "metadata-only";
+  securityChecks: string[];
+  futureStorageOwner: string;
+}
+
+export interface DocumentUploadValidationResult {
+  accepted: boolean;
+  errors: string[];
+  intent: DocumentUploadIntent | null;
 }
 
 export interface AccountingAlert {

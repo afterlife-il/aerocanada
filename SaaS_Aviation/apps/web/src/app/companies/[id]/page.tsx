@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/erp/app-shell";
 import { PageHeader } from "@/components/erp/page-header";
+import { DocumentPanel } from "@/components/modules/document-panel";
 import { EntityTabs } from "@/components/modules/entity-tabs";
 import { stockColumns } from "@/components/modules/stock-columns";
 import { WorkflowBoundaryPanel } from "@/components/modules/workflow-boundary-panel";
@@ -7,6 +8,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { DetailPanel, KeyValue } from "@/components/ui/panels";
 import { EntityTimeline } from "@/components/ui/entity-timeline";
 import { data, getCompany } from "@/lib/data";
+import { getEntityDocumentReadModel } from "@/lib/documents";
 import { getCompanyInventoryReadModel } from "@/lib/part-stock";
 
 export const dynamicParams = false;
@@ -19,6 +21,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const company = getCompany(id);
   const contacts = data.contacts.filter((contact) => contact.companyId === company.id);
+  const documents = getEntityDocumentReadModel("company", company.id);
   const inventory = getCompanyInventoryReadModel();
   const inventoryRow = inventory.rows.find((row) => row.companyId === company.id);
   const stock = inventoryRow?.stockLines ?? [];
@@ -59,6 +62,9 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
         <DetailPanel title="Activity Timeline">
           <EntityTimeline events={data.audit} />
         </DetailPanel>
+      </div>
+      <div className="mt-4">
+        <DocumentPanel title="Company Documents" documents={documents.documents} />
       </div>
       <div className="mt-4">
         <WorkflowBoundaryPanel title="Company Inventory Boundaries" actions={inventory.quickActions} />

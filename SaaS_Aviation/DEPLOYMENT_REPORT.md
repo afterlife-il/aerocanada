@@ -1,5 +1,34 @@
 # SaaS_Aviation Staging Deployment Report
 
+## 2026-07-02T13:43:21Z Documents Phase 1 Static Deployment
+
+Target:
+
+`https://aerocanada-industries.com/SaaS_Aviation/`
+
+Scope:
+
+- Deployed only the built static frontend from `SaaS_Aviation/apps/web/out`.
+- Added static Documents Phase 1 UI, Document Center, and embedded document panels.
+- Did not deploy the Express API runtime.
+- Did not touch `/yoyamic/`.
+- Did not modify any live database or Yoyamic file.
+
+Backup:
+
+`/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation_backup_20260702_documents`
+
+Verification:
+
+- `https://aerocanada-industries.com/SaaS_Aviation/documents/` -> `HTTP 200`, expected document UI text found.
+- `https://aerocanada-industries.com/SaaS_Aviation/parts/part-1/` -> `HTTP 200`, expected linked documents text found.
+- `https://aerocanada-industries.com/SaaS_Aviation/stock/internal/stock-1/` -> `HTTP 200`, expected documents/certificates text found.
+- `https://aerocanada-industries.com/SaaS_Aviation/companies/company-1527/` -> `HTTP 200`, expected company documents text found.
+
+Notes:
+
+The deployed frontend uses sample/static data. Upload support is an upload-intent validation foundation only; object storage, malware scanning, signed URLs, OCR, AI analysis, and persisted audit remain future work.
+
 Date: 2026-06-30T11:16:25Z
 
 ## Target
