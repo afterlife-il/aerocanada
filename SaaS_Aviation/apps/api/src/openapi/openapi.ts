@@ -258,7 +258,8 @@ export const openApiDocument = {
               }
             }
           },
-          "401": { $ref: "#/components/responses/Unauthorized" }
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" }
         }
       }
     },
@@ -279,6 +280,7 @@ export const openApiDocument = {
             }
           },
           "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
           "404": { $ref: "#/components/responses/NotFound" }
         }
       }
@@ -314,7 +316,8 @@ export const openApiDocument = {
               }
             }
           },
-          "401": { $ref: "#/components/responses/Unauthorized" }
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" }
         }
       }
     },
@@ -337,7 +340,8 @@ export const openApiDocument = {
               }
             }
           },
-          "401": { $ref: "#/components/responses/Unauthorized" }
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" }
         }
       }
     },
@@ -379,6 +383,14 @@ export const openApiDocument = {
       },
       NotFound: {
         description: "Tenant-scoped record was not found.",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      Forbidden: {
+        description: "Authenticated session does not include the required permission.",
         content: {
           "application/json": {
             schema: { $ref: "#/components/schemas/ErrorResponse" }
@@ -461,7 +473,8 @@ export const openApiDocument = {
         type: "object",
         required: ["error"],
         properties: {
-          error: { type: "string" }
+          error: { type: "string" },
+          permission: { type: "string" }
         }
       },
       Company: {
@@ -806,12 +819,13 @@ export const openApiDocument = {
       },
       DocumentReadModel: {
         type: "object",
-        required: ["id", "tenantId", "ownerModule", "ownerRecordId", "documentType", "title", "fileName", "mimeType", "sizeBytes", "uploadedBy", "uploadedAt", "version", "visibility", "status", "currentVersionId", "tags", "currentVersion", "versions", "links"],
+        required: ["id", "tenantId", "ownerModule", "ownerRecordId", "primaryLink", "documentType", "title", "fileName", "mimeType", "sizeBytes", "uploadedBy", "uploadedAt", "version", "visibility", "status", "currentVersionId", "tags", "currentVersion", "versions", "links"],
         properties: {
           id: { type: "string" },
           tenantId: { type: "string" },
           ownerModule: { $ref: "#/components/schemas/DocumentOwnerModule" },
           ownerRecordId: { type: "string" },
+          primaryLink: { $ref: "#/components/schemas/DocumentLinkRecord" },
           documentType: { $ref: "#/components/schemas/DocumentType" },
           title: { type: "string" },
           fileName: { type: "string" },

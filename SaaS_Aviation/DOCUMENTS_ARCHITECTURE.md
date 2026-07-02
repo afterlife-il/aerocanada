@@ -85,7 +85,9 @@ Immutable once scanned clean. New uploads to an existing document create a new v
 ### DocumentLink
 
 Polymorphic association. A document can be linked to more than one entity (e.g. a trace package linked to a
-`StockItem` and to the `SalesOrder` it shipped on).
+`StockItem` and to the `SalesOrder` it shipped on). Phase 1.1 makes `DocumentLink` the canonical ownership source:
+each document must have exactly one `primary` link in a tenant, and document read models project `ownerModule`,
+`ownerRecordId`, and `primaryLink` from that row. The document metadata row must not duplicate ownership fields.
 
 | Field | Type | Notes |
 |---|---|---|
@@ -94,7 +96,7 @@ Polymorphic association. A document can be linked to more than one entity (e.g. 
 | `documentId` | string | |
 | `entityType` | string | `company \| part \| stock \| rfq \| supplier-quote \| customer-quote \| purchase-order \| sales-order \| service-workflow \| shipment \| tenant` |
 | `entityId` | string | |
-| `relation` | string | `primary \| supporting \| reference` — primary drives default UI placement; supporting/reference appear in "also linked to" panels. |
+| `relation` | string | `primary \| supporting \| reference` — primary is the canonical owner; supporting/reference appear in "also linked to" panels. |
 | `linkedByUserId` | string | |
 | `linkedAt` | ISO date | |
 

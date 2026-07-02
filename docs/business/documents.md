@@ -27,6 +27,18 @@ The full target architecture lives in `SaaS_Aviation/DOCUMENTS_ARCHITECTURE.md`.
   - reusable `UploadFoundationPanel`
   - Company 360, Part 360, and Stock 360 document panels.
 
+## Ownership Model
+
+`DocumentLinkRecord` is the canonical source of ownership. Each document must have exactly one link with `relation: "primary"`; that primary link supplies `DocumentReadModel.ownerModule`, `DocumentReadModel.ownerRecordId`, and `DocumentReadModel.primaryLink`.
+
+`DocumentRecord` stores document metadata only. It does not duplicate owner module or owner record fields. Additional `supporting` and `reference` links are allowed for cross-module visibility, but they do not replace the primary owner.
+
+## Document Alerts
+
+`DocumentAlert` is an operational alert/read-model layer for existing Dashboard, Part 360, Stock 360, and Company Inventory surfaces. It represents missing, expiring, or review-needed document work derived from document requirements and linked document metadata.
+
+`DocumentAlert` is not a separate document system and does not own files, versions, links, uploads, or document metadata. As the Documents module expands, alert rows should be derived from `DocumentRecord`, `DocumentVersionRecord`, and `DocumentLinkRecord` instead of maintained as unrelated document data.
+
 ## Yoyamic Logic To Preserve
 
 - `RFQ_ID` remains the link key for commercial documents tied to RFQ, quote, PO, and SO workflows.

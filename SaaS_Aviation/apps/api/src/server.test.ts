@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { SampleDataSource } from "./adapters/sample-data-source.js";
 import { InMemoryAuthProvider, requestContextFromSession } from "./auth/auth-provider.js";
+import { canReadDocuments } from "./auth/route-guard.js";
 import { openApiDocument } from "./openapi/openapi.js";
 import { sampleRequestContext } from "@saas-aviation/shared";
 
@@ -58,6 +59,18 @@ test("sample data source exposes tenant-scoped documents and upload validation",
   assert.equal(stockDocuments.documents.length, 2);
   assert.equal(upload.accepted, true);
   assert.equal(upload.intent?.persistence, "metadata-only");
+});
+
+test("document read permission is required for document read endpoints", () => {
+  const deniedContext = {
+    tenant: {
+      ...sampleRequestContext.tenant,
+      permissions: sampleRequestContext.tenant.permissions.filter((permission) => permission !== "document.read")
+    }
+  };
+
+  assert.equal(canReadDocuments(sampleRequestContext), true);
+  assert.equal(canReadDocuments(deniedContext), false);
 });
 
 test("password auth creates a tenant-scoped session", async () => {

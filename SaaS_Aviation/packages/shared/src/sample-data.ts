@@ -518,8 +518,6 @@ export const sampleDocuments: DocumentRecord[] = [
   {
     id: "doc-cert-stock-1",
     tenantId: sampleTenant.id,
-    ownerModule: "stock",
-    ownerRecordId: "stock-1",
     documentType: "Certificate",
     title: "FAA 8130-3 for 03-1802-2001 SNT140034",
     fileName: "faa-8130-03-1802-2001-snt140034.pdf",
@@ -537,8 +535,6 @@ export const sampleDocuments: DocumentRecord[] = [
   {
     id: "doc-trace-stock-1",
     tenantId: sampleTenant.id,
-    ownerModule: "stock",
-    ownerRecordId: "stock-1",
     documentType: "Trace",
     title: "Trace package for 03-1802-2001",
     fileName: "trace-package-03-1802-2001.pdf",
@@ -556,8 +552,6 @@ export const sampleDocuments: DocumentRecord[] = [
   {
     id: "doc-company-contract-1527",
     tenantId: sampleTenant.id,
-    ownerModule: "company",
-    ownerRecordId: "company-1527",
     documentType: "Contract",
     title: "Supplier terms - Better Aviation Products",
     fileName: "better-aviation-products-terms.pdf",
@@ -575,8 +569,6 @@ export const sampleDocuments: DocumentRecord[] = [
   {
     id: "doc-rfq-1051-email",
     tenantId: sampleTenant.id,
-    ownerModule: "rfq",
-    ownerRecordId: "RFQ-2026-1051",
     documentType: "Email attachment",
     title: "Customer RFQ attachment",
     fileName: "rfq-2026-1051-customer-attachment.pdf",
@@ -594,8 +586,6 @@ export const sampleDocuments: DocumentRecord[] = [
   {
     id: "doc-po-31008",
     tenantId: sampleTenant.id,
-    ownerModule: "purchase-order",
-    ownerRecordId: "PO-31008",
     documentType: "PO",
     title: "PO-31008 PDF",
     fileName: "po-31008.pdf",
@@ -613,8 +603,6 @@ export const sampleDocuments: DocumentRecord[] = [
   {
     id: "doc-so-42017-pack",
     tenantId: sampleTenant.id,
-    ownerModule: "sales-order",
-    ownerRecordId: "SO-42017",
     documentType: "Packing slip",
     title: "SO-42017 packing slip",
     fileName: "so-42017-packing-slip.pdf",
@@ -632,8 +620,6 @@ export const sampleDocuments: DocumentRecord[] = [
   {
     id: "doc-repair-photo",
     tenantId: sampleTenant.id,
-    ownerModule: "repair-exchange-lease",
-    ownerRecordId: "REP-03-1802",
     documentType: "Photo",
     title: "Repair intake condition photo",
     fileName: "repair-intake-light.jpg",

@@ -61,11 +61,21 @@ function composeDocuments(context: RequestContext, source: DocumentSource): Docu
 
   return documents.map((document) => {
     const documentVersions = versions.filter((version) => version.documentId === document.id).sort((left, right) => right.version - left.version);
+    const documentLinks = links.filter((link) => link.documentId === document.id);
+    const primaryLinks = documentLinks.filter((link) => link.relation === "primary");
+    const primaryLink = primaryLinks[0];
+    if (primaryLinks.length !== 1 || !primaryLink) {
+      throw new Error(`document_primary_link_required:${document.id}`);
+    }
+
     return {
       ...document,
+      ownerModule: primaryLink.ownerModule,
+      ownerRecordId: primaryLink.ownerRecordId,
+      primaryLink,
       currentVersion: documentVersions.find((version) => version.id === document.currentVersionId) ?? documentVersions[0] ?? null,
       versions: documentVersions,
-      links: links.filter((link) => link.documentId === document.id)
+      links: documentLinks
     };
   });
 }
@@ -140,7 +150,7 @@ export function validateDocumentUploadRequest(context: RequestContext, request: 
       mimeType: request.mimeType,
       sizeBytes: request.sizeBytes,
       uploadedBy: context.tenant.userId,
-      uploadedAt: "2026-07-02T00:00:00Z",
+      uploadedAt: new Date().toISOString(),
       visibility: request.visibility,
       version: 1,
       persistence: "metadata-only",

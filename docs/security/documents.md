@@ -11,6 +11,12 @@ Implemented controls:
 - All document reads and upload validation accept `RequestContext`.
 - Documents, versions, links, and upload intents carry `tenantId`.
 - `document.read` and `document.upload` permissions are modeled.
+- Document read endpoints require `document.read` after session validation:
+  - `GET /v1/documents`
+  - `GET /v1/documents/{id}`
+  - `GET /v1/entities/{ownerModule}/{ownerRecordId}/documents`
+- Unauthorized document reads return 401; authenticated sessions missing `document.read` return 403 with the required permission.
+- Document ownership is projected only from the tenant-scoped primary `DocumentLinkRecord`; `DocumentRecord` does not duplicate owner fields.
 - Upload validation checks:
   - tenant context
   - `document.upload` permission

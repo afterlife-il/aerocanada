@@ -5,7 +5,7 @@ import type { DocumentOwnerModule } from "@saas-aviation/shared";
 import { getLegacyDataSource } from "./adapters/legacy-mysql-adapter.js";
 import { AuditService } from "./audit/audit-service.js";
 import { InMemoryAuthProvider } from "./auth/auth-provider.js";
-import { requireSession } from "./auth/route-guard.js";
+import { requirePermission, requireSession } from "./auth/route-guard.js";
 import { openApiDocument } from "./openapi/openapi.js";
 
 const app = express();
@@ -125,12 +125,14 @@ app.get("/v1/company-inventory", async (req, res) => {
 app.get("/v1/documents", async (req, res) => {
   const context = await requireSession(req, res, auth);
   if (!context) return;
+  if (!requirePermission(context, res, "document.read")) return;
   res.json({ data: await dataSource.listDocuments(context) });
 });
 
 app.get("/v1/documents/:id", async (req, res) => {
   const context = await requireSession(req, res, auth);
   if (!context) return;
+  if (!requirePermission(context, res, "document.read")) return;
   const document = await dataSource.getDocument(context, req.params.id);
   if (!document) {
     res.status(404).json({ error: "document_not_found" });
@@ -149,6 +151,7 @@ app.post("/v1/documents/upload-intent", async (req, res) => {
 app.get("/v1/entities/:ownerModule/:ownerRecordId/documents", async (req, res) => {
   const context = await requireSession(req, res, auth);
   if (!context) return;
+  if (!requirePermission(context, res, "document.read")) return;
   if (!documentOwnerModules.has(req.params.ownerModule as DocumentOwnerModule)) {
     res.status(400).json({ error: "unsupported_document_owner_module" });
     return;

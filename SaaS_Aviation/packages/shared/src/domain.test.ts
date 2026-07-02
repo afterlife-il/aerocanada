@@ -208,8 +208,40 @@ test("Documents read model is tenant-scoped and links documents to aviation enti
   assert.equal(center.documents.every((document) => document.tenantId === sampleTenant.id), true);
   assert.ok(center.documents.find((document) => document.documentType === "Certificate"));
   assert.ok(center.documents.find((document) => document.links.some((link) => link.ownerModule === "stock")));
+  assert.equal(center.documents.every((document) => document.primaryLink.relation === "primary"), true);
+  assert.equal(center.documents.find((document) => document.id === "doc-cert-stock-1")?.ownerRecordId, "stock-1");
   assert.equal(center.summary.clean, 5);
   assert.equal(center.summary.needsReview, 2);
+});
+
+test("DocumentLink primary relation is the canonical document owner", () => {
+  const documents = buildDocumentCenterReadModel(sampleRequestContext, {
+    documents: sampleDocuments,
+    versions: sampleDocumentVersions,
+    links: sampleDocumentLinks.map((link) =>
+      link.documentId === "doc-cert-stock-1" && link.relation === "primary"
+        ? { ...link, ownerModule: "company", ownerRecordId: "company-5263" }
+        : link
+    ),
+    auditEvents: sampleAuditEvents
+  });
+
+  const document = documents.documents.find((item) => item.id === "doc-cert-stock-1");
+  assert.equal(document?.ownerModule, "company");
+  assert.equal(document?.ownerRecordId, "company-5263");
+});
+
+test("Documents read model rejects documents without exactly one primary link", () => {
+  assert.throws(
+    () =>
+      buildDocumentCenterReadModel(sampleRequestContext, {
+        documents: sampleDocuments,
+        versions: sampleDocumentVersions,
+        links: sampleDocumentLinks.filter((link) => !(link.documentId === "doc-cert-stock-1" && link.relation === "primary")),
+        auditEvents: sampleAuditEvents
+      }),
+    /document_primary_link_required/
+  );
 });
 
 test("Entity documents read model returns only documents linked to the requested entity", () => {
@@ -243,6 +275,8 @@ test("Document upload validation rejects unsafe files and builds a non-persisten
   assert.equal(accepted.intent?.fileName, "8130-light.pdf");
   assert.equal(accepted.intent?.persistence, "metadata-only");
   assert.equal(accepted.intent?.securityChecks.includes("tenant-context"), true);
+  assert.notEqual(accepted.intent?.uploadedAt, "2026-07-02T00:00:00Z");
+  assert.doesNotThrow(() => new Date(accepted.intent?.uploadedAt ?? "").toISOString());
 
   const executable = validateDocumentUploadRequest(sampleRequestContext, {
     ownerModule: "stock",

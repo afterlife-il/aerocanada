@@ -8,12 +8,22 @@ No live database schema was changed. The Phase 1 implementation is sample-data b
 
 Implemented metadata entities:
 
-- `DocumentRecord`: tenant-owned document metadata, owner module, owner record id, document type, file metadata, uploader, version, visibility, status, notes, tags.
+- `DocumentRecord`: tenant-owned document metadata, document type, file metadata, uploader, version, visibility, status, notes, and tags.
 - `DocumentVersionRecord`: immutable version metadata with file name, MIME type, size, checksum placeholder, scan status, and storage state.
-- `DocumentLinkRecord`: polymorphic links to Company, Contact, Part, Stock, RFQ, Supplier Quote, Customer Quote, PO, SO, Invoice, and Repair/Exchange/Lease.
+- `DocumentLinkRecord`: polymorphic links to Company, Contact, Part, Stock, RFQ, Supplier Quote, Customer Quote, PO, SO, Invoice, and Repair/Exchange/Lease. This is the canonical ownership table.
 - `DocumentCenterReadModel`: tenant document center summary.
 - `EntityDocumentReadModel`: documents for one linked entity.
 - `DocumentUploadValidationResult`: secure upload-intent validation result.
+
+## Ownership Consistency
+
+Document ownership is not stored twice. `DocumentRecord` does not include `ownerModule` or `ownerRecordId`; those fields are projected onto `DocumentReadModel` from the single `DocumentLinkRecord` with `relation: "primary"`.
+
+Persistence must enforce exactly one primary link per document inside a tenant. `supporting` and `reference` links can attach the same document to related records, but they cannot become competing owners.
+
+## Alert Layer
+
+`DocumentAlert` remains a denormalized operational alert layer for module dashboards and 360 pages. It should be generated from document requirements plus `DocumentRecord`/`DocumentVersionRecord`/`DocumentLinkRecord` state. It must not become a second table of document metadata or upload ownership.
 
 ## Future Persistence Requirements
 
@@ -21,6 +31,8 @@ Before real persistence:
 
 - Every document, version, and link row must include `tenant_id`.
 - Repository methods must require `RequestContext`.
+- A tenant-scoped uniqueness constraint must allow only one primary link per document.
+- Read endpoints must require `document.read` after authentication and before returning document metadata.
 - File bytes belong in object storage, never in the relational store.
 - Object keys must be generated from tenant id, document id, version id, and sanitized filename.
 - No document is servable before malware scan status is clean.

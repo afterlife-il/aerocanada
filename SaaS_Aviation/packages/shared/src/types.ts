@@ -250,8 +250,6 @@ export type UploadIntentStatus = "validated" | "rejected";
 export interface DocumentRecord {
   id: string;
   tenantId: TenantId;
-  ownerModule: DocumentOwnerModule;
-  ownerRecordId: string;
   documentType: DocumentType;
   title: string;
   fileName: string;
@@ -294,6 +292,9 @@ export interface DocumentLinkRecord {
 }
 
 export interface DocumentReadModel extends DocumentRecord {
+  ownerModule: DocumentOwnerModule;
+  ownerRecordId: string;
+  primaryLink: DocumentLinkRecord;
   currentVersion: DocumentVersionRecord | null;
   versions: DocumentVersionRecord[];
   links: DocumentLinkRecord[];
