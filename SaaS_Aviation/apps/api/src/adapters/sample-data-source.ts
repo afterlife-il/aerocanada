@@ -1,4 +1,7 @@
 import {
+  buildCompanyInventoryReadModel,
+  buildPart360ReadModel,
+  buildStock360ReadModel,
   buildTenantDashboard,
   sampleAccountingAlerts,
   sampleAuditEvents,
@@ -15,7 +18,21 @@ import {
   sampleTenants,
   sampleUsers
 } from "@saas-aviation/shared";
-import type { AuditEvent, AviationErpDataSource, Company, DashboardData, PartNumber, RequestContext, RfqSummary, StockItem, Tenant, User } from "@saas-aviation/shared";
+import type {
+  AuditEvent,
+  AviationErpDataSource,
+  Company,
+  CompanyInventoryReadModel,
+  DashboardData,
+  Part360ReadModel,
+  PartNumber,
+  RequestContext,
+  RfqSummary,
+  Stock360ReadModel,
+  StockItem,
+  Tenant,
+  User
+} from "@saas-aviation/shared";
 
 function matchesTenant<T extends { tenantId: string }>(context: RequestContext, item: T): boolean {
   return item.tenantId === context.tenant.tenantId;
@@ -38,6 +55,22 @@ export class SampleDataSource implements AviationErpDataSource {
     return sampleParts.find((part) => matchesTenant(context, part) && (part.id === id || part.pn === id || String(part.legacyId) === id)) ?? null;
   }
 
+  async getPart360(context: RequestContext, id: string): Promise<Part360ReadModel | null> {
+    return buildPart360ReadModel(context, id, {
+      companies: sampleCompanies,
+      parts: sampleParts,
+      internalStock: sampleInternalStock,
+      externalStock: sampleExternalStock,
+      rfqs: sampleRfqs,
+      quotes: sampleQuotes,
+      supplierQuotes: sampleSupplierQuotes,
+      orders: sampleOrders,
+      serviceWorkflows: sampleServiceWorkflows,
+      documents: sampleDocumentAlerts,
+      auditEvents: sampleAuditEvents
+    });
+  }
+
   async listInternalStock(context: RequestContext): Promise<StockItem[]> {
     return sampleInternalStock.filter((stock) => matchesTenant(context, stock));
   }
@@ -48,6 +81,38 @@ export class SampleDataSource implements AviationErpDataSource {
 
   async getStockItem(context: RequestContext, id: string): Promise<StockItem | null> {
     return [...sampleInternalStock, ...sampleExternalStock].find((item) => matchesTenant(context, item) && (item.id === id || String(item.legacyId) === id)) ?? null;
+  }
+
+  async getStock360(context: RequestContext, id: string): Promise<Stock360ReadModel | null> {
+    return buildStock360ReadModel(context, id, {
+      companies: sampleCompanies,
+      parts: sampleParts,
+      internalStock: sampleInternalStock,
+      externalStock: sampleExternalStock,
+      rfqs: sampleRfqs,
+      quotes: sampleQuotes,
+      supplierQuotes: sampleSupplierQuotes,
+      orders: sampleOrders,
+      serviceWorkflows: sampleServiceWorkflows,
+      documents: sampleDocumentAlerts,
+      auditEvents: sampleAuditEvents
+    });
+  }
+
+  async getCompanyInventory(context: RequestContext): Promise<CompanyInventoryReadModel> {
+    return buildCompanyInventoryReadModel(context, {
+      companies: sampleCompanies,
+      parts: sampleParts,
+      internalStock: sampleInternalStock,
+      externalStock: sampleExternalStock,
+      rfqs: sampleRfqs,
+      quotes: sampleQuotes,
+      supplierQuotes: sampleSupplierQuotes,
+      orders: sampleOrders,
+      serviceWorkflows: sampleServiceWorkflows,
+      documents: sampleDocumentAlerts,
+      auditEvents: sampleAuditEvents
+    });
   }
 
   async listRfqSummaries(context: RequestContext): Promise<RfqSummary[]> {

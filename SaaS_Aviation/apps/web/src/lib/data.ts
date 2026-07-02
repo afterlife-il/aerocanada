@@ -3,6 +3,7 @@ import {
   sampleAuditEvents,
   sampleCompanies,
   sampleContacts,
+  sampleDocumentAlerts,
   sampleExternalStock,
   sampleAdminUser,
   sampleInternalStock,

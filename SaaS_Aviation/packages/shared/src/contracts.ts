@@ -1,4 +1,18 @@
-import type { AuditEvent, AuthSession, Company, DashboardData, PartNumber, RequestContext, RfqSummary, StockItem, Tenant, User } from "./types.js";
+import type {
+  AuditEvent,
+  AuthSession,
+  Company,
+  CompanyInventoryReadModel,
+  DashboardData,
+  Part360ReadModel,
+  PartNumber,
+  RequestContext,
+  RfqSummary,
+  Stock360ReadModel,
+  StockItem,
+  Tenant,
+  User
+} from "./types.js";
 
 export interface CompanyRepository {
   listCompanies(context: RequestContext): Promise<Company[]>;
@@ -8,12 +22,15 @@ export interface CompanyRepository {
 export interface PartRepository {
   listParts(context: RequestContext): Promise<PartNumber[]>;
   getPart(context: RequestContext, id: string): Promise<PartNumber | null>;
+  getPart360(context: RequestContext, id: string): Promise<Part360ReadModel | null>;
 }
 
 export interface StockRepository {
   listInternalStock(context: RequestContext): Promise<StockItem[]>;
   listExternalStock(context: RequestContext): Promise<StockItem[]>;
   getStockItem(context: RequestContext, id: string): Promise<StockItem | null>;
+  getStock360(context: RequestContext, id: string): Promise<Stock360ReadModel | null>;
+  getCompanyInventory(context: RequestContext): Promise<CompanyInventoryReadModel>;
 }
 
 export interface RfqRepository {

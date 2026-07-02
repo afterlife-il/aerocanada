@@ -495,6 +495,17 @@ export const sampleAuditEvents: AuditEvent[] = [
     rfqId: "RFQ-2026-1044",
     occurredAt: "2026-06-29T14:10:00Z",
     summary: "Stock 360 viewed with RFQ context"
+  },
+  {
+    id: "audit-3",
+    tenantId: sampleTenant.id,
+    actor: "system.mock",
+    action: "stock.lifecycle.exchange_due",
+    entityType: "stock",
+    entityId: "stock-2",
+    rfqId: "RFQ-2026-1051",
+    occurredAt: "2026-06-30T09:15:00Z",
+    summary: "Qty 0 exchange stock remains visible while awaiting return"
   }
 ];
 

@@ -22,6 +22,7 @@ export const openApiDocument = {
     { name: "Companies", description: "Company 360 source data." },
     { name: "Parts", description: "Part Number 360 source data." },
     { name: "Stock", description: "Internal and external stock source data." },
+    { name: "Inventory", description: "Tenant-scoped stock and company inventory read models." },
     { name: "Audit", description: "Audit timeline events." }
   ],
   paths: {
@@ -142,6 +143,27 @@ export const openApiDocument = {
         }
       }
     },
+    "/v1/parts/{id}/360": {
+      get: {
+        tags: ["Parts"],
+        operationId: "getPart360",
+        summary: "Get tenant-scoped Part 360 read model",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            description: "Part 360 read model.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Part360Response" }
+              }
+            }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "404": { $ref: "#/components/responses/NotFound" }
+        }
+      }
+    },
     "/v1/stock/internal": {
       get: {
         tags: ["Stock"],
@@ -180,6 +202,46 @@ export const openApiDocument = {
         }
       }
     },
+    "/v1/stock/{id}/360": {
+      get: {
+        tags: ["Stock"],
+        operationId: "getStock360",
+        summary: "Get tenant-scoped Stock 360 read model",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            description: "Stock 360 read model.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Stock360Response" }
+              }
+            }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "404": { $ref: "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/company-inventory": {
+      get: {
+        tags: ["Inventory"],
+        operationId: "getCompanyInventory",
+        summary: "Get tenant-scoped company inventory read model",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": {
+            description: "Company inventory read model.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/CompanyInventoryResponse" }
+              }
+            }
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" }
+        }
+      }
+    },
     "/v1/audit": {
       get: {
         tags: ["Audit"],
@@ -210,6 +272,14 @@ export const openApiDocument = {
     responses: {
       Unauthorized: {
         description: "Missing, expired, or invalid bearer session.",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      NotFound: {
+        description: "Tenant-scoped record was not found.",
         content: {
           "application/json": {
             schema: { $ref: "#/components/schemas/ErrorResponse" }
@@ -375,9 +445,244 @@ export const openApiDocument = {
           summary: { type: "string" }
         }
       },
+      WorkflowBoundaryAction: {
+        type: "object",
+        required: ["id", "label", "tenantId", "entityType", "entityId", "mode", "persistence", "requiredData", "contextChecks", "futureOwner", "note"],
+        properties: {
+          id: { type: "string" },
+          label: { type: "string" },
+          tenantId: { type: "string" },
+          entityType: { type: "string", enum: ["part", "stock", "company-inventory"] },
+          entityId: { type: "string" },
+          mode: { type: "string", const: "boundary" },
+          persistence: { type: "string", const: "none" },
+          requiredData: { type: "array", items: { type: "string" } },
+          contextChecks: { type: "array", items: { type: "string" } },
+          futureOwner: { type: "string" },
+          note: { type: "string" }
+        }
+      },
+      StockAvailabilitySummary: {
+        type: "object",
+        required: ["internalUnits", "externalUnits", "internalLines", "externalLines", "availableUnits", "reservedUnits", "zeroQtyRows", "totalValue", "currency"],
+        properties: {
+          internalUnits: { type: "number" },
+          externalUnits: { type: "number" },
+          internalLines: { type: "number" },
+          externalLines: { type: "number" },
+          availableUnits: { type: "number" },
+          reservedUnits: { type: "number" },
+          zeroQtyRows: { type: "number" },
+          totalValue: { type: "number" },
+          currency: { type: "string" }
+        }
+      },
+      MarginSummary: {
+        type: "object",
+        required: ["quotedValue", "quotedCost", "grossMargin", "marginPct", "currency"],
+        properties: {
+          quotedValue: { type: "number" },
+          quotedCost: { type: "number" },
+          grossMargin: { type: "number" },
+          marginPct: { type: "number" },
+          currency: { type: "string" }
+        }
+      },
+      Part360ReadModel: {
+        type: "object",
+        required: ["tenantId", "tenantCode", "part", "stockAvailability", "internalStock", "externalStock", "rfqs", "supplierQuotes", "customerQuotes", "purchaseHistory", "salesHistory", "serviceHistory", "certificates", "documents", "traceability", "margin", "quickActions"],
+        properties: {
+          tenantId: { type: "string" },
+          tenantCode: { type: "string" },
+          part: { $ref: "#/components/schemas/PartNumber" },
+          stockAvailability: { $ref: "#/components/schemas/StockAvailabilitySummary" },
+          internalStock: { type: "array", items: { $ref: "#/components/schemas/StockItem" } },
+          externalStock: { type: "array", items: { $ref: "#/components/schemas/StockItem" } },
+          rfqs: { type: "array", items: { $ref: "#/components/schemas/RfqSummary" } },
+          supplierQuotes: { type: "array", items: { $ref: "#/components/schemas/SupplierQuoteSummary" } },
+          customerQuotes: { type: "array", items: { $ref: "#/components/schemas/QuoteSummary" } },
+          purchaseHistory: { type: "array", items: { $ref: "#/components/schemas/OrderSummary" } },
+          salesHistory: { type: "array", items: { $ref: "#/components/schemas/OrderSummary" } },
+          serviceHistory: { type: "array", items: { $ref: "#/components/schemas/ServiceWorkflowSummary" } },
+          certificates: { type: "array", items: { $ref: "#/components/schemas/DocumentAlert" } },
+          documents: { type: "array", items: { $ref: "#/components/schemas/DocumentAlert" } },
+          traceability: { type: "array", items: { $ref: "#/components/schemas/AuditEvent" } },
+          margin: { $ref: "#/components/schemas/MarginSummary" },
+          quickActions: { type: "array", items: { $ref: "#/components/schemas/WorkflowBoundaryAction" } }
+        }
+      },
+      Stock360ReadModel: {
+        type: "object",
+        required: ["tenantId", "tenantCode", "stock", "part", "rfqs", "supplierQuotes", "customerQuotes", "purchaseOrders", "salesOrders", "serviceHistory", "certificates", "documents", "lifecycle", "margin", "quickActions"],
+        properties: {
+          tenantId: { type: "string" },
+          tenantCode: { type: "string" },
+          stock: { $ref: "#/components/schemas/StockItem" },
+          part: { oneOf: [{ $ref: "#/components/schemas/PartNumber" }, { type: "null" }] },
+          ownerCompany: { oneOf: [{ $ref: "#/components/schemas/Company" }, { type: "null" }] },
+          supplierCompany: { oneOf: [{ $ref: "#/components/schemas/Company" }, { type: "null" }] },
+          tagInfoCompany: { oneOf: [{ $ref: "#/components/schemas/Company" }, { type: "null" }] },
+          traceabilityCompany: { oneOf: [{ $ref: "#/components/schemas/Company" }, { type: "null" }] },
+          rfqs: { type: "array", items: { $ref: "#/components/schemas/RfqSummary" } },
+          supplierQuotes: { type: "array", items: { $ref: "#/components/schemas/SupplierQuoteSummary" } },
+          customerQuotes: { type: "array", items: { $ref: "#/components/schemas/QuoteSummary" } },
+          purchaseOrders: { type: "array", items: { $ref: "#/components/schemas/OrderSummary" } },
+          salesOrders: { type: "array", items: { $ref: "#/components/schemas/OrderSummary" } },
+          serviceHistory: { type: "array", items: { $ref: "#/components/schemas/ServiceWorkflowSummary" } },
+          certificates: { type: "array", items: { $ref: "#/components/schemas/DocumentAlert" } },
+          documents: { type: "array", items: { $ref: "#/components/schemas/DocumentAlert" } },
+          lifecycle: { type: "array", items: { $ref: "#/components/schemas/AuditEvent" } },
+          margin: { $ref: "#/components/schemas/MarginSummary" },
+          quickActions: { type: "array", items: { $ref: "#/components/schemas/WorkflowBoundaryAction" } }
+        }
+      },
+      CompanyInventoryRow: {
+        type: "object",
+        required: ["tenantId", "companyId", "companyName", "companyType", "internalUnits", "externalUnits", "zeroQtyRows", "stockValue", "currency", "stockLines", "documents", "linkedRfqs"],
+        properties: {
+          tenantId: { type: "string" },
+          companyId: { type: "string" },
+          companyName: { type: "string" },
+          companyType: { type: "string" },
+          internalUnits: { type: "number" },
+          externalUnits: { type: "number" },
+          zeroQtyRows: { type: "number" },
+          stockValue: { type: "number" },
+          currency: { type: "string" },
+          stockLines: { type: "array", items: { $ref: "#/components/schemas/StockItem" } },
+          documents: { type: "array", items: { $ref: "#/components/schemas/DocumentAlert" } },
+          linkedRfqs: { type: "array", items: { $ref: "#/components/schemas/RfqSummary" } }
+        }
+      },
+      CompanyInventoryReadModel: {
+        type: "object",
+        required: ["tenantId", "tenantCode", "rows", "totals", "quickActions"],
+        properties: {
+          tenantId: { type: "string" },
+          tenantCode: { type: "string" },
+          rows: { type: "array", items: { $ref: "#/components/schemas/CompanyInventoryRow" } },
+          totals: {
+            type: "object",
+            required: ["internalUnits", "externalUnits", "stockValue", "zeroQtyRows", "currency"],
+            properties: {
+              internalUnits: { type: "number" },
+              externalUnits: { type: "number" },
+              stockValue: { type: "number" },
+              zeroQtyRows: { type: "number" },
+              currency: { type: "string" }
+            }
+          },
+          quickActions: { type: "array", items: { $ref: "#/components/schemas/WorkflowBoundaryAction" } }
+        }
+      },
+      RfqSummary: {
+        type: "object",
+        required: ["id", "tenantId", "rfqId", "customerName", "partNumber", "qty", "status", "priority", "createdAt"],
+        properties: {
+          id: { type: "string" },
+          tenantId: { type: "string" },
+          rfqId: { type: "string" },
+          customerName: { type: "string" },
+          partNumber: { type: "string" },
+          qty: { type: "number" },
+          status: { type: "string" },
+          priority: { type: "string" },
+          createdAt: { type: "string" }
+        }
+      },
+      QuoteSummary: {
+        type: "object",
+        required: ["id", "tenantId", "quoteNumber", "rfqId", "customerName", "partNumber", "status", "value", "cost", "currency", "marginPct", "dueAt"],
+        properties: {
+          id: { type: "string" },
+          tenantId: { type: "string" },
+          quoteNumber: { type: "string" },
+          rfqId: { type: "string" },
+          customerName: { type: "string" },
+          partNumber: { type: "string" },
+          status: { type: "string" },
+          value: { type: "number" },
+          cost: { type: "number" },
+          currency: { type: "string" },
+          marginPct: { type: "number" },
+          dueAt: { type: "string" }
+        }
+      },
+      SupplierQuoteSummary: {
+        type: "object",
+        required: ["id", "tenantId", "rfqId", "supplierName", "partNumber", "qty", "status", "dueAt"],
+        properties: {
+          id: { type: "string" },
+          tenantId: { type: "string" },
+          rfqId: { type: "string" },
+          supplierName: { type: "string" },
+          partNumber: { type: "string" },
+          qty: { type: "number" },
+          status: { type: "string" },
+          dueAt: { type: "string" }
+        }
+      },
+      OrderSummary: {
+        type: "object",
+        required: ["id", "tenantId", "orderNumber", "kind", "companyName", "status", "value", "currency", "dueAt"],
+        properties: {
+          id: { type: "string" },
+          tenantId: { type: "string" },
+          orderNumber: { type: "string" },
+          kind: { type: "string" },
+          companyName: { type: "string" },
+          rfqId: { type: "string" },
+          status: { type: "string" },
+          value: { type: "number" },
+          currency: { type: "string" },
+          dueAt: { type: "string" }
+        }
+      },
+      ServiceWorkflowSummary: {
+        type: "object",
+        required: ["id", "tenantId", "kind", "reference", "companyName", "partNumber", "status", "dueAt"],
+        properties: {
+          id: { type: "string" },
+          tenantId: { type: "string" },
+          kind: { type: "string" },
+          reference: { type: "string" },
+          companyName: { type: "string" },
+          partNumber: { type: "string" },
+          status: { type: "string" },
+          dueAt: { type: "string" }
+        }
+      },
+      DocumentAlert: {
+        type: "object",
+        required: ["id", "tenantId", "documentType", "entityType", "entityId", "status", "dueAt"],
+        properties: {
+          id: { type: "string" },
+          tenantId: { type: "string" },
+          documentType: { type: "string" },
+          entityType: { type: "string" },
+          entityId: { type: "string" },
+          status: { type: "string" },
+          dueAt: { type: "string" }
+        }
+      },
       CompanyListResponse: listResponse("#/components/schemas/Company"),
       PartNumberListResponse: listResponse("#/components/schemas/PartNumber"),
       StockItemListResponse: listResponse("#/components/schemas/StockItem"),
+      Part360Response: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { $ref: "#/components/schemas/Part360ReadModel" } }
+      },
+      Stock360Response: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { $ref: "#/components/schemas/Stock360ReadModel" } }
+      },
+      CompanyInventoryResponse: {
+        type: "object",
+        required: ["data"],
+        properties: { data: { $ref: "#/components/schemas/CompanyInventoryReadModel" } }
+      },
       AuditEventListResponse: listResponse("#/components/schemas/AuditEvent")
     }
   }

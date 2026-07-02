@@ -301,3 +301,108 @@ export interface Kpi {
   trend: string;
   tone: "neutral" | "good" | "warning" | "critical";
 }
+
+export interface WorkflowBoundaryAction {
+  id: string;
+  label: string;
+  tenantId: TenantId;
+  entityType: "part" | "stock" | "company-inventory";
+  entityId: string;
+  mode: "boundary";
+  persistence: "none";
+  requiredData: string[];
+  contextChecks: string[];
+  futureOwner: string;
+  note: string;
+}
+
+export interface StockAvailabilitySummary {
+  internalUnits: number;
+  externalUnits: number;
+  internalLines: number;
+  externalLines: number;
+  availableUnits: number;
+  reservedUnits: number;
+  zeroQtyRows: number;
+  totalValue: number;
+  currency: string;
+}
+
+export interface MarginSummary {
+  quotedValue: number;
+  quotedCost: number;
+  grossMargin: number;
+  marginPct: number;
+  currency: string;
+}
+
+export interface Part360ReadModel {
+  tenantId: TenantId;
+  tenantCode: string;
+  part: PartNumber;
+  stockAvailability: StockAvailabilitySummary;
+  internalStock: StockItem[];
+  externalStock: StockItem[];
+  rfqs: RfqSummary[];
+  supplierQuotes: SupplierQuoteSummary[];
+  customerQuotes: QuoteSummary[];
+  purchaseHistory: OrderSummary[];
+  salesHistory: OrderSummary[];
+  serviceHistory: ServiceWorkflowSummary[];
+  certificates: DocumentAlert[];
+  documents: DocumentAlert[];
+  traceability: AuditEvent[];
+  margin: MarginSummary;
+  quickActions: WorkflowBoundaryAction[];
+}
+
+export interface Stock360ReadModel {
+  tenantId: TenantId;
+  tenantCode: string;
+  stock: StockItem;
+  part: PartNumber | null;
+  ownerCompany: Company | null;
+  supplierCompany: Company | null;
+  tagInfoCompany: Company | null;
+  traceabilityCompany: Company | null;
+  rfqs: RfqSummary[];
+  supplierQuotes: SupplierQuoteSummary[];
+  customerQuotes: QuoteSummary[];
+  purchaseOrders: OrderSummary[];
+  salesOrders: OrderSummary[];
+  serviceHistory: ServiceWorkflowSummary[];
+  certificates: DocumentAlert[];
+  documents: DocumentAlert[];
+  lifecycle: AuditEvent[];
+  margin: MarginSummary;
+  quickActions: WorkflowBoundaryAction[];
+}
+
+export interface CompanyInventoryRow {
+  tenantId: TenantId;
+  companyId: string;
+  companyName: string;
+  companyType: Company["type"];
+  internalUnits: number;
+  externalUnits: number;
+  zeroQtyRows: number;
+  stockValue: number;
+  currency: string;
+  stockLines: StockItem[];
+  documents: DocumentAlert[];
+  linkedRfqs: RfqSummary[];
+}
+
+export interface CompanyInventoryReadModel {
+  tenantId: TenantId;
+  tenantCode: string;
+  rows: CompanyInventoryRow[];
+  totals: {
+    internalUnits: number;
+    externalUnits: number;
+    stockValue: number;
+    zeroQtyRows: number;
+    currency: string;
+  };
+  quickActions: WorkflowBoundaryAction[];
+}

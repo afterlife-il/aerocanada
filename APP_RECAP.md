@@ -1,6 +1,6 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-07-01
+Last updated: 2026-07-02
 
 ## Vision
 
@@ -27,15 +27,15 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 ## Completed Modules
 
 - SaaS foundation scaffold in `SaaS_Aviation/`.
-- Login shell, tenant-aware ERP dashboard, Company 360 shell, Part 360 shell, internal Stock 360 shell, external stock list.
+- Login shell, tenant-aware ERP dashboard, Company 360 shell, Part 360 read-model foundation, Stock 360 read-model foundation, Company Inventory read-model foundation, internal stock list, external stock list.
 - Sample-data route handlers and Express read routes.
 - OpenAPI component schemas for current Express read routes.
 - Yoyamic stock ownership and tag-info display work, with several staging deployments documented in reports.
 
 ## Modules in Progress
 
-- Stock 360 SaaS workspace.
-- Company 360 SaaS workspace.
+- Stock 360 SaaS workspace with read-only tenant-scoped action boundaries.
+- Company 360 SaaS workspace with Company Inventory read-model integration.
 - Legacy read adapter boundary.
 - OpenAPI route contract refinement for future generated clients and validation.
 - Permanent project memory.
@@ -85,6 +85,7 @@ Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untrac
 ## Changelog
 
 - 2026-07-01: Added first tenant-aware ERP dashboard for ACI770 with dashboard service/adapters, workflow fixtures, dense cockpit UI, tests, and business/UI docs. No deployment performed.
+- 2026-07-02: Added read-only Part 360, Stock 360, and Company Inventory foundation with tenant-scoped shared read models, API contracts, dense connected UI, workflow boundary panels, tests, and docs. No deployment performed.
 - 2026-06-30: Added Auth/Tenant foundation with shared user/tenant/session types, tenant-scoped repository contracts, API password session endpoints, protected business reads, and QA deployment checklist.
 - 2026-06-30: Created permanent project recap and machine-readable state.
 - 2026-06-30: Added OpenAPI component schemas for current SaaS API read routes.

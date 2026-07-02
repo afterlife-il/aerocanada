@@ -68,6 +68,17 @@ app.get("/v1/parts", async (req, res) => {
   res.json({ data: await dataSource.listParts(context) });
 });
 
+app.get("/v1/parts/:id/360", async (req, res) => {
+  const context = await requireSession(req, res, auth);
+  if (!context) return;
+  const part = await dataSource.getPart360(context, req.params.id);
+  if (!part) {
+    res.status(404).json({ error: "part_not_found" });
+    return;
+  }
+  res.json({ data: part });
+});
+
 app.get("/v1/stock/internal", async (req, res) => {
   const context = await requireSession(req, res, auth);
   if (!context) return;
@@ -78,6 +89,23 @@ app.get("/v1/stock/external", async (req, res) => {
   const context = await requireSession(req, res, auth);
   if (!context) return;
   res.json({ data: await dataSource.listExternalStock(context) });
+});
+
+app.get("/v1/stock/:id/360", async (req, res) => {
+  const context = await requireSession(req, res, auth);
+  if (!context) return;
+  const stock = await dataSource.getStock360(context, req.params.id);
+  if (!stock) {
+    res.status(404).json({ error: "stock_not_found" });
+    return;
+  }
+  res.json({ data: stock });
+});
+
+app.get("/v1/company-inventory", async (req, res) => {
+  const context = await requireSession(req, res, auth);
+  if (!context) return;
+  res.json({ data: await dataSource.getCompanyInventory(context) });
 });
 
 app.get("/v1/audit", async (req, res) => {

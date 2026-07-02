@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { sampleRequestContext } from "@saas-aviation/shared";
 import { currentSession, data, getStock } from "./data.js";
 import { getDashboardData } from "./dashboard.js";
+import { getCompanyInventoryReadModel, getPart360ReadModel, getStock360ReadModel } from "./part-stock.js";
 
 test("web data keeps internal and external stock separated", () => {
   assert.equal(data.internalStock.every((stock) => stock.source === "internal"), true);
@@ -43,4 +44,28 @@ test("web dashboard adapter can return an empty other-tenant dashboard", () => {
   assert.equal(dashboard.rfqsOpen.length, 0);
   assert.equal(dashboard.documentsPending.length, 0);
   assert.equal(dashboard.stockValue.totalValue, 0);
+});
+
+test("web Part 360 adapter is tenant-scoped and exposes boundary actions", () => {
+  const part360 = getPart360ReadModel("part-1");
+
+  assert.equal(part360?.tenantId, currentSession.tenant.id);
+  assert.equal(part360?.quickActions.every((action) => action.mode === "boundary" && action.persistence === "none"), true);
+  assert.equal(part360?.rfqs.every((rfq) => rfq.rfqId.startsWith("RFQ-")), true);
+});
+
+test("web Stock 360 adapter preserves Qty 0 and reservation boundary", () => {
+  const stock360 = getStock360ReadModel("stock-2");
+
+  assert.equal(stock360?.stock.qty, 0);
+  assert.ok(stock360?.quickActions.find((action) => action.id === "reserve-stock"));
+  assert.equal(stock360?.quickActions.every((action) => action.requiredData.includes("tenantId")), true);
+});
+
+test("web Company Inventory adapter counts unique stock totals", () => {
+  const inventory = getCompanyInventoryReadModel();
+
+  assert.equal(inventory.tenantId, currentSession.tenant.id);
+  assert.equal(inventory.totals.zeroQtyRows, 1);
+  assert.equal(inventory.rows.every((row) => row.tenantId === currentSession.tenant.id), true);
 });

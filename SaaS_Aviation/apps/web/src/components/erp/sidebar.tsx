@@ -8,6 +8,7 @@ const sections = [
       { href: "/dashboard", label: "Dashboard" },
       { href: "/companies", label: "Companies" },
       { href: "/parts", label: "Part Numbers" },
+      { href: "/company-inventory", label: "Company Inventory" },
       { href: "/stock/internal", label: "ACI Stock" },
       { href: "/stock/external", label: "External Stock" }
     ]

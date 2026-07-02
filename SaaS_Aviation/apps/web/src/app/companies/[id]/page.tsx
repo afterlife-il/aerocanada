@@ -2,10 +2,12 @@ import { AppShell } from "@/components/erp/app-shell";
 import { PageHeader } from "@/components/erp/page-header";
 import { EntityTabs } from "@/components/modules/entity-tabs";
 import { stockColumns } from "@/components/modules/stock-columns";
+import { WorkflowBoundaryPanel } from "@/components/modules/workflow-boundary-panel";
 import { DataTable } from "@/components/ui/data-table";
 import { DetailPanel, KeyValue } from "@/components/ui/panels";
 import { EntityTimeline } from "@/components/ui/entity-timeline";
 import { data, getCompany } from "@/lib/data";
+import { getCompanyInventoryReadModel } from "@/lib/part-stock";
 
 export const dynamicParams = false;
 
@@ -17,9 +19,9 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const company = getCompany(id);
   const contacts = data.contacts.filter((contact) => contact.companyId === company.id);
-  const stock = [...data.internalStock, ...data.externalStock].filter(
-    (item) => item.ownerCompany === company.name || item.supplierCompany === company.name || item.tagInfoCompany === company.name
-  );
+  const inventory = getCompanyInventoryReadModel();
+  const inventoryRow = inventory.rows.find((row) => row.companyId === company.id);
+  const stock = inventoryRow?.stockLines ?? [];
 
   return (
     <AppShell>
@@ -32,6 +34,10 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
             <KeyValue label="Legacy ID" value={<span className="font-mono">{company.legacyId}</span>} />
             <KeyValue label="Location" value={[company.city, company.country].filter(Boolean).join(", ")} />
             <KeyValue label="Tags" value={company.tags.join(", ")} />
+            <KeyValue label="ACI Units" value={inventoryRow?.internalUnits ?? 0} />
+            <KeyValue label="External Units" value={inventoryRow?.externalUnits ?? 0} />
+            <KeyValue label="Stock Value" value={`$${(inventoryRow?.stockValue ?? 0).toLocaleString("en-US")}`} />
+            <KeyValue label="Zero Qty Rows" value={inventoryRow?.zeroQtyRows ?? 0} />
           </div>
         </DetailPanel>
         <DetailPanel title="Contacts">
@@ -53,6 +59,9 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
         <DetailPanel title="Activity Timeline">
           <EntityTimeline events={data.audit} />
         </DetailPanel>
+      </div>
+      <div className="mt-4">
+        <WorkflowBoundaryPanel title="Company Inventory Boundaries" actions={inventory.quickActions} />
       </div>
     </AppShell>
   );

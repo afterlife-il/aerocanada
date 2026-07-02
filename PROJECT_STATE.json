@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-01",
+  "last_updated": "2026-07-02",
   "modules": {
     "legacy_yoyamic": {
       "purpose": "staging workflow, legacy reference, migration source",
@@ -16,13 +16,19 @@
       "scope": "email/password foundation, tenant context, roles, permissions, bearer sessions, protected API reads"
     },
     "company_360": {
-      "status": "foundation_shell"
+      "status": "read_model_foundation_integrated_with_company_inventory"
     },
     "part_360": {
-      "status": "foundation_shell"
+      "status": "read_model_foundation_implemented_pending_deploy",
+      "scope": "tenant-scoped Part 360 read model, stock availability, RFQ_ID links, supplier/customer quotes, orders, service history, documents, traceability, margin, non-persistent workflow boundaries"
     },
     "stock_360": {
-      "status": "foundation_shell"
+      "status": "read_model_foundation_implemented_pending_deploy",
+      "scope": "tenant-scoped Stock 360 read model, owner/company, supplier, tag info, traceability, documents, lifecycle, RFQ/quote/order links, reservation/movement/upload boundaries"
+    },
+    "company_inventory": {
+      "status": "read_model_foundation_implemented_pending_deploy",
+      "scope": "tenant-scoped company inventory summary with unique stock totals, company relationship rows, stock documents, linked RFQs, and non-persistent action boundaries"
     },
     "rfq": {
       "status": "represented_in_dashboard_sample_read_model"
@@ -63,7 +69,7 @@
   },
   "deployment_status": {
     "legacy_yoyamic_staging": "report_based_partial_deployments",
-    "saas_aviation": "static_frontend_deployed_to_staging",
+    "saas_aviation": "static_frontend_deployed_to_staging_prior_snapshot_new_part_stock_inventory_local_only",
     "production": "not_requested",
     "saas_aviation_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "saas_aviation_target": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation/",
@@ -91,6 +97,7 @@
     "Create read-only legacy MySQL adapter query map for dashboard workflow data.",
     "Replace in-memory auth/session storage with persistent provider-backed implementation.",
     "Add rate limiting, secure cookies, CSRF strategy, password reset, and MFA/TOTP.",
+    "Map Part 360, Stock 360, and Company Inventory read models to read-only Yoyamic adapter queries.",
     "Add dashboard API/OpenAPI contract once web is served by authenticated runtime instead of static fixtures.",
     "Inventory Yoyamic deployed hashes before any future staging deploy."
   ],
@@ -124,7 +131,10 @@
     "vision": "VISION.md",
     "docs_root": "docs",
     "dashboard_ui": "docs/ui/tenant-erp-dashboard.md",
-    "dashboard_business": "docs/business/tenant-dashboard-workflows.md"
+    "dashboard_business": "docs/business/tenant-dashboard-workflows.md",
+    "part_360_business": "docs/business/part-360.md",
+    "stock_business": "docs/business/stock.md",
+    "stock_database": "docs/database/stock.md"
   },
   "architecture": {
     "strategy": "adapter-first SaaS application separate from legacy Yoyamic",
@@ -158,6 +168,7 @@
     "foundation": "implemented",
     "legacy_read_integration": "pending",
     "mutations": "blocked_until_persistent_auth_tenant_audit",
+    "part_stock_inventory": "read-model foundation implemented locally with protected API contracts and static fixture-backed UI; no mutations or deployment",
     "deployment": "previous static_frontend_deployed_to_staging; new dashboard not deployed",
     "openapi_contracts": "current_read_routes_have_component_schemas_and_auth_session_routes",
     "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
@@ -171,6 +182,6 @@
     "schema_changes": "not_approved"
   },
   "current_sprint": "Tenant-aware SaaS ERP dashboard and adapter-first workflow read model",
-  "last_completed_task": "Implemented first tenant-aware ACI770 ERP dashboard with shared dashboard service, sample adapter data, dense cockpit UI, tests, and docs.",
-  "next_recommended_task": "Map dashboard service to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
+  "last_completed_task": "Implemented read-only Part 360, Stock 360, and Company Inventory foundation with shared tenant-scoped read models, API contracts, dense UI, boundary actions, tests, and docs.",
+  "next_recommended_task": "Map dashboard and Part/Stock/Company Inventory read models to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
 }
