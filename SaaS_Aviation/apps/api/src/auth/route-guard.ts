@@ -22,10 +22,6 @@ export function hasPermission(context: RequestContext, permission: Permission): 
   return context.tenant.permissions.includes(permission);
 }
 
-export function canReadDocuments(context: RequestContext): boolean {
-  return hasPermission(context, "document.read");
-}
-
 export function requirePermission(context: RequestContext, res: Response, permission: Permission): boolean {
   if (hasPermission(context, permission)) {
     return true;
