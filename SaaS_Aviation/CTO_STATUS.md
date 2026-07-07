@@ -90,8 +90,8 @@ without another manual update.
 | Core | Operational | 85% | `141fee0` | Not formally reviewed | Static export only | Map to read-only Yoyamic adapter |
 | Authentication | Foundation | 35% | `5372dc2` | Not reviewed | Not deployed | Persistent session/audit store, MFA, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
-| Company 360 | Foundation | 55% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
-| Part 360 | Foundation | 55% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
+| Company 360 | Foundation complete | 70% | local pending commit | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
+| Part 360 | Workspace complete | 70% | local pending commit | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
 | Stock 360 | Foundation | 55% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
 | Documents | In progress | 40% | `088e9d8` | `46f6e72`, `f14ddd4` reviewed; `088e9d8` pending | Static UI on staging; API runtime not deployed | Review `088e9d8`; hold Phase 2 for persistent audit + API deploy |

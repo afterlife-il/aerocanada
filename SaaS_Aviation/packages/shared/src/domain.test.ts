@@ -124,6 +124,49 @@ test("Part 360 read model links tenant-scoped stock, RFQs, quotes, documents, an
   assert.ok(part360?.quickActions.find((action) => action.id === "create-rfq")?.requiredData.includes("tenantId"));
 });
 
+test("Part 360 header summarizes availability, condition, certification, and last update", () => {
+  const part360 = buildPart360ReadModel(sampleRequestContext, "part-1", {
+    companies: sampleCompanies,
+    parts: sampleParts,
+    internalStock: sampleInternalStock,
+    externalStock: sampleExternalStock,
+    rfqs: sampleRfqs,
+    quotes: sampleQuotes,
+    supplierQuotes: sampleSupplierQuotes,
+    orders: sampleOrders,
+    serviceWorkflows: sampleServiceWorkflows,
+    documents: sampleDocumentAlerts,
+    auditEvents: sampleAuditEvents
+  });
+
+  assert.equal(part360?.header.availabilityStatus, "in-stock");
+  assert.deepEqual(part360?.header.conditionSummary, [{ condition: "SV", qty: 1, lines: 1 }]);
+  assert.ok(part360?.header.certificationIndicators.find((indicator) => indicator.documentType === "8130-3" && indicator.status === "pending-review"));
+  assert.ok(part360?.header.certificationIndicators.find((indicator) => indicator.documentType === "CoC" && indicator.status === "missing"));
+  assert.ok(part360?.header.lastUpdatedAt);
+});
+
+test("Part 360 traceability summary links previous owner, origin, repair references, and serials", () => {
+  const part360 = buildPart360ReadModel(sampleRequestContext, "part-1", {
+    companies: sampleCompanies,
+    parts: sampleParts,
+    internalStock: sampleInternalStock,
+    externalStock: sampleExternalStock,
+    rfqs: sampleRfqs,
+    quotes: sampleQuotes,
+    supplierQuotes: sampleSupplierQuotes,
+    orders: sampleOrders,
+    serviceWorkflows: sampleServiceWorkflows,
+    documents: sampleDocumentAlerts,
+    auditEvents: sampleAuditEvents
+  });
+
+  assert.deepEqual(part360?.traceabilitySummary.previousOwners, ["Better Aviation Products"]);
+  assert.deepEqual(part360?.traceabilitySummary.origins, ["Better Aviation Products"]);
+  assert.equal(part360?.traceabilitySummary.repairReferences.some((workflow) => workflow.reference === "REP-03-1802"), true);
+  assert.equal(part360?.traceabilitySummary.serialTraceability.some((row) => row.serialNumber === "SNT140034"), true);
+});
+
 test("Part 360 read model returns null when part belongs to another tenant", () => {
   const part360 = buildPart360ReadModel(
     {

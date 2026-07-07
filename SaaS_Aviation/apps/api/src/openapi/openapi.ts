@@ -600,13 +600,68 @@ export const openApiDocument = {
           currency: { type: "string" }
         }
       },
+      PartConditionSummaryRow: {
+        type: "object",
+        required: ["condition", "qty", "lines"],
+        properties: {
+          condition: { type: "string" },
+          qty: { type: "number" },
+          lines: { type: "number" }
+        }
+      },
+      PartCertificationIndicator: {
+        type: "object",
+        required: ["documentType", "status", "count"],
+        properties: {
+          documentType: { type: "string" },
+          status: { type: "string", enum: ["present", "missing", "pending-review", "expires-soon"] },
+          count: { type: "number" }
+        }
+      },
+      PartHeaderSummary: {
+        type: "object",
+        required: ["availabilityStatus", "conditionSummary", "certificationIndicators", "lastUpdatedAt"],
+        properties: {
+          availabilityStatus: { type: "string", enum: ["in-stock", "external-only", "quoted-only", "no-stock"] },
+          conditionSummary: { type: "array", items: { $ref: "#/components/schemas/PartConditionSummaryRow" } },
+          certificationIndicators: { type: "array", items: { $ref: "#/components/schemas/PartCertificationIndicator" } },
+          lastUpdatedAt: { oneOf: [{ type: "string" }, { type: "null" }] }
+        }
+      },
+      PartSerialTraceabilityRow: {
+        type: "object",
+        required: ["stockId", "legacyId", "serialNumber", "source", "status"],
+        properties: {
+          stockId: { type: "string" },
+          legacyId: { oneOf: [{ type: "string" }, { type: "number" }] },
+          serialNumber: { type: "string" },
+          source: { type: "string", enum: ["internal", "external"] },
+          condition: { type: "string" },
+          status: { type: "string" },
+          ownerCompany: { type: "string" },
+          traceabilityCompany: { type: "string" }
+        }
+      },
+      PartTraceabilitySummary: {
+        type: "object",
+        required: ["previousOwners", "origins", "repairReferences", "certificationChain", "serialTraceability", "events"],
+        properties: {
+          previousOwners: { type: "array", items: { type: "string" } },
+          origins: { type: "array", items: { type: "string" } },
+          repairReferences: { type: "array", items: { $ref: "#/components/schemas/ServiceWorkflowSummary" } },
+          certificationChain: { type: "array", items: { $ref: "#/components/schemas/DocumentAlert" } },
+          serialTraceability: { type: "array", items: { $ref: "#/components/schemas/PartSerialTraceabilityRow" } },
+          events: { type: "array", items: { $ref: "#/components/schemas/AuditEvent" } }
+        }
+      },
       Part360ReadModel: {
         type: "object",
-        required: ["tenantId", "tenantCode", "part", "stockAvailability", "internalStock", "externalStock", "rfqs", "supplierQuotes", "customerQuotes", "purchaseHistory", "salesHistory", "serviceHistory", "certificates", "documents", "traceability", "margin", "quickActions"],
+        required: ["tenantId", "tenantCode", "part", "header", "stockAvailability", "internalStock", "externalStock", "rfqs", "supplierQuotes", "customerQuotes", "purchaseHistory", "salesHistory", "serviceHistory", "certificates", "documents", "traceability", "traceabilitySummary", "margin", "quickActions"],
         properties: {
           tenantId: { type: "string" },
           tenantCode: { type: "string" },
           part: { $ref: "#/components/schemas/PartNumber" },
+          header: { $ref: "#/components/schemas/PartHeaderSummary" },
           stockAvailability: { $ref: "#/components/schemas/StockAvailabilitySummary" },
           internalStock: { type: "array", items: { $ref: "#/components/schemas/StockItem" } },
           externalStock: { type: "array", items: { $ref: "#/components/schemas/StockItem" } },
@@ -619,6 +674,7 @@ export const openApiDocument = {
           certificates: { type: "array", items: { $ref: "#/components/schemas/DocumentAlert" } },
           documents: { type: "array", items: { $ref: "#/components/schemas/DocumentAlert" } },
           traceability: { type: "array", items: { $ref: "#/components/schemas/AuditEvent" } },
+          traceabilitySummary: { $ref: "#/components/schemas/PartTraceabilitySummary" },
           margin: { $ref: "#/components/schemas/MarginSummary" },
           quickActions: { type: "array", items: { $ref: "#/components/schemas/WorkflowBoundaryAction" } }
         }

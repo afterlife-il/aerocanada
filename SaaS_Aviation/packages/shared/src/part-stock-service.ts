@@ -8,7 +8,12 @@ import type {
   MarginSummary,
   OrderSummary,
   Part360ReadModel,
+  PartCertificationIndicator,
+  PartConditionSummaryRow,
+  PartHeaderSummary,
   PartNumber,
+  PartSerialTraceabilityRow,
+  PartTraceabilitySummary,
   QuoteSummary,
   RequestContext,
   RfqSummary,
@@ -19,6 +24,8 @@ import type {
   SupplierQuoteSummary,
   WorkflowBoundaryAction
 } from "./types.js";
+
+const CERTIFICATE_DOCUMENT_TYPES: DocumentAlert["documentType"][] = ["8130-3", "EASA Form 1", "CoC"];
 
 export interface PartStockSource {
   companies: Company[];
@@ -130,6 +137,97 @@ function documentsForStock(documents: DocumentAlert[], stock: StockItem): Docume
   return documents.filter((document) => document.entityType === "stock" && (document.entityId === stock.id || document.entityId === String(stock.legacyId)));
 }
 
+function partConditionSummary(stock: StockItem[]): PartConditionSummaryRow[] {
+  const rows = new Map<string, PartConditionSummaryRow>();
+  for (const item of stock) {
+    const condition = item.condition ?? "Unspecified";
+    const row = rows.get(condition) ?? { condition, qty: 0, lines: 0 };
+    row.qty += item.qty;
+    row.lines += 1;
+    rows.set(condition, row);
+  }
+  return [...rows.values()].sort((left, right) => right.qty - left.qty);
+}
+
+function partCertificationIndicators(documents: DocumentAlert[]): PartCertificationIndicator[] {
+  return CERTIFICATE_DOCUMENT_TYPES.map((documentType) => {
+    const matches = documents.filter((document) => document.documentType === documentType);
+    const first = matches[0];
+    return {
+      documentType,
+      status: first ? first.status : "missing",
+      count: matches.length
+    };
+  });
+}
+
+function partAvailabilityStatus(availability: StockAvailabilitySummary, customerQuotes: QuoteSummary[]): Part360ReadModel["header"]["availabilityStatus"] {
+  if (availability.internalUnits > 0) return "in-stock";
+  if (availability.externalUnits > 0) return "external-only";
+  if (customerQuotes.length > 0) return "quoted-only";
+  return "no-stock";
+}
+
+function latestIsoDate(dates: (string | undefined)[]): string | null {
+  const timestamps = dates
+    .filter((value): value is string => Boolean(value))
+    .map((value) => ({ value, time: new Date(value).getTime() }))
+    .filter((entry) => !Number.isNaN(entry.time));
+  if (timestamps.length === 0) return null;
+  return timestamps.reduce((latest, entry) => (entry.time > latest.time ? entry : latest)).value;
+}
+
+function partHeaderSummary(
+  stock: StockItem[],
+  documents: DocumentAlert[],
+  availability: StockAvailabilitySummary,
+  customerQuotes: QuoteSummary[],
+  rfqs: RfqSummary[],
+  orders: OrderSummary[],
+  serviceHistory: ServiceWorkflowSummary[],
+  auditEvents: AuditEvent[]
+): PartHeaderSummary {
+  return {
+    availabilityStatus: partAvailabilityStatus(availability, customerQuotes),
+    conditionSummary: partConditionSummary(stock),
+    certificationIndicators: partCertificationIndicators(documents),
+    lastUpdatedAt: latestIsoDate([
+      ...stock.map((item) => item.entryDate),
+      ...customerQuotes.map((quote) => quote.dueAt),
+      ...rfqs.map((rfq) => rfq.createdAt),
+      ...orders.map((order) => order.dueAt),
+      ...serviceHistory.map((workflow) => workflow.dueAt),
+      ...auditEvents.map((event) => event.occurredAt)
+    ])
+  };
+}
+
+function partTraceabilitySummary(stock: StockItem[], serviceHistory: ServiceWorkflowSummary[], certificationChain: DocumentAlert[], events: AuditEvent[]): PartTraceabilitySummary {
+  const previousOwners = [...new Set(stock.map((item) => item.traceabilityCompany).filter((value): value is string => Boolean(value)))];
+  const origins = [...new Set(stock.map((item) => item.supplierCompany).filter((value): value is string => Boolean(value)))];
+  const serialTraceability: PartSerialTraceabilityRow[] = stock
+    .filter((item) => Boolean(item.serialNumber))
+    .map((item) => ({
+      stockId: item.id,
+      legacyId: item.legacyId,
+      serialNumber: item.serialNumber as string,
+      source: item.source,
+      status: item.status,
+      ...(item.condition !== undefined ? { condition: item.condition } : {}),
+      ...(item.ownerCompany !== undefined ? { ownerCompany: item.ownerCompany } : {}),
+      ...(item.traceabilityCompany !== undefined ? { traceabilityCompany: item.traceabilityCompany } : {})
+    }));
+
+  return {
+    previousOwners,
+    origins,
+    repairReferences: serviceHistory.filter((workflow) => workflow.kind === "repair"),
+    certificationChain,
+    serialTraceability,
+    events
+  };
+}
+
 function stockLinkedToCompany(stock: StockItem[], company: Company): StockItem[] {
   return stock.filter(
     (item) =>
@@ -157,12 +255,15 @@ export function buildPart360ReadModel(context: RequestContext, partId: string, s
   const stockIds = new Set(stock.flatMap((item) => [item.id, String(item.legacyId)]));
   const documents = tenantItems(context, source.documents).filter((document) => stockIds.has(document.entityId) || customerQuotes.some((quote) => quote.id === document.entityId));
   const traceability = tenantItems(context, source.auditEvents).filter((event) => stockIds.has(event.entityId) || rfqs.some((rfq) => rfq.rfqId === event.rfqId));
+  const certificates = documents.filter((document) => document.documentType === "8130-3" || document.documentType === "EASA Form 1" || document.documentType === "CoC");
+  const availability = stockAvailability(stock);
 
   return {
     tenantId: context.tenant.tenantId,
     tenantCode: context.tenant.tenantCode,
     part,
-    stockAvailability: stockAvailability(stock),
+    header: partHeaderSummary(stock, documents, availability, customerQuotes, rfqs, [...purchaseHistory, ...salesHistory], serviceHistory, traceability),
+    stockAvailability: availability,
     internalStock,
     externalStock,
     rfqs,
@@ -171,9 +272,10 @@ export function buildPart360ReadModel(context: RequestContext, partId: string, s
     purchaseHistory,
     salesHistory,
     serviceHistory,
-    certificates: documents.filter((document) => document.documentType === "8130-3" || document.documentType === "EASA Form 1" || document.documentType === "CoC"),
+    certificates,
     documents,
     traceability,
+    traceabilitySummary: partTraceabilitySummary(stock, serviceHistory, certificates, traceability),
     margin: marginForQuotes(customerQuotes),
     quickActions: partActions(context, part)
   };

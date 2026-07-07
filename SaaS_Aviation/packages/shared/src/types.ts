@@ -478,10 +478,54 @@ export interface MarginSummary {
   currency: string;
 }
 
+export interface PartConditionSummaryRow {
+  condition: string;
+  qty: number;
+  lines: number;
+}
+
+export type PartCertificationIndicatorStatus = "present" | "missing" | "pending-review" | "expires-soon";
+
+export interface PartCertificationIndicator {
+  documentType: DocumentAlert["documentType"];
+  status: PartCertificationIndicatorStatus;
+  count: number;
+}
+
+export type PartAvailabilityStatus = "in-stock" | "external-only" | "quoted-only" | "no-stock";
+
+export interface PartHeaderSummary {
+  availabilityStatus: PartAvailabilityStatus;
+  conditionSummary: PartConditionSummaryRow[];
+  certificationIndicators: PartCertificationIndicator[];
+  lastUpdatedAt: string | null;
+}
+
+export interface PartSerialTraceabilityRow {
+  stockId: string;
+  legacyId: LegacyId;
+  serialNumber: string;
+  source: StockItem["source"];
+  condition?: string;
+  status: EntityStatus;
+  ownerCompany?: string;
+  traceabilityCompany?: string;
+}
+
+export interface PartTraceabilitySummary {
+  previousOwners: string[];
+  origins: string[];
+  repairReferences: ServiceWorkflowSummary[];
+  certificationChain: DocumentAlert[];
+  serialTraceability: PartSerialTraceabilityRow[];
+  events: AuditEvent[];
+}
+
 export interface Part360ReadModel {
   tenantId: TenantId;
   tenantCode: string;
   part: PartNumber;
+  header: PartHeaderSummary;
   stockAvailability: StockAvailabilitySummary;
   internalStock: StockItem[];
   externalStock: StockItem[];
@@ -494,6 +538,7 @@ export interface Part360ReadModel {
   certificates: DocumentAlert[];
   documents: DocumentAlert[];
   traceability: AuditEvent[];
+  traceabilitySummary: PartTraceabilitySummary;
   margin: MarginSummary;
   quickActions: WorkflowBoundaryAction[];
 }

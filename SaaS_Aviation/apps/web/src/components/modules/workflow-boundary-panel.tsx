@@ -1,9 +1,9 @@
 import type { WorkflowBoundaryAction } from "@saas-aviation/shared";
 import { DetailPanel } from "@/components/ui/panels";
 
-export function WorkflowBoundaryPanel({ title = "Workflow Boundaries", actions }: { title?: string; actions: WorkflowBoundaryAction[] }) {
+export function WorkflowBoundaryPanel({ id, title = "Workflow Boundaries", actions }: { id?: string; title?: string; actions: WorkflowBoundaryAction[] }) {
   return (
-    <DetailPanel title={title}>
+    <DetailPanel id={id} title={title}>
       <div className="grid gap-3">
         {actions.map((action) => (
           <div key={action.id} className="rounded-md border border-border bg-panel-muted p-3">

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { DocumentReadModel, DocumentUploadRequest, DocumentUploadValidationResult } from "@saas-aviation/shared";
 import { DetailPanel, EmptyState, KeyValue } from "@/components/ui/panels";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -8,9 +9,9 @@ function formatBytes(value: number): string {
   return `${Math.max(1, Math.round(value / 1024))} KB`;
 }
 
-export function DocumentPanel({ title = "Documents", documents }: { title?: string; documents: DocumentReadModel[] }) {
+export function DocumentPanel({ title = "Documents", actions, documents }: { title?: string; actions?: ReactNode; documents: DocumentReadModel[] }) {
   return (
-    <DetailPanel title={title}>
+    <DetailPanel title={title} actions={actions}>
       {documents.length === 0 ? (
         <EmptyState title="No documents linked" detail="Documents are tenant-scoped and will appear here once linked through the shared Documents service." />
       ) : (

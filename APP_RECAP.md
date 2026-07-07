@@ -29,7 +29,10 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 ## Completed Modules
 
 - SaaS foundation scaffold in `SaaS_Aviation/`.
-- Login shell, tenant-aware ERP dashboard, Company 360 shell, Part 360 read-model foundation, Stock 360 read-model foundation, Company Inventory read-model foundation, internal stock list, external stock list.
+- Login shell, tenant-aware ERP dashboard, Company 360 shell, Part 360 business workspace (header, internal/external
+  stock, RFQ/supplier/customer quotes, purchase/sales history placeholders, documents & certificates, dedicated
+  traceability panel, workflow-boundary quick actions), Stock 360 read-model foundation, Company Inventory
+  read-model foundation, internal stock list, external stock list.
 - Sample-data route handlers and Express read routes, including Documents metadata and upload-intent validation contracts.
 - OpenAPI component schemas for current Express read routes.
 - Yoyamic stock ownership and tag-info display work, with several staging deployments documented in reports.
@@ -37,8 +40,10 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 
 ## Modules in Progress
 
+- Part 360 workspace completed as a read-only aggregation layer over Stock/RFQ/Quote/Order/Documents/Audit data;
+  Purchase History and Sales History remain explicit placeholder panels pending real PO/SO modules.
 - Stock 360 SaaS workspace with read-only tenant-scoped action boundaries.
-- Company 360 SaaS workspace with Company Inventory read-model integration.
+- Company 360 SaaS workspace with list search/filter/sort, contacts, inventory, documents, commercial activity placeholders, and workflow boundaries.
 - Legacy read adapter boundary.
 - OpenAPI route contract refinement for future generated clients and validation.
 - Permanent project memory.
@@ -90,6 +95,17 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 ## Changelog
 
+- 2026-07-07: Completed the Part 360 business workspace as a read-only aggregation layer: a part header (status,
+  condition summary, certification indicators, last update), internal/external stock panels with real loading
+  (route-level skeleton), empty, and error states, dedicated RFQ/supplier quote/customer quote panels each with a
+  workflow-boundary CTA, explicit Purchase History/Sales History placeholder panels, a Documents & Certificates
+  panel with an Upload Certificate boundary, and a new dedicated Traceability panel (previous owner, origin,
+  serial traceability, repair references, certification chain, event timeline). Added `header` and
+  `traceabilitySummary` to the shared `Part360ReadModel` (additive, backward compatible) plus small additive
+  `DetailPanel`/`DocumentPanel`/`WorkflowBoundaryPanel`/`EntityTabs`/`StatusBadge` UI extensions reused across the
+  page. Updated the OpenAPI `Part360ReadModel` schema and Part 360 business/database docs. No Warehouse, RFQ,
+  Supplier Quotes, Customer Quotes, Purchase Orders, Sales Orders, Documents internals, or Company 360 code was
+  changed. No deployment performed.
 - 2026-07-07: Built an internal CTO Dashboard (`/admin/cto`) in the SaaS_Aviation frontend — global build/deploy
   status, a 22-module status table, blockers, sprint tracking, technical debt, architecture decisions, and a
   commit activity timeline. Dev-team only and not part of the customer ERP; its deployed admin path is now protected by Basic Auth.
@@ -99,6 +115,9 @@ Main is the active branch. The standing untracked local workspace files are the 
   were made. Backup: `/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation_backup_20260707_155253`.
 - 2026-07-07: Added CTO Dashboard Phase 2 static metadata locally: build metadata, deployment metadata, check
   statuses, security status, and the last 10 commits with author/date/message. Not deployed yet.
+- 2026-07-07: Completed the Company 360 foundation locally with a Company list read model, search/filter/sort
+  controls, Company 360 KPI/profile/contact/inventory/document/commercial panels, explicit workflow boundaries,
+  tests, and Company 360 business/database docs. No Yoyamic, database, or deployment changes were made.
 - 2026-07-02: Completed an Aviation Business Architect benchmark of every implemented module (Auth/Tenant,
   Dashboard, Company 360, Part 360, Stock 360, Company Inventory) against IFS Aerospace, Ramco Aviation, Quantum
   Control, AvSight, Traxxall, SAP Aviation, AMOS, Rusada ENVISION, and OASES. Verdict: architecture is strong,
