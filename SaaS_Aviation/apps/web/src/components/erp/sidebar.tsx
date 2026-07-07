@@ -22,6 +22,10 @@ const sections = [
       { href: "/dashboard#po", label: "Purchase Orders" },
       { href: "/dashboard#repair", label: "Repair / Exchange" }
     ]
+  },
+  {
+    label: "Internal (dev team only)",
+    items: [{ href: "/admin/cto", label: "CTO Dashboard" }]
   }
 ];
 

@@ -1,6 +1,6 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-07-02
+Last updated: 2026-07-07
 
 ## Vision
 
@@ -33,6 +33,7 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 - Sample-data route handlers and Express read routes, including Documents metadata and upload-intent validation contracts.
 - OpenAPI component schemas for current Express read routes.
 - Yoyamic stock ownership and tag-info display work, with several staging deployments documented in reports.
+- Internal CTO Dashboard at `/admin/cto` in the SaaS frontend (dev-team only, not part of the customer ERP; no access control yet, not deployed). See `SaaS_Aviation/CTO_STATUS.md`.
 
 ## Modules in Progress
 
@@ -89,6 +90,10 @@ Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untrac
 
 ## Changelog
 
+- 2026-07-07: Built an internal CTO Dashboard (`/admin/cto`) in the SaaS_Aviation frontend — global build/deploy
+  status, a 22-module status table, blockers, sprint tracking, technical debt, architecture decisions, and a
+  commit activity timeline. Dev-team only, not part of the customer ERP, no access control yet, not deployed.
+  Data is a hand-maintained static snapshot (`apps/web/src/lib/cto-status.ts`), matching `SaaS_Aviation/CTO_STATUS.md`.
 - 2026-07-02: Completed an Aviation Business Architect benchmark of every implemented module (Auth/Tenant,
   Dashboard, Company 360, Part 360, Stock 360, Company Inventory) against IFS Aerospace, Ramco Aviation, Quantum
   Control, AvSight, Traxxall, SAP Aviation, AMOS, Rusada ENVISION, and OASES. Verdict: architecture is strong,

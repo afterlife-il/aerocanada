@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { sampleRequestContext } from "@saas-aviation/shared";
 import { currentSession, data, getStock } from "./data.js";
+import { getCtoStatus } from "./cto-status.js";
 import { getDashboardData } from "./dashboard.js";
 import { getDocumentCenterReadModel, getEntityDocumentReadModel, validateDocumentUpload } from "./documents.js";
 import { getCompanyInventoryReadModel, getPart360ReadModel, getStock360ReadModel } from "./part-stock.js";
@@ -93,4 +94,19 @@ test("web documents upload adapter validates unsafe upload metadata", () => {
 
   assert.equal(rejected.accepted, false);
   assert.ok(rejected.errors.includes("mime_type_not_allowed"));
+});
+
+test("CTO status covers every requested module with a next action", () => {
+  const status = getCtoStatus();
+  const expectedModules = [
+    "Core", "Authentication", "Dashboard", "Company 360", "Part 360", "Stock 360", "Company Inventory",
+    "Documents", "Warehouse", "RFQ", "Supplier Quotes", "Customer Quotes", "Purchase Orders", "Sales Orders",
+    "Repair / Exchange / Lease", "Accounting", "Reports", "Administration", "AI", "API", "Security", "Multi-Tenant"
+  ];
+
+  assert.equal(status.modules.length, expectedModules.length);
+  assert.deepEqual(status.modules.map((row) => row.module), expectedModules);
+  assert.equal(status.modules.every((row) => row.nextAction.length > 0), true);
+  assert.equal(status.modules.every((row) => row.progressPct >= 0 && row.progressPct <= 100), true);
+  assert.ok(status.blockers.length > 0);
 });

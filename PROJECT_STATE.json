@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-02",
+  "last_updated": "2026-07-07",
   "modules": {
     "legacy_yoyamic": {
       "purpose": "staging workflow, legacy reference, migration source",
@@ -56,6 +56,13 @@
     "ai_assistance": {
       "status": "architecture_pending"
     },
+    "cto_dashboard": {
+      "status": "internal_tool_implemented_not_deployed",
+      "scope": "dev-team-only status page at /admin/cto in the SaaS_Aviation frontend: global build/deploy status, 22-module status table, blockers, sprint tracking, technical debt, architecture decisions, activity timeline",
+      "data_source": "hand-maintained static snapshot in apps/web/src/lib/cto-status.ts, kept in sync with SaaS_Aviation/CTO_STATUS.md",
+      "not_part_of_customer_erp": true,
+      "access_control": "none yet - must not be included in any deploy until a gate exists"
+    },
     "dashboard": {
       "status": "tenant_aware_sample_adapter_implemented_pending_deploy",
       "scope": "ACI770 ERP cockpit metrics, RFQs, quotes, supplier quotes, POs, sales orders, stock value, company inventory, service workflows, documents, accounting alerts, recent activity, quick actions"
@@ -102,7 +109,9 @@
     "Map Part 360, Stock 360, and Company Inventory read models to read-only Yoyamic adapter queries.",
     "Implement Documents Phase 2 object storage, quarantine, malware scanning, checksum, signed URL, persisted audit, and retention workflow after infrastructure approval.",
     "Add dashboard API/OpenAPI contract once web is served by authenticated runtime instead of static fixtures.",
-    "Inventory Yoyamic deployed hashes before any future staging deploy."
+    "Inventory Yoyamic deployed hashes before any future staging deploy.",
+    "Review commit 088e9d8 (documents read error hardening) and this CTO Dashboard build.",
+    "Define an access-control gate for /admin/cto before it can ever be included in a deploy."
   ],
   "blocked_tasks": [
     {
@@ -142,7 +151,8 @@
     "documents_business": "docs/business/documents.md",
     "documents_database": "docs/database/documents.md",
     "documents_security": "docs/security/documents.md",
-    "aviation_erp_benchmark": "SaaS_Aviation/AVIATION_ERP_BENCHMARK.md"
+    "aviation_erp_benchmark": "SaaS_Aviation/AVIATION_ERP_BENCHMARK.md",
+    "cto_status": "SaaS_Aviation/CTO_STATUS.md"
   },
   "architecture": {
     "strategy": "adapter-first SaaS application separate from legacy Yoyamic",
@@ -191,6 +201,6 @@
     "schema_changes": "not_approved"
   },
   "current_sprint": "Tenant-aware SaaS ERP dashboard and adapter-first workflow read model",
-  "last_completed_task": "Implemented Documents Phase 1 foundation with tenant-scoped metadata, versions, entity links, reusable document UI, upload-intent validation, protected API contracts, tests, and docs. No byte storage or Yoyamic/live DB writes.",
-  "next_recommended_task": "Documents Phase 2 after infrastructure approval: object storage, quarantine, malware scanning, checksum, signed download/preview URLs, persisted audit, and retention/legal-hold workflow. Also still pending: map dashboard and Part/Stock/Company Inventory read models to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
+  "last_completed_task": "Built an internal CTO Dashboard (/admin/cto) in the SaaS_Aviation frontend: global build/deploy status, 22-module status table, blockers, sprint tracking, technical debt, architecture decisions, and activity timeline. Dev-team only, not part of the customer ERP, no access control yet, not deployed.",
+  "next_recommended_task": "Review commit 088e9d8 (documents read error hardening) and the CTO Dashboard build, then define an access-control gate for /admin/cto before any future deploy. Documents Phase 2 remains gated on infrastructure approval: object storage, quarantine, malware scanning, checksum, signed download/preview URLs, persisted audit, and retention/legal-hold workflow. Also still pending: map dashboard and Part/Stock/Company Inventory read models to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
 }
