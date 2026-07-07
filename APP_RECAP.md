@@ -6,6 +6,8 @@ Last updated: 2026-07-02
 
 Yoyamic remains the legacy staging and migration-reference system. `SaaS_Aviation/` is the new multi-tenant aviation ERP product. See `VISION.md`.
 
+CTO-level status snapshot: `SaaS_Aviation/CTO_STATUS.md`.
+
 ## Current Architecture
 
 - Legacy PHP/MySQL app: `pages/`, `classes/`, and live Yoyamic staging deployment.
