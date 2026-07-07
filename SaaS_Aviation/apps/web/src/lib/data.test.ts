@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { sampleRequestContext } from "@saas-aviation/shared";
 import { currentSession, data, getStock } from "./data.js";
 import { getCtoStatus } from "./cto-status.js";
@@ -109,4 +110,21 @@ test("CTO status covers every requested module with a next action", () => {
   assert.equal(status.modules.every((row) => row.nextAction.length > 0), true);
   assert.equal(status.modules.every((row) => row.progressPct >= 0 && row.progressPct <= 100), true);
   assert.ok(status.blockers.length > 0);
+});
+
+test("CTO dashboard is not exposed from public navigation", () => {
+  const sidebarSource = readFileSync(new URL("../components/erp/sidebar.tsx", import.meta.url), "utf8");
+
+  assert.equal(sidebarSource.includes("/admin/cto"), false);
+  assert.equal(sidebarSource.includes("CTO Dashboard"), false);
+});
+
+test("static CTO admin route ships only safe Basic Auth config", () => {
+  const htaccess = readFileSync(new URL("../../public/admin/.htaccess", import.meta.url), "utf8");
+
+  assert.match(htaccess, /AuthType Basic/);
+  assert.match(htaccess, /Require user cto/);
+  assert.match(htaccess, /AuthUserFile \/var\/www\/vhosts\/aerocanada-industries\.com\/\.htpasswd_saas_cto/);
+  assert.equal(htaccess.includes("Yoyamic"), false);
+  assert.equal(htaccess.includes("cto:"), false);
 });

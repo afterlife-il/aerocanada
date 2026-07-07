@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "SaaS Aviation CTO Dashboard"
+AuthUserFile /var/www/vhosts/aerocanada-industries.com/.htpasswd_saas_cto
+Require user cto
