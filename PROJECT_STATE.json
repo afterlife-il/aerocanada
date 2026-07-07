@@ -57,11 +57,11 @@
       "status": "architecture_pending"
     },
     "cto_dashboard": {
-      "status": "internal_tool_implemented_not_deployed",
-      "scope": "dev-team-only status page at /admin/cto in the SaaS_Aviation frontend: global build/deploy status, 22-module status table, blockers, sprint tracking, technical debt, architecture decisions, activity timeline",
+      "status": "internal_tool_protected_on_staging_phase_2_metadata_pending_deploy",
+      "scope": "dev-team-only status page at /admin/cto in the SaaS_Aviation frontend: global build/deploy status, deployment metadata, check statuses, security status, 22-module status table, blockers, sprint tracking, technical debt, architecture decisions, and 10-commit activity timeline",
       "data_source": "hand-maintained static snapshot in apps/web/src/lib/cto-status.ts, kept in sync with SaaS_Aviation/CTO_STATUS.md",
       "not_part_of_customer_erp": true,
-      "access_control": "none yet - must not be included in any deploy until a gate exists"
+      "access_control": "Apache Basic Auth protects /SaaS_Aviation/admin/ on staging; credentials are server-side only and not committed"
     },
     "dashboard": {
       "status": "tenant_aware_sample_adapter_implemented_pending_deploy",
@@ -78,12 +78,13 @@
   },
   "deployment_status": {
     "legacy_yoyamic_staging": "report_based_partial_deployments",
-    "saas_aviation": "static_frontend_deployed_to_staging_documents_phase_1",
+    "saas_aviation": "static_frontend_deployed_to_staging_with_protected_admin_cto",
     "production": "not_requested",
     "saas_aviation_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "saas_aviation_target": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation/",
-    "saas_aviation_backup": "not_created_target_did_not_exist",
-    "saas_aviation_last_deployed_at": "2026-07-02T13:43:21Z"
+    "saas_aviation_backup": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation_backup_20260707_155253",
+    "saas_aviation_last_deployed_at": "2026-07-07T15:52:53Z",
+    "saas_aviation_last_deployed_commit": "bb0ba80"
   },
   "review_status": {
     "read_before_patch": [
@@ -110,8 +111,8 @@
     "Implement Documents Phase 2 object storage, quarantine, malware scanning, checksum, signed URL, persisted audit, and retention workflow after infrastructure approval.",
     "Add dashboard API/OpenAPI contract once web is served by authenticated runtime instead of static fixtures.",
     "Inventory Yoyamic deployed hashes before any future staging deploy.",
-    "Review commit 088e9d8 (documents read error hardening) and this CTO Dashboard build.",
-    "Define an access-control gate for /admin/cto before it can ever be included in a deploy."
+    "Review commit 088e9d8 (documents read error hardening) and the CTO Dashboard metadata build.",
+    "Keep /admin/cto protected by server-side Basic Auth for every future static deploy."
   ],
   "blocked_tasks": [
     {
@@ -188,7 +189,7 @@
     "mutations": "blocked_until_persistent_auth_tenant_audit",
     "part_stock_inventory": "read-model foundation implemented locally with protected API contracts and static fixture-backed UI; no mutations or deployment",
     "documents": "phase 1 metadata, link, reusable UI, and upload-intent validation foundation implemented and static frontend deployed; no byte storage, OCR, or AI analysis yet",
-    "deployment": "static frontend deployed to staging after Documents Phase 1; API runtime still not deployed",
+    "deployment": "static frontend deployed to staging with /admin protected by Basic Auth; API runtime still not deployed",
     "openapi_contracts": "current_read_routes_have_component_schemas_and_auth_session_routes",
     "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "static_export": "enabled_for_frontend_visual_inspection",
@@ -200,7 +201,7 @@
     "strategy": "read-only adapter first, migration after business rule validation",
     "schema_changes": "not_approved"
   },
-  "current_sprint": "Tenant-aware SaaS ERP dashboard and adapter-first workflow read model",
-  "last_completed_task": "Built an internal CTO Dashboard (/admin/cto) in the SaaS_Aviation frontend: global build/deploy status, 22-module status table, blockers, sprint tracking, technical debt, architecture decisions, and activity timeline. Dev-team only, not part of the customer ERP, no access control yet, not deployed.",
-  "next_recommended_task": "Review commit 088e9d8 (documents read error hardening) and the CTO Dashboard build, then define an access-control gate for /admin/cto before any future deploy. Documents Phase 2 remains gated on infrastructure approval: object storage, quarantine, malware scanning, checksum, signed download/preview URLs, persisted audit, and retention/legal-hold workflow. Also still pending: map dashboard and Part/Stock/Company Inventory read models to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
+  "current_sprint": "CTO Dashboard Phase 2 metadata and protected admin status",
+  "last_completed_task": "Protected the deployed CTO Dashboard behind Apache Basic Auth and added Phase 2 static metadata locally: build metadata, deployment metadata, check statuses, security status, and a 10-commit activity timeline. The Phase 2 metadata is not deployed yet.",
+  "next_recommended_task": "Review and deploy the CTO Dashboard Phase 2 static metadata only when explicitly approved. Documents Phase 2 remains gated on infrastructure approval: object storage, quarantine, malware scanning, checksum, signed download/preview URLs, persisted audit, and retention/legal-hold workflow. Also still pending: map dashboard and Part/Stock/Company Inventory read models to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
 }

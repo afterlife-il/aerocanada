@@ -24,7 +24,6 @@ test("web session is tied to the seeded tenant", () => {
   assert.equal(data.companies.every((company) => company.tenantId === currentSession.tenant.id), true);
 });
 
-
 test("web dashboard data is generated from the current tenant context", () => {
   const dashboard = getDashboardData();
 
@@ -110,6 +109,47 @@ test("CTO status covers every requested module with a next action", () => {
   assert.equal(status.modules.every((row) => row.nextAction.length > 0), true);
   assert.equal(status.modules.every((row) => row.progressPct >= 0 && row.progressPct <= 100), true);
   assert.ok(status.blockers.length > 0);
+});
+
+test("CTO status exposes static build and deployment metadata", () => {
+  const status = getCtoStatus();
+
+  assert.equal(status.buildMetadata.branch, "main");
+  assert.equal(status.buildMetadata.latestLocalCommit, "bb0ba80");
+  assert.equal(status.buildMetadata.latestOriginMainCommit, "bb0ba80");
+  assert.equal(status.buildMetadata.staticExportMode, "Next.js output export");
+  assert.match(status.buildMetadata.buildTimestamp, /^2026-07-07T/);
+
+  assert.equal(status.deployment.lastDeployedCommit, "bb0ba80");
+  assert.equal(status.deployment.environment, "staging/public static frontend");
+  assert.equal(status.deployment.protectedAdminStatus, "/SaaS_Aviation/admin/ protected by Apache Basic Auth");
+  assert.match(status.deployment.backupPath, /SaaS_Aviation_backup_20260707_155253$/);
+});
+
+test("CTO status exposes check and security metadata", () => {
+  const status = getCtoStatus();
+
+  assert.equal(status.checks.testStatus, "passing");
+  assert.equal(status.checks.typecheckStatus, "passing");
+  assert.equal(status.checks.lintStatus, "passing");
+  assert.equal(status.checks.buildStatus, "passing");
+  assert.match(status.checks.lastCheckedAt, /^2026-07-07T/);
+
+  assert.equal(status.security.adminProtectedByBasicAuth, true);
+  assert.equal(status.security.ctoRouteHiddenFromPublicSidebar, true);
+  assert.equal(status.security.apiRuntimeDeployed, false);
+  assert.equal(status.security.dbOrYoyamicTouched, false);
+});
+
+test("CTO status activity timeline includes the last ten commits with authors", () => {
+  const status = getCtoStatus();
+
+  assert.equal(status.activity.length, 10);
+  assert.deepEqual(
+    status.activity.map((entry) => entry.commit),
+    ["bb0ba80", "3c32468", "20bdc67", "088e9d8", "362c4a7", "f14ddd4", "46f6e72", "366e375", "05b04d7", "5372dc2"]
+  );
+  assert.equal(status.activity.every((entry) => entry.author.length > 0), true);
 });
 
 test("CTO dashboard is not exposed from public navigation", () => {

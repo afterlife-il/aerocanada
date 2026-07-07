@@ -33,7 +33,7 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 - Sample-data route handlers and Express read routes, including Documents metadata and upload-intent validation contracts.
 - OpenAPI component schemas for current Express read routes.
 - Yoyamic stock ownership and tag-info display work, with several staging deployments documented in reports.
-- Internal CTO Dashboard at `/admin/cto` in the SaaS frontend (dev-team only, not part of the customer ERP; no access control yet, not deployed). See `SaaS_Aviation/CTO_STATUS.md`.
+- Internal CTO Dashboard at `/admin/cto` in the SaaS frontend (dev-team only, not part of the customer ERP). The deployed `/SaaS_Aviation/admin/` path is protected by Apache Basic Auth. See `SaaS_Aviation/CTO_STATUS.md`.
 
 ## Modules in Progress
 
@@ -64,15 +64,15 @@ Foundation only. No production auth, MFA, tenant isolation enforcement, persiste
 
 ## SaaS Readiness
 
-Early foundation. The app builds, has sample read screens, and the static frontend is deployed to staging for visual inspection. Real legacy data integration, auth, RBAC, tenant scope, audit persistence, and server-side deployment design remain.
+Early foundation. The app builds, has sample read screens, and the static frontend is deployed to staging for visual inspection with the admin path protected by Basic Auth. Real legacy data integration, auth, RBAC, tenant scope, audit persistence, and server-side deployment design remain.
 
 ## Current Deployments
 
-Report-based Yoyamic staging deployments exist for stock ownership and stock list work. `SaaS_Aviation/` static frontend is deployed to staging at `https://aerocanada-industries.com/SaaS_Aviation/`, most recently for the Documents Phase 1 UI on 2026-07-02. See `docs/deployment/legacy-yoyamic-status.md`.
+Report-based Yoyamic staging deployments exist for stock ownership and stock list work. `SaaS_Aviation/` static frontend is deployed to staging at `https://aerocanada-industries.com/SaaS_Aviation/`, most recently for protected CTO Dashboard static frontend commit `bb0ba80` on 2026-07-07. See `docs/deployment/legacy-yoyamic-status.md`.
 
 ## Current Working Tree
 
-Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untracked `SaaS_Aviation/`, and new project memory/docs files are present.
+Main is the active branch. The standing untracked local workspace files are the three `.code-workspace` files; implementation changes should be committed before deployment.
 
 ## Known Technical Debt
 
@@ -92,8 +92,13 @@ Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untrac
 
 - 2026-07-07: Built an internal CTO Dashboard (`/admin/cto`) in the SaaS_Aviation frontend — global build/deploy
   status, a 22-module status table, blockers, sprint tracking, technical debt, architecture decisions, and a
-  commit activity timeline. Dev-team only, not part of the customer ERP, no access control yet, not deployed.
+  commit activity timeline. Dev-team only and not part of the customer ERP; its deployed admin path is now protected by Basic Auth.
   Data is a hand-maintained static snapshot (`apps/web/src/lib/cto-status.ts`), matching `SaaS_Aviation/CTO_STATUS.md`.
+- 2026-07-07: Protected the deployed CTO Dashboard under `/SaaS_Aviation/admin/` with Apache Basic Auth, hid the
+  public sidebar link, and deployed only the static frontend. No API runtime, DB, Yoyamic, or legacy PHP changes
+  were made. Backup: `/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation_backup_20260707_155253`.
+- 2026-07-07: Added CTO Dashboard Phase 2 static metadata locally: build metadata, deployment metadata, check
+  statuses, security status, and the last 10 commits with author/date/message. Not deployed yet.
 - 2026-07-02: Completed an Aviation Business Architect benchmark of every implemented module (Auth/Tenant,
   Dashboard, Company 360, Part 360, Stock 360, Company Inventory) against IFS Aerospace, Ramco Aviation, Quantum
   Control, AvSight, Traxxall, SAP Aviation, AMOS, Rusada ENVISION, and OASES. Verdict: architecture is strong,
@@ -120,4 +125,4 @@ Dirty and uncommitted. Modified legacy PHP files, many untracked reports, untrac
 
 ## Next Sprint
 
-Create read-only legacy adapter mapping for dashboard/ERP workflows, then harden Auth/Tenant persistence before any mutations.
+Review and deploy CTO Dashboard Phase 2 static metadata only after explicit approval. Then create read-only legacy adapter mapping for dashboard/ERP workflows and harden Auth/Tenant persistence before any mutations.

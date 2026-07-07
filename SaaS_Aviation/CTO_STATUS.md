@@ -1,89 +1,89 @@
-# CTO Status Dashboard — SaaS_Aviation
+# CTO Status Dashboard - SaaS_Aviation
 
 Last updated: 2026-07-07
-Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`. No code review performed for this dashboard.
+Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 protected static deploy report.
 
-A live, in-app mirror of this snapshot now exists at `/admin/cto` (internal, dev-team only — see
-`apps/web/src/lib/cto-status.ts`). The frontend is a static export with no server runtime, so that page's data is
-baked at build time from that file, not queried live. **Keep this file and `cto-status.ts` in sync by hand** —
-nothing enforces it automatically yet.
+A protected in-app mirror of this snapshot exists at `/admin/cto` in the static SaaS_Aviation frontend. The frontend
+is exported with `output: "export"`, so dashboard data is baked into the static build from
+`apps/web/src/lib/cto-status.ts`; it is not queried live. Keep this file, `PROJECT_STATE.json`, `APP_RECAP.md`, and
+`apps/web/src/lib/cto-status.ts` in sync by hand.
 
-## 1. Current Global Status
+## Current Global Status
 
 Pre-MVP foundation. Read-only, sample-data-backed SaaS ERP shell alongside legacy Yoyamic. No live database, no
-persistent auth/audit, no API runtime deployment. Documents is the most active module (foundation → correction →
-read-error hardening → Phase 2 design), and a new internal CTO Dashboard route has been added for the dev team.
+persistent auth/audit, and no Express API runtime deployment. The static frontend is deployed to staging and the
+admin path is protected by Apache Basic Auth.
 
-## 2. Completed Modules
+## CTO Dashboard Phase 2
 
-- SaaS foundation scaffold, Auth/Tenant foundation (in-memory), tenant-aware ERP dashboard.
-- Company 360 + Company Inventory, Part 360, Stock 360 (internal/external) — read-model foundations.
-- Documents Phase 1 foundation, corrected (Phase 1.1), and read-error hardened, with a Phase 2 architecture proposal.
-- OpenAPI component schemas for current read routes.
-- Internal CTO Dashboard (`/admin/cto`) — this build.
+This sprint improves only the protected `/admin/cto` dashboard and its static status data. No business modules,
+Yoyamic files, database schema, legacy PHP, or Express API runtime were changed or deployed.
 
-## 3. Current Module
+The dashboard now includes:
 
-**CTO Dashboard** (this change) — an internal, dev-team-only status page in the existing frontend, plus this
-document. **Documents** remains the most recently active business module: Phase 1.1 hardening landed in `088e9d8`
-(adds controlled error handling and HTTP-level authorization tests, confirmed passing — not yet formally
-reviewed); Phase 2 (object storage, malware scan, OCR, AI analysis, legal hold, retention) is designed
-(`362c4a7`) but not implemented, pending infra decisions.
+- Build metadata: current branch, latest local commit, latest `origin/main` commit, build timestamp, static export mode.
+- Deployment metadata: last deployed commit, deployment date, staging/public static environment, backup path, protected admin status.
+- Checks: test, typecheck, lint, build, and last checked timestamp.
+- Activity timeline: last 10 commits with hash, date, author, and message.
+- Security status: `/admin` protected by Basic Auth, CTO route hidden from public sidebar, no API runtime deployed, no DB/Yoyamic touched.
 
-## 4. Pending Review
+## Build Metadata
 
-- `088e9d8` "Harden documents read error handling" — not yet formally reviewed. Its test suite now includes
-  HTTP-level checks ("document read endpoints return HTTP authorization responses",
-  "... return controlled errors for malformed primary links"), which read as addressing the Critical finding from
-  the `f14ddd4` review (a single document missing/duplicating its primary link could crash the whole API
-  process) — confirmed only by re-running the test suite, not by diff review.
-- This CTO Dashboard build (`apps/web/src/lib/cto-status.ts`, `apps/web/src/app/admin/cto/page.tsx`) — new, not
-  yet reviewed.
-- Documents Phase 2 has no code yet — nothing to review there beyond the architecture doc itself.
+| Field | Value |
+|---|---|
+| Current branch | `main` |
+| Latest local commit | `bb0ba80` |
+| Latest origin/main commit | `bb0ba80` |
+| Build timestamp | `2026-07-07T15:42:00Z` |
+| Static export mode | `Next.js output export` |
 
-## 5. Last Commits
+This is a static snapshot. The commit that introduces this Phase 2 metadata cannot self-reference its own final hash
+without another manual update.
 
-```
-(pending) Build CTO Dashboard
-088e9d8 Harden documents read error handling
-362c4a7 Add documents phase 2 architecture
-f14ddd4 Correct documents phase 1 foundation
-46f6e72 Build documents foundation
-366e375 Build part stock inventory read models
-05b04d7 Build tenant ERP dashboard
-5372dc2 feat: add auth tenant foundation
-141fee0 chore: baseline SaaS_Aviation foundation
-681cfb4 Add contact modified date and social links
-```
+## Deployment Metadata
 
-## 6. Deployment Status
+| Field | Value |
+|---|---|
+| Last deployed commit | `bb0ba80` |
+| Last deployment date | `2026-07-07T15:52:53Z` |
+| Environment | staging/public static frontend |
+| Backup path | `/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation_backup_20260707_155253` |
+| Protected admin status | `/SaaS_Aviation/admin/` protected by Apache Basic Auth |
 
-- Static frontend deployed to staging (`https://aerocanada-industries.com/SaaS_Aviation/`), last deploy
-  2026-07-02 (Documents Phase 1 UI). The new `/admin/cto` route is **not deployed**.
-- Express API runtime has **never** been deployed — blocks any real upload/signed-URL work.
-- Production: not requested.
+## Checks Snapshot
 
-## 7. Known Blockers
+| Check | Status |
+|---|---|
+| Tests | passing |
+| Typecheck | passing |
+| Lint | passing |
+| Build | passing |
+| Last checked | `2026-07-07T15:42:00Z` |
 
-- No persistent auth/session/audit storage — blocks real mutations and Documents Phase 2 audit requirements.
-- API runtime not deployed — required before Documents Phase 2 can function at all.
-- Documents Phase 2 build blocked on infra decisions (object storage provider, scan engine, OCR vendor).
-- Authenticated Yoyamic browser verification blocked (no credentials available).
-- DB schema changes not approved; production deployment not approved.
-- The CTO Dashboard route has no access control — it must not be included in any deploy of the static frontend
-  until a gate exists, since static export has no server-side session boundary.
+## Security Status
 
-## 8. Next Recommended Sprint
+- `/SaaS_Aviation/admin/` is protected by Apache Basic Auth on staging.
+- The CTO route is hidden from the public sidebar.
+- No Express API runtime was deployed.
+- No database, Yoyamic, or legacy PHP changes were made.
+- Credentials remain server-side only and are not committed.
 
-1. Review `088e9d8` and this CTO Dashboard build.
-2. Decide an access-control approach for `/admin/cto` before it can ever be deployed (static export makes every
-   route public once shipped).
-3. Hold further Documents feature work until persistent auth/session/audit storage lands and the API runtime is
-   deployed for the first time.
-4. Resume the long-pending read-only legacy MySQL adapter mapping for Dashboard/Part 360/Stock 360/Company
-   Inventory, so Documents doesn't keep pulling ahead of the rest of the foundation.
+## Last 10 Commits
 
-## 9. Module Table
+| Commit | Date | Author | Message |
+|---|---|---|---|
+| `bb0ba80` | 2026-07-07 | Afterlife | Protect CTO Dashboard |
+| `3c32468` | 2026-07-07 | Afterlife | Build CTO Dashboard |
+| `20bdc67` | 2026-07-07 | Afterlife | Add CTO status dashboard |
+| `088e9d8` | 2026-07-06 | Afterlife | Harden documents read error handling |
+| `362c4a7` | 2026-07-02 | Afterlife | Add documents phase 2 architecture |
+| `f14ddd4` | 2026-07-02 | Afterlife | Correct documents phase 1 foundation |
+| `46f6e72` | 2026-07-02 | Afterlife | Build documents foundation |
+| `366e375` | 2026-07-02 | Afterlife | Build part stock inventory read models |
+| `05b04d7` | 2026-07-01 | root | Build tenant ERP dashboard |
+| `5372dc2` | 2026-06-30 | root | feat: add auth tenant foundation |
+
+## Module Table
 
 | Module | Status | Progress | Last Commit | Review Status | Deploy Status | Next Action |
 |---|---|---|---|---|---|---|
@@ -94,20 +94,29 @@ f14ddd4 Correct documents phase 1 foundation
 | Part 360 | Foundation | 55% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
 | Stock 360 | Foundation | 55% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
-| Documents | In progress | 40% | `088e9d8` | `46f6e72`, `f14ddd4` reviewed; `088e9d8` pending | Static UI on staging (2026-07-02) | Review `088e9d8`; hold Phase 2 for persistent audit + API deploy |
-| Warehouse | Not started | 0% | — | — | — | Not yet scoped as a distinct module |
-| RFQ | Planned | 15% | `05b04d7` | — | Not deployed (sample model only) | Design dedicated workspace |
-| Supplier Quotes | Planned | 15% | `05b04d7` | — | Not deployed (sample model only) | Design dedicated workspace |
-| Customer Quotes | Planned | 15% | `05b04d7` | — | Not deployed (sample model only) | Design dedicated workspace |
-| Purchase Orders | Planned | 15% | `05b04d7` | — | Not deployed (sample model only) | Design dedicated workspace |
-| Sales Orders | Planned | 15% | `05b04d7` | — | Not deployed (sample model only) | Design dedicated workspace |
-| Repair / Exchange / Lease | Planned | 15% | `05b04d7` | — | Not deployed (sample model only) | Design dedicated workspace |
-| Accounting | Planned | 10% | `05b04d7` | — | Not deployed (sample model only) | Not yet scoped as a distinct module |
-| Reports | Not started | 0% | — | — | — | Not yet scoped |
-| Administration | Not started | 0% | — | — | — | Tenant admin / RBAC UI not yet scoped |
-| AI | Planned | 5% | — | — | — | No LLM provider selected; tool-layer architecture only |
+| Documents | In progress | 40% | `088e9d8` | `46f6e72`, `f14ddd4` reviewed; `088e9d8` pending | Static UI on staging; API runtime not deployed | Review `088e9d8`; hold Phase 2 for persistent audit + API deploy |
+| Warehouse | Not started | 0% | - | - | - | Not yet scoped as a distinct module |
+| RFQ | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
+| Supplier Quotes | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
+| Customer Quotes | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
+| Purchase Orders | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
+| Sales Orders | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
+| Repair / Exchange / Lease | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
+| Accounting | Planned | 10% | `05b04d7` | - | Not deployed (sample model only) | Not yet scoped as a distinct module |
+| Reports | Not started | 0% | - | - | - | Not yet scoped |
+| Administration | Not started | 0% | - | - | - | Tenant admin / RBAC UI not yet scoped |
+| AI | Planned | 5% | - | - | - | No LLM provider selected; tool-layer architecture only |
 | API | Foundation | 40% | `088e9d8` | Reads reviewed as part of Documents review | Never deployed as a running service | Deploy API runtime for the first time; add mutation routes behind RBAC |
-| Security | Foundation | 30% | `f14ddd4` | `document.read` enforcement reviewed | Not deployed | Persistent audit storage, RBAC hardening, rate limiting, secrets manager |
-| Multi-Tenant | Foundation | 50% | `f14ddd4` | Tenant scoping reviewed per-module | Not deployed | Validate isolation with a second real tenant |
+| Security | Foundation | 35% | `bb0ba80` | Basic Auth protection deployed for `/admin` | Static `/admin` protected on staging | Persistent audit storage, RBAC hardening, rate limiting, secrets manager |
+| Multi-Tenant | Foundation | 50% | `f14ddd4` | Tenant scoping reviewed per-module | Not deployed | Validate isolation with a second real tenant; add DB-level constraints once persistence exists |
 
-Progress percentages are qualitative internal estimates, not a formal metric.
+## Current Sprint
+
+CTO Dashboard Phase 2 adds static build, deployment, check, security, and activity metadata to the protected
+`/admin/cto` route.
+
+## Next Recommended Sprint
+
+Review and deploy this static metadata only after explicit approval. Then resume read-only legacy MySQL adapter
+mapping for Dashboard, Part 360, Stock 360, and Company Inventory. Hold Documents Phase 2 until infrastructure and
+API runtime decisions are approved.
