@@ -44,6 +44,7 @@ Build SaaS_Aviation Persistent Data Foundation Phase 2 locally: native PostgreSQ
   Purchase History and Sales History remain explicit placeholder panels pending real PO/SO modules.
 - Stock 360 SaaS workspace with read-only tenant-scoped action boundaries.
 - Company 360 SaaS workspace with list search/filter/sort, contacts, inventory, documents, commercial activity placeholders, and workflow boundaries.
+- Warehouse architecture design is documented at `docs/architecture/warehouse.md`; no Warehouse production code is implemented.
 - Legacy read adapter boundary.
 - OpenAPI route contract refinement for future generated clients and validation.
 - Permanent project memory.
@@ -97,6 +98,7 @@ Main is the active branch. The standing untracked local workspace files are the 
 ## Changelog
 
 - 2026-07-10: Added Persistent Data Foundation Phase 2 locally. Implemented explicit memory/postgres provider selection, native `pg` PostgreSQL repository for Company/Contact/Part/Stock, deterministic migration status/apply runner with checksums, tenant-composite schema constraints including part alternates, persistent-api frontend client boundary with no sample fallback, and Yoyamic read-only source policy scaffold with no live queries or writes. Added PostgreSQL integration tests gated on `TEST_DATABASE_URL`/`DATABASE_URL`; this machine had no PostgreSQL runtime or database URL, so real DB apply/restart verification remains blocked until a local test DB is provisioned. No deployment, push, Yoyamic change, live DB change, legacy PHP change, or Express API deployment was performed.
+- 2026-07-10: Added the Warehouse architecture design under `docs/architecture/warehouse.md`. The document defines the future physical warehouse execution layer, append-only movement ledger, location hierarchy, condition/disposition separation, receiving/inspection/put-away/pick/pack/ship/transfer/count/adjustment/audit/quarantine-release workflows, Documents boundaries, and Yoyamic read-only migration stance. Documentation only; no Warehouse production code, schema, API route, UI workflow, deployment, Yoyamic change, or live DB change was made.
 - 2026-07-10: Added Persistent Data Foundation Phase 1 locally. Created PostgreSQL-compatible core schema migration for tenants, companies, company roles, contacts, part numbers, stock items, and legacy mappings; added shared persistence types, validation schemas, repository interfaces, domain errors, local in-memory repository implementation, Express CRUD endpoints for Company/Contact/Part/Stock, OpenAPI route contracts, explicit web data-source mode, dry-run Yoyamic importer/reconciliation foundation, tests, and persistence/database/API docs. Legacy Yoyamic was inspected only via repository PHP references; no live DB query, DB deployment, API deployment, Yoyamic write, legacy PHP change, or push/deploy was performed.
 - 2026-07-07: Completed the Part 360 business workspace as a read-only aggregation layer: a part header (status,
   condition summary, certification indicators, last update), internal/external stock panels with real loading

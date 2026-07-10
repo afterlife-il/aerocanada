@@ -115,7 +115,7 @@ without another manual update.
 | Stock 360 | Foundation + local PostgreSQL provider | 60% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
 | Documents | In progress | 40% | `088e9d8` | `46f6e72`, `f14ddd4` reviewed; `088e9d8` pending | Static UI on staging; API runtime not deployed | Review `088e9d8`; hold Phase 2 for persistent audit + API deploy |
-| Warehouse | Not started | 0% | - | - | - | Not yet scoped as a distinct module |
+| Warehouse | Architecture documented | 10% | local pending commit | Not reviewed | Not deployed | Review `docs/architecture/warehouse.md`; no production code implemented |
 | RFQ | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
 | Supplier Quotes | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
 | Customer Quotes | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
@@ -133,7 +133,7 @@ without another manual update.
 ## Current Sprint
 
 Persistent Data Foundation Phase 2 adds the local PostgreSQL provider, explicit migrations, persistent-api frontend
-boundary, and read-only Yoyamic adapter preparation. It is not deployed.
+boundary, read-only Yoyamic adapter preparation, and Warehouse architecture documentation. It is not deployed.
 
 ## Next Recommended Sprint
 

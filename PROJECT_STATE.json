@@ -31,6 +31,11 @@
       "status": "read_model_foundation_implemented_pending_deploy",
       "scope": "tenant-scoped company inventory summary with unique stock totals, company relationship rows, stock documents, linked RFQs, and non-persistent action boundaries"
     },
+    "warehouse": {
+      "status": "architecture_documented_not_implemented",
+      "scope": "future physical warehouse execution layer with location hierarchy, append-only movement ledger, condition/disposition separation, receiving, inspection, put away, pick, pack, ship, transfer, cycle count, physical inventory, adjustment, audit, and quarantine release workflows",
+      "architecture_doc": "docs/architecture/warehouse.md"
+    },
     "rfq": {
       "status": "represented_in_dashboard_sample_read_model"
     },
@@ -158,7 +163,8 @@
     "documents_database": "docs/database/documents.md",
     "documents_security": "docs/security/documents.md",
     "aviation_erp_benchmark": "SaaS_Aviation/AVIATION_ERP_BENCHMARK.md",
-    "cto_status": "SaaS_Aviation/CTO_STATUS.md"
+    "cto_status": "SaaS_Aviation/CTO_STATUS.md",
+    "warehouse_architecture": "docs/architecture/warehouse.md"
   },
   "architecture": {
     "strategy": "adapter-first SaaS application separate from legacy Yoyamic",
