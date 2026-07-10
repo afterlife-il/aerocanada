@@ -11,22 +11,28 @@ is exported with `output: "export"`, so dashboard data is baked into the static 
 ## Current Global Status
 
 Pre-MVP foundation. Static, sample-data-backed SaaS ERP shell remains deployed alongside legacy Yoyamic. Local
-Persistent Data Foundation Phase 1 now exists for Company, Contact, Part, and Stock, but no SaaS database or Express
-API runtime has been deployed. The static frontend is deployed to staging and the admin path is protected by Apache
-Basic Auth.
+Persistent Data Foundation Phase 2 now exists for Company, Contact, Part, and Stock with memory and PostgreSQL
+providers, but no SaaS database or Express API runtime has been deployed. The static frontend is deployed to staging
+and the admin path is protected by Apache Basic Auth.
 
-## Persistent Data Foundation Phase 1
+## Persistent Data Foundation Phase 2
 
 Local only, not deployed:
 
-- PostgreSQL-compatible core schema migration for tenants, companies, company roles, contacts, part numbers, stock items, and legacy mappings.
+- PostgreSQL-compatible core schema migration for tenants, companies, company roles, contacts, part numbers, part alternates, stock items, and legacy mappings.
 - Shared tenant-scoped repository contracts, validation schemas, and domain errors.
 - Local in-memory API repository for CRUD tests and route validation.
+- Native `pg` PostgreSQL repository provider selected explicitly by environment.
+- Deterministic migration status/apply runner with checksum ledger.
 - Express CRUD routes for Company, Contact, Part, and Stock.
 - Explicit frontend data-source mode: `sample-static` vs `persistent-api`.
+- Persistent API client boundary that refuses to fall back to sample data.
 - Controlled Yoyamic importer dry-run and reconciliation foundation.
+- Yoyamic read-only source policy scaffold only; no live query, write method, or credential.
 
-Yoyamic was inspected only through repository PHP references in this sprint. No live Yoyamic database query, write, API deployment, database deployment, legacy PHP change, Plesk change, or Apache/Basic Auth change was performed.
+PostgreSQL integration tests are implemented and gated on `TEST_DATABASE_URL` or `DATABASE_URL`. This machine had no local PostgreSQL runtime, `psql`, Docker PostgreSQL runtime, or database URL during implementation, so migration apply/restart verification against a real database remains blocked until a local test database is provisioned.
+
+Yoyamic was not touched in this sprint. No live Yoyamic database query, write, API deployment, database deployment, legacy PHP change, Plesk change, or Apache/Basic Auth change was performed.
 
 ## CTO Dashboard Phase 2
 
@@ -104,9 +110,9 @@ without another manual update.
 | Core | Operational | 85% | `141fee0` | Not formally reviewed | Static export only | Map to read-only Yoyamic adapter |
 | Authentication | Foundation | 35% | `5372dc2` | Not reviewed | Not deployed | Persistent session/audit store, MFA, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
-| Company 360 | Foundation complete | 70% | local pending commit | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
-| Part 360 | Workspace complete | 70% | local pending commit | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
-| Stock 360 | Foundation | 55% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
+| Company 360 | Foundation complete + local PostgreSQL provider | 75% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
+| Part 360 | Workspace complete + local PostgreSQL provider | 75% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
+| Stock 360 | Foundation + local PostgreSQL provider | 60% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
 | Documents | In progress | 40% | `088e9d8` | `46f6e72`, `f14ddd4` reviewed; `088e9d8` pending | Static UI on staging; API runtime not deployed | Review `088e9d8`; hold Phase 2 for persistent audit + API deploy |
 | Warehouse | Not started | 0% | - | - | - | Not yet scoped as a distinct module |
@@ -126,11 +132,11 @@ without another manual update.
 
 ## Current Sprint
 
-CTO Dashboard Phase 2 adds static build, deployment, check, security, and activity metadata to the protected
-`/admin/cto` route.
+Persistent Data Foundation Phase 2 adds the local PostgreSQL provider, explicit migrations, persistent-api frontend
+boundary, and read-only Yoyamic adapter preparation. It is not deployed.
 
 ## Next Recommended Sprint
 
-Review and deploy this static metadata only after explicit approval. Then resume read-only legacy MySQL adapter
-mapping for Dashboard, Part 360, Stock 360, and Company Inventory. Hold Documents Phase 2 until infrastructure and
-API runtime decisions are approved.
+Provision an isolated local PostgreSQL test database, run migration apply/status and PostgreSQL integration tests,
+then resume Auth/Tenant persistence and read-only legacy MySQL adapter mapping. Hold production API/database deploy
+until infrastructure, RBAC, audit, and secrets decisions are approved.

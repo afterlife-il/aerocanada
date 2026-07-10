@@ -139,14 +139,14 @@ export interface LegacyMappingRecord {
   checksum?: string | undefined;
 }
 
-export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
-export type UpdateCompanyInput = z.infer<typeof updateCompanySchema>;
-export type CreateContactInput = z.infer<typeof createContactSchema>;
-export type UpdateContactInput = z.infer<typeof updateContactSchema>;
-export type CreatePartInput = z.infer<typeof createPartSchema>;
-export type UpdatePartInput = z.infer<typeof updatePartSchema>;
-export type CreateStockInput = z.infer<typeof createStockSchema>;
-export type UpdateStockInput = z.infer<typeof updateStockSchema>;
+export type CreateCompanyInput = z.input<typeof createCompanySchema>;
+export type UpdateCompanyInput = z.input<typeof updateCompanySchema>;
+export type CreateContactInput = z.input<typeof createContactSchema>;
+export type UpdateContactInput = z.input<typeof updateContactSchema>;
+export type CreatePartInput = z.input<typeof createPartSchema>;
+export type UpdatePartInput = z.input<typeof updatePartSchema>;
+export type CreateStockInput = z.input<typeof createStockSchema>;
+export type UpdateStockInput = z.input<typeof updateStockSchema>;
 
 const optionalText = z.string().trim().min(1).max(500).optional();
 const companyRoleSchema = z.enum([

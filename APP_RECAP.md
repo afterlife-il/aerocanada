@@ -16,7 +16,7 @@ CTO-level status snapshot: `SaaS_Aviation/CTO_STATUS.md`.
 
 ## Current Sprint
 
-Build SaaS_Aviation Persistent Data Foundation Phase 1 locally: dedicated PostgreSQL-compatible schema contract, tenant-scoped repository/service boundaries, local CRUD API foundation, explicit frontend data-source mode, and controlled Yoyamic importer dry-run/reconciliation foundation. No deployment.
+Build SaaS_Aviation Persistent Data Foundation Phase 2 locally: native PostgreSQL provider, explicit migration runner, tenant-scoped local persistence integration, persistent-api frontend client boundary, and Yoyamic read-only adapter preparation. No deployment.
 
 ## Active Tracks
 
@@ -47,7 +47,7 @@ Build SaaS_Aviation Persistent Data Foundation Phase 1 locally: dedicated Postgr
 - Legacy read adapter boundary.
 - OpenAPI route contract refinement for future generated clients and validation.
 - Permanent project memory.
-- Persistent Data Foundation Phase 1 local code: core Company/Contact/Part/Stock schema, repository contracts, in-memory local implementation, CRUD API routes, OpenAPI contract updates, importer dry-run/reconciliation tests, and documentation. Not deployed.
+- Persistent Data Foundation Phase 2 local code: core Company/Contact/Part/Stock schema, repository contracts, in-memory local implementation, PostgreSQL repository provider, explicit migration runner, CRUD API routes, OpenAPI contract updates, importer dry-run/reconciliation tests, persistent-api client boundary, and documentation. Not deployed.
 
 ## Pending Modules
 
@@ -70,7 +70,7 @@ Foundation only. No production auth, MFA, tenant isolation enforcement, persiste
 
 ## SaaS Readiness
 
-Early foundation. The app builds, has sample read screens, and the static frontend is deployed to staging for visual inspection with the admin path protected by Basic Auth. Local persistent CRUD foundations now exist for Company, Contact, Part, and Stock, but the API runtime and database are not deployed. Real legacy data integration, production auth/RBAC, audit persistence, and server-side deployment design remain.
+Early foundation. The app builds, has sample read screens, and the static frontend is deployed to staging for visual inspection with the admin path protected by Basic Auth. Local persistent CRUD foundations now exist for Company, Contact, Part, and Stock with memory and PostgreSQL providers, but the API runtime and database are not deployed. Real legacy data integration, production auth/RBAC, audit persistence, and server-side deployment design remain.
 
 ## Current Deployments
 
@@ -96,6 +96,7 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 ## Changelog
 
+- 2026-07-10: Added Persistent Data Foundation Phase 2 locally. Implemented explicit memory/postgres provider selection, native `pg` PostgreSQL repository for Company/Contact/Part/Stock, deterministic migration status/apply runner with checksums, tenant-composite schema constraints including part alternates, persistent-api frontend client boundary with no sample fallback, and Yoyamic read-only source policy scaffold with no live queries or writes. Added PostgreSQL integration tests gated on `TEST_DATABASE_URL`/`DATABASE_URL`; this machine had no PostgreSQL runtime or database URL, so real DB apply/restart verification remains blocked until a local test DB is provisioned. No deployment, push, Yoyamic change, live DB change, legacy PHP change, or Express API deployment was performed.
 - 2026-07-10: Added Persistent Data Foundation Phase 1 locally. Created PostgreSQL-compatible core schema migration for tenants, companies, company roles, contacts, part numbers, stock items, and legacy mappings; added shared persistence types, validation schemas, repository interfaces, domain errors, local in-memory repository implementation, Express CRUD endpoints for Company/Contact/Part/Stock, OpenAPI route contracts, explicit web data-source mode, dry-run Yoyamic importer/reconciliation foundation, tests, and persistence/database/API docs. Legacy Yoyamic was inspected only via repository PHP references; no live DB query, DB deployment, API deployment, Yoyamic write, legacy PHP change, or push/deploy was performed.
 - 2026-07-07: Completed the Part 360 business workspace as a read-only aggregation layer: a part header (status,
   condition summary, certification indicators, last update), internal/external stock panels with real loading
@@ -146,4 +147,4 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 ## Next Sprint
 
-Review and deploy CTO Dashboard Phase 2 static metadata only after explicit approval. Then create read-only legacy adapter mapping for dashboard/ERP workflows and harden Auth/Tenant persistence before any mutations.
+Provision an isolated local PostgreSQL test database, run migration apply/status and PostgreSQL integration tests, then continue Auth/Tenant persistence and read-only legacy adapter mapping before any production mutations.

@@ -5,6 +5,7 @@ import { sampleRequestContext } from "@saas-aviation/shared";
 import { currentSession, data, getCompany360ReadModel, getCompanyListReadModel, getStock } from "./data.js";
 import { getCtoStatus } from "./cto-status.js";
 import { assertPersistentApiMode, getDataSourceConfig } from "./data-source-mode.js";
+import { persistentApi, PersistentApiError } from "./persistent-api.js";
 import { getDashboardData } from "./dashboard.js";
 import { getDocumentCenterReadModel, getEntityDocumentReadModel, validateDocumentUpload } from "./documents.js";
 import { getCompanyInventoryReadModel, getPart360ReadModel, getStock360ReadModel } from "./part-stock.js";
@@ -40,6 +41,50 @@ test("web data source mode defaults to explicit sample static mode", () => {
   } finally {
     if (previousMode) process.env.NEXT_PUBLIC_SAAS_DATA_SOURCE_MODE = previousMode;
     if (previousUrl) process.env.NEXT_PUBLIC_SAAS_API_BASE_URL = previousUrl;
+  }
+});
+
+test("persistent API client requires explicit API mode and never falls back to sample data", async () => {
+  await assert.rejects(
+    persistentApi.listCompanies({
+      mode: "sample-static",
+      apiBaseUrl: null,
+      staticExport: true
+    }),
+    /Persistent API mode is not enabled/
+  );
+});
+
+test("persistent API client calls configured API and surfaces validation errors", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls: string[] = [];
+  globalThis.fetch = (async (input: string | URL | Request) => {
+    calls.push(String(input));
+    if (String(input).endsWith("/v1/companies")) {
+      return new Response(JSON.stringify({ data: [{ id: "company-db-1", tenantId: "tenant-db", name: "DB Company", roles: ["customer"] }] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    return new Response(JSON.stringify({ error: "validation_error" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }) as typeof fetch;
+
+  try {
+    const config = { mode: "persistent-api" as const, apiBaseUrl: "http://127.0.0.1:4107", staticExport: true };
+    const companies = await persistentApi.listCompanies(config);
+    assert.equal(companies[0]?.name, "DB Company");
+    assert.equal(calls[0], "http://127.0.0.1:4107/v1/companies");
+
+    await assert.rejects(persistentApi.createPart({}, config), (error) => {
+      assert.equal(error instanceof PersistentApiError, true);
+      assert.equal((error as PersistentApiError).status, 400);
+      return true;
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
 

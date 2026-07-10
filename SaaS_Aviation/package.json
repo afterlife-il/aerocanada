@@ -14,6 +14,8 @@
     "lint": "npm run lint -w @saas-aviation/web && npm run lint -w @saas-aviation/api",
     "typecheck": "npm run typecheck -w @saas-aviation/shared && npm run build -w @saas-aviation/shared && npm run typecheck -w @saas-aviation/api && npm run typecheck -w @saas-aviation/web",
     "test": "npm run test -w @saas-aviation/shared && npm run build -w @saas-aviation/shared && npm run test -w @saas-aviation/api && npm run test -w @saas-aviation/web",
+    "migrate:status": "npm run migrate:status -w @saas-aviation/api",
+    "migrate:apply": "npm run migrate:apply -w @saas-aviation/api",
     "format": "prettier --check ."
   },
   "devDependencies": {

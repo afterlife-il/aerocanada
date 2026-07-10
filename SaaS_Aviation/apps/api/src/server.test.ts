@@ -10,6 +10,8 @@ import { createApp } from "./server.js";
 import { openApiDocument } from "./openapi/openapi.js";
 import { InMemoryCorePersistence } from "./persistence/core-memory-repository.js";
 import { dryRunYoyamicCoreImport, type LegacyYoyamicSnapshot } from "./importers/yoyamic-core-importer.js";
+import { getPersistenceConfig } from "./persistence/config.js";
+import { createCorePersistenceProvider } from "./persistence/provider.js";
 import {
   buildDocumentCenterReadModel,
   buildEntityDocumentReadModel,
@@ -358,6 +360,12 @@ test("migration validation and importer dry run are repeatable", async () => {
   assert.ok(first.anomalies.includes("unknown_supplier_company=30:99"));
   assert.ok(first.anomalies.includes("orphan_stock=31"));
   assert.ok(first.anomalies.includes("invalid_quantity=31"));
+});
+
+test("persistence provider does not fall back from postgres to memory", () => {
+  assert.throws(() => getPersistenceConfig({ PERSISTENCE_PROVIDER: "postgres" }), /DATABASE_URL is required/);
+  const provider = createCorePersistenceProvider(getPersistenceConfig({ PERSISTENCE_PROVIDER: "memory" }));
+  assert.equal(provider.mode, "memory");
 });
 
 test("password auth creates a tenant-scoped session", async () => {

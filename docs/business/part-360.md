@@ -108,13 +108,15 @@ Part 360 completion required a small number of additive, backward-compatible sha
 - Supplier Quote fields (price, lead time, condition, validity) are not modeled yet; the Supplier Quotes panel
   intentionally shows only the fields the current `SupplierQuoteSummary` type carries (supplier, RFQ, qty, status,
   due date) rather than inventing placeholder data.
-## Persistence Foundation Phase 1
+## Persistence Foundation Phase 2
 
-Part 360 remains deployed as a static/sample read-model screen. Locally, the Express API now has tenant-scoped Part Number CRUD foundation routes backed by repository contracts and validation:
+Part 360 remains deployed as a static/sample read-model screen. Locally, the Express API now has tenant-scoped Part Number CRUD foundation routes backed by repository contracts, validation, and selectable memory/PostgreSQL providers:
 
 - `GET/POST /v1/parts`
 - `GET/PATCH /v1/parts/:id`
 
 Part numbers are normalized for search and uniqueness while preserving the display part number. The uniqueness rule includes manufacturer/manufacturer code so distinct manufacturer parts are not silently collapsed.
 
-This does not make deployed Part 360 mutations operational. Create/edit part number remains local API foundation only until the API runtime and dedicated SaaS database are deployed.
+PostgreSQL mode is local/dev only and requires explicit `DATABASE_URL` configuration. The static frontend does not connect to it unless `persistent-api` mode is selected locally.
+
+This does not make deployed Part 360 mutations operational. Create/edit part number remains local API foundation only until the API runtime, dedicated SaaS database, production RBAC, and audit persistence are deployed.
