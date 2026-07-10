@@ -1,6 +1,6 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-07-07
+Last updated: 2026-07-10
 
 ## Vision
 
@@ -16,7 +16,7 @@ CTO-level status snapshot: `SaaS_Aviation/CTO_STATUS.md`.
 
 ## Current Sprint
 
-Stabilize project memory and continue SaaS foundation work without restarting from zero. The API contract is now being formalized before real legacy data integration.
+Build SaaS_Aviation Persistent Data Foundation Phase 1 locally: dedicated PostgreSQL-compatible schema contract, tenant-scoped repository/service boundaries, local CRUD API foundation, explicit frontend data-source mode, and controlled Yoyamic importer dry-run/reconciliation foundation. No deployment.
 
 ## Active Tracks
 
@@ -47,6 +47,7 @@ Stabilize project memory and continue SaaS foundation work without restarting fr
 - Legacy read adapter boundary.
 - OpenAPI route contract refinement for future generated clients and validation.
 - Permanent project memory.
+- Persistent Data Foundation Phase 1 local code: core Company/Contact/Part/Stock schema, repository contracts, in-memory local implementation, CRUD API routes, OpenAPI contract updates, importer dry-run/reconciliation tests, and documentation. Not deployed.
 
 ## Pending Modules
 
@@ -69,7 +70,7 @@ Foundation only. No production auth, MFA, tenant isolation enforcement, persiste
 
 ## SaaS Readiness
 
-Early foundation. The app builds, has sample read screens, and the static frontend is deployed to staging for visual inspection with the admin path protected by Basic Auth. Real legacy data integration, auth, RBAC, tenant scope, audit persistence, and server-side deployment design remain.
+Early foundation. The app builds, has sample read screens, and the static frontend is deployed to staging for visual inspection with the admin path protected by Basic Auth. Local persistent CRUD foundations now exist for Company, Contact, Part, and Stock, but the API runtime and database are not deployed. Real legacy data integration, production auth/RBAC, audit persistence, and server-side deployment design remain.
 
 ## Current Deployments
 
@@ -95,6 +96,7 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 ## Changelog
 
+- 2026-07-10: Added Persistent Data Foundation Phase 1 locally. Created PostgreSQL-compatible core schema migration for tenants, companies, company roles, contacts, part numbers, stock items, and legacy mappings; added shared persistence types, validation schemas, repository interfaces, domain errors, local in-memory repository implementation, Express CRUD endpoints for Company/Contact/Part/Stock, OpenAPI route contracts, explicit web data-source mode, dry-run Yoyamic importer/reconciliation foundation, tests, and persistence/database/API docs. Legacy Yoyamic was inspected only via repository PHP references; no live DB query, DB deployment, API deployment, Yoyamic write, legacy PHP change, or push/deploy was performed.
 - 2026-07-07: Completed the Part 360 business workspace as a read-only aggregation layer: a part header (status,
   condition summary, certification indicators, last update), internal/external stock panels with real loading
   (route-level skeleton), empty, and error states, dedicated RFQ/supplier quote/customer quote panels each with a

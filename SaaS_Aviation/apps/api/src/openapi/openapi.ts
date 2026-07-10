@@ -121,7 +121,108 @@ export const openApiDocument = {
               }
             }
           },
-          "401": { $ref: "#/components/responses/Unauthorized" }
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" }
+        }
+      },
+      post: {
+        tags: ["Companies"],
+        operationId: "createCompany",
+        summary: "Create a tenant-scoped company in the local persistence foundation",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { type: "object" }
+            }
+          }
+        },
+        responses: {
+          "201": { description: "Company created." },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "409": { $ref: "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/v1/companies/{id}": {
+      get: {
+        tags: ["Companies"],
+        operationId: "getCompany",
+        summary: "Get one tenant-scoped company",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Company record." },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" }
+        }
+      },
+      patch: {
+        tags: ["Companies"],
+        operationId: "updateCompany",
+        summary: "Update one tenant-scoped company",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: {
+          "200": { description: "Company updated." },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "409": { $ref: "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/v1/companies/{companyId}/contacts": {
+      get: {
+        tags: ["Companies"],
+        operationId: "listCompanyContacts",
+        summary: "List contacts for one tenant-scoped company",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Contact records." },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" }
+        }
+      },
+      post: {
+        tags: ["Companies"],
+        operationId: "createCompanyContact",
+        summary: "Create a contact for one tenant-scoped company",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: {
+          "201": { description: "Contact created." },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "409": { $ref: "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/v1/contacts/{id}": {
+      patch: {
+        tags: ["Companies"],
+        operationId: "updateContact",
+        summary: "Update one tenant-scoped contact",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: {
+          "200": { description: "Contact updated." },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" }
         }
       }
     },
@@ -140,7 +241,53 @@ export const openApiDocument = {
               }
             }
           },
-          "401": { $ref: "#/components/responses/Unauthorized" }
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" }
+        }
+      },
+      post: {
+        tags: ["Parts"],
+        operationId: "createPart",
+        summary: "Create a tenant-scoped part number in the local persistence foundation",
+        security: [{ bearerAuth: [] }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: {
+          "201": { description: "Part created." },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "409": { $ref: "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/v1/parts/{id}": {
+      get: {
+        tags: ["Parts"],
+        operationId: "getPart",
+        summary: "Get one tenant-scoped part record",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Part record." },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" }
+        }
+      },
+      patch: {
+        tags: ["Parts"],
+        operationId: "updatePart",
+        summary: "Update one tenant-scoped part record",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: {
+          "200": { description: "Part updated." },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "409": { $ref: "#/components/responses/Conflict" }
         }
       }
     },
@@ -161,6 +308,63 @@ export const openApiDocument = {
             }
           },
           "401": { $ref: "#/components/responses/Unauthorized" },
+          "404": { $ref: "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/stock": {
+      get: {
+        tags: ["Stock"],
+        operationId: "listStock",
+        summary: "List tenant-scoped stock records across internal and external sources",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "Stock records." },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" }
+        }
+      },
+      post: {
+        tags: ["Stock"],
+        operationId: "createStockItem",
+        summary: "Create a tenant-scoped stock item in the local persistence foundation",
+        security: [{ bearerAuth: [] }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: {
+          "201": { description: "Stock item created." },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/stock/{id}": {
+      get: {
+        tags: ["Stock"],
+        operationId: "getStockItem",
+        summary: "Get one tenant-scoped stock item",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Stock item." },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" }
+        }
+      },
+      patch: {
+        tags: ["Stock"],
+        operationId: "updateStockItem",
+        summary: "Update one tenant-scoped stock item",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: {
+          "200": { description: "Stock item updated." },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { $ref: "#/components/responses/Forbidden" },
           "404": { $ref: "#/components/responses/NotFound" }
         }
       }
@@ -383,6 +587,22 @@ export const openApiDocument = {
       },
       NotFound: {
         description: "Tenant-scoped record was not found.",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      ValidationError: {
+        description: "Request body failed validation.",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      Conflict: {
+        description: "Tenant-scoped uniqueness rule was violated.",
         content: {
           "application/json": {
             schema: { $ref: "#/components/schemas/ErrorResponse" }

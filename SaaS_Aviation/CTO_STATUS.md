@@ -1,6 +1,6 @@
 # CTO Status Dashboard - SaaS_Aviation
 
-Last updated: 2026-07-07
+Last updated: 2026-07-10
 Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 protected static deploy report.
 
 A protected in-app mirror of this snapshot exists at `/admin/cto` in the static SaaS_Aviation frontend. The frontend
@@ -10,9 +10,23 @@ is exported with `output: "export"`, so dashboard data is baked into the static 
 
 ## Current Global Status
 
-Pre-MVP foundation. Read-only, sample-data-backed SaaS ERP shell alongside legacy Yoyamic. No live database, no
-persistent auth/audit, and no Express API runtime deployment. The static frontend is deployed to staging and the
-admin path is protected by Apache Basic Auth.
+Pre-MVP foundation. Static, sample-data-backed SaaS ERP shell remains deployed alongside legacy Yoyamic. Local
+Persistent Data Foundation Phase 1 now exists for Company, Contact, Part, and Stock, but no SaaS database or Express
+API runtime has been deployed. The static frontend is deployed to staging and the admin path is protected by Apache
+Basic Auth.
+
+## Persistent Data Foundation Phase 1
+
+Local only, not deployed:
+
+- PostgreSQL-compatible core schema migration for tenants, companies, company roles, contacts, part numbers, stock items, and legacy mappings.
+- Shared tenant-scoped repository contracts, validation schemas, and domain errors.
+- Local in-memory API repository for CRUD tests and route validation.
+- Express CRUD routes for Company, Contact, Part, and Stock.
+- Explicit frontend data-source mode: `sample-static` vs `persistent-api`.
+- Controlled Yoyamic importer dry-run and reconciliation foundation.
+
+Yoyamic was inspected only through repository PHP references in this sprint. No live Yoyamic database query, write, API deployment, database deployment, legacy PHP change, Plesk change, or Apache/Basic Auth change was performed.
 
 ## CTO Dashboard Phase 2
 

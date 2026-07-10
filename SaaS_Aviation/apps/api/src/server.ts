@@ -2,12 +2,15 @@ import { pathToFileURL } from "node:url";
 import cors from "cors";
 import express, { type ErrorRequestHandler, type RequestHandler } from "express";
 import helmet from "helmet";
-import type { AviationErpDataSource, DocumentOwnerModule } from "@saas-aviation/shared";
+import { ZodError } from "zod";
+import { CoreDomainError } from "@saas-aviation/shared";
+import type { AviationErpDataSource, CorePersistence, DocumentOwnerModule } from "@saas-aviation/shared";
 import { getLegacyDataSource } from "./adapters/legacy-mysql-adapter.js";
 import { AuditService } from "./audit/audit-service.js";
 import { InMemoryAuthProvider, type AuthProvider } from "./auth/auth-provider.js";
 import { requirePermission, requireSession } from "./auth/route-guard.js";
 import { openApiDocument } from "./openapi/openapi.js";
+import { InMemoryCorePersistence } from "./persistence/core-memory-repository.js";
 
 const port = Number(process.env.API_PORT ?? 4107);
 const createHelmetMiddleware = helmet as unknown as () => RequestHandler;
@@ -28,6 +31,7 @@ const documentOwnerModules = new Set<DocumentOwnerModule>([
 export interface AppDependencies {
   dataSource?: AviationErpDataSource;
   auth?: AuthProvider;
+  corePersistence?: CorePersistence;
 }
 
 function asyncHandler(handler: RequestHandler): RequestHandler {
@@ -44,9 +48,54 @@ const errorHandler: ErrorRequestHandler = (_error, _req, res, _next) => {
   res.status(500).json({ error: "internal_server_error" });
 };
 
+function domainErrorStatus(error: CoreDomainError): number {
+  switch (error.code) {
+    case "not_found":
+      return 404;
+    case "validation_error":
+      return 400;
+    case "duplicate_company":
+    case "duplicate_contact":
+    case "duplicate_part":
+      return 409;
+    case "unauthorized":
+      return 401;
+    case "tenant_mismatch":
+      return 403;
+    case "database_error":
+      return 500;
+  }
+}
+
+function requiredParam(req: express.Request, res: express.Response, name: string): string | null {
+  const value = req.params[name];
+  if (!value) {
+    res.status(400).json({ error: "path_parameter_required", parameter: name });
+    return null;
+  }
+  return value;
+}
+
+async function handleCoreResponse<T>(res: express.Response, work: () => Promise<T>, status = 200): Promise<void> {
+  try {
+    res.status(status).json({ data: await work() });
+  } catch (error) {
+    if (error instanceof CoreDomainError) {
+      res.status(domainErrorStatus(error)).json({ error: error.code, message: error.message, details: error.details });
+      return;
+    }
+    if (error instanceof ZodError) {
+      res.status(400).json({ error: "validation_error", issues: error.issues });
+      return;
+    }
+    throw error;
+  }
+}
+
 export function createApp(dependencies: AppDependencies = {}) {
   const app = express();
   const dataSource = dependencies.dataSource ?? getLegacyDataSource();
+  const corePersistence = dependencies.corePersistence ?? new InMemoryCorePersistence();
   const auth = dependencies.auth ?? new InMemoryAuthProvider();
   const audit = new AuditService(dataSource);
 
@@ -107,7 +156,82 @@ export function createApp(dependencies: AppDependencies = {}) {
     asyncHandler(async (req, res) => {
       const context = await requireSession(req, res, auth);
       if (!context) return;
-      res.json({ data: await dataSource.listCompanies(context) });
+      if (!requirePermission(context, res, "company.read")) return;
+      await handleCoreResponse(res, () => corePersistence.listCompanies(context));
+    })
+  );
+
+  app.get(
+    "/v1/companies/:id",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "company.read")) return;
+      const id = requiredParam(req, res, "id");
+      if (!id) return;
+      await handleCoreResponse(res, async () => {
+        const company = await corePersistence.getCompanyById(context, id);
+        if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+        return company;
+      });
+    })
+  );
+
+  app.post(
+    "/v1/companies",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "company.read")) return;
+      await handleCoreResponse(res, () => corePersistence.createCompany(context, req.body), 201);
+    })
+  );
+
+  app.patch(
+    "/v1/companies/:id",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "company.read")) return;
+      const id = requiredParam(req, res, "id");
+      if (!id) return;
+      await handleCoreResponse(res, () => corePersistence.updateCompany(context, id, req.body));
+    })
+  );
+
+  app.get(
+    "/v1/companies/:companyId/contacts",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "company.read")) return;
+      const companyId = requiredParam(req, res, "companyId");
+      if (!companyId) return;
+      await handleCoreResponse(res, () => corePersistence.listContactsByCompany(context, companyId));
+    })
+  );
+
+  app.post(
+    "/v1/companies/:companyId/contacts",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "company.read")) return;
+      const companyId = requiredParam(req, res, "companyId");
+      if (!companyId) return;
+      await handleCoreResponse(res, () => corePersistence.createContact(context, companyId, req.body), 201);
+    })
+  );
+
+  app.patch(
+    "/v1/contacts/:id",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "company.read")) return;
+      const id = requiredParam(req, res, "id");
+      if (!id) return;
+      await handleCoreResponse(res, () => corePersistence.updateContact(context, id, req.body));
     })
   );
 
@@ -116,7 +240,46 @@ export function createApp(dependencies: AppDependencies = {}) {
     asyncHandler(async (req, res) => {
       const context = await requireSession(req, res, auth);
       if (!context) return;
-      res.json({ data: await dataSource.listParts(context) });
+      if (!requirePermission(context, res, "part.read")) return;
+      await handleCoreResponse(res, () => corePersistence.listParts(context));
+    })
+  );
+
+  app.get(
+    "/v1/parts/:id",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "part.read")) return;
+      const id = requiredParam(req, res, "id");
+      if (!id) return;
+      await handleCoreResponse(res, async () => {
+        const part = await corePersistence.getPartById(context, id);
+        if (!part) throw new CoreDomainError("not_found", "Part was not found in the current tenant.");
+        return part;
+      });
+    })
+  );
+
+  app.post(
+    "/v1/parts",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "part.read")) return;
+      await handleCoreResponse(res, () => corePersistence.createPart(context, req.body), 201);
+    })
+  );
+
+  app.patch(
+    "/v1/parts/:id",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "part.read")) return;
+      const id = requiredParam(req, res, "id");
+      if (!id) return;
+      await handleCoreResponse(res, () => corePersistence.updatePart(context, id, req.body));
     })
   );
 
@@ -182,6 +345,54 @@ export function createApp(dependencies: AppDependencies = {}) {
       const context = await requireSession(req, res, auth);
       if (!context) return;
       res.json({ data: await dataSource.getCompanyInventory(context) });
+    })
+  );
+
+  app.get(
+    "/v1/stock",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "stock.read")) return;
+      await handleCoreResponse(res, () => corePersistence.listStock(context));
+    })
+  );
+
+  app.get(
+    "/v1/stock/:id",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "stock.read")) return;
+      const id = requiredParam(req, res, "id");
+      if (!id) return;
+      await handleCoreResponse(res, async () => {
+        const stock = await corePersistence.getStockById(context, id);
+        if (!stock) throw new CoreDomainError("not_found", "Stock item was not found in the current tenant.");
+        return stock;
+      });
+    })
+  );
+
+  app.post(
+    "/v1/stock",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "stock.read")) return;
+      await handleCoreResponse(res, () => corePersistence.createStockItem(context, req.body), 201);
+    })
+  );
+
+  app.patch(
+    "/v1/stock/:id",
+    asyncHandler(async (req, res) => {
+      const context = await requireSession(req, res, auth);
+      if (!context) return;
+      if (!requirePermission(context, res, "stock.read")) return;
+      const id = requiredParam(req, res, "id");
+      if (!id) return;
+      await handleCoreResponse(res, () => corePersistence.updateStockItem(context, id, req.body));
     })
   );
 

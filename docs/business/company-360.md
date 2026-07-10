@@ -64,3 +64,13 @@ Company 360 exposes entry points only. It does not fake unfinished modules and d
 - Company edit mutations are not implemented.
 - Document byte storage, malware scanning, retention, and persisted audit remain future Documents work.
 - RFQ, quotes, PO, and SO dedicated workflows remain future modules.
+## Persistence Foundation Phase 1
+
+Company 360 remains deployed as a static/sample read-model screen. Locally, the Express API now has tenant-scoped Company and Contact CRUD foundation routes backed by repository contracts and validation:
+
+- `GET/POST /v1/companies`
+- `GET/PATCH /v1/companies/:id`
+- `GET/POST /v1/companies/:companyId/contacts`
+- `PATCH /v1/contacts/:id`
+
+This does not make deployed Company 360 mutations operational. Create/edit company and create/edit contact are still workflow-boundary UI actions in the static frontend until the API runtime and dedicated SaaS database are deployed.

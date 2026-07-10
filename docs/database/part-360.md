@@ -56,3 +56,10 @@ Before real persistence, in addition to the requirements already listed in `docs
 No changes beyond what `docs/database/stock.md` already documents. Part 360 does not introduce new Yoyamic-facing
 behavior; it aggregates the same stock/RFQ/quote/order/document/audit rows that Stock 360 and Company Inventory
 already read.
+## Persistence Foundation Phase 1
+
+Dedicated SaaS_Aviation part persistence is defined in `part_numbers` in `SaaS_Aviation/database/migrations/001_core_persistence.sql`.
+
+The schema stores both `part_number` and `normalized_part_number`. Uniqueness includes tenant and manufacturer/manufacturer code so two manufacturers can hold visually similar part numbers without being silently merged.
+
+Legacy Yoyamic source references identified from PHP code include `tbl_Parts` and related part document attachment table `tbl_docs_attachment_pn`. These were not queried live in this sprint.

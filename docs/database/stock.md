@@ -35,3 +35,10 @@ Yoyamic business behavior to preserve:
 - Owner/company is not the same as tag info.
 - RFQ workflow links should preserve `RFQ_ID`.
 - Stock lifecycle changes must be explicit and auditable.
+## Persistence Foundation Phase 1
+
+Dedicated SaaS_Aviation stock persistence is defined in `stock_items` in `SaaS_Aviation/database/migrations/001_core_persistence.sql`.
+
+The schema preserves independent company relationships for owner, supplier, tag info, and traceability. Quantity `0` records are valid. `location_text` is a temporary migration field until Warehouse/location modeling is approved.
+
+Legacy Yoyamic source references identified from PHP code include `tb_stock_part`, `tbl_Stock_external`, `tbl_Condition`, `tbl_Release`, and `tbl_Currency`. These were not queried live in this sprint.

@@ -36,3 +36,10 @@ Yoyamic behavior to preserve:
 - Company contacts from `tb_company_contact` should preserve role/title, email, phone, mobile, and remarks where available.
 - Legacy company documents from `tbl_docs_attachment_company` and `docsattachmentcompany/` should migrate through the shared Documents ownership model.
 - Stock owner/company, supplier, tag info company, and traceability company must remain separate relationships.
+## Persistence Foundation Phase 1
+
+Dedicated SaaS_Aviation persistence is defined in `SaaS_Aviation/database/migrations/001_core_persistence.sql`.
+
+Company data should migrate into `companies` plus `company_roles`, not into a single exclusive type field. Contacts migrate into `contacts` and remain tenant-scoped by `tenant_id`.
+
+Legacy Yoyamic source references identified from PHP code include `tb_company`, `tbl_Company_Details`, `tbl_Company_Type`, and `tb_company_contact`. These were not queried live in this sprint; read-only DB verification remains required before any production import.

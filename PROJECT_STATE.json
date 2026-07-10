@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-07",
+  "last_updated": "2026-07-10",
   "modules": {
     "legacy_yoyamic": {
       "purpose": "staging workflow, legacy reference, migration source",
@@ -8,7 +8,7 @@
     },
     "saas_aviation": {
       "purpose": "next-generation aviation ERP",
-      "status": "tenant_dashboard_local_pending_deploy",
+      "status": "persistent_data_foundation_phase_1_local_not_deployed",
       "path": "SaaS_Aviation"
     },
     "auth_tenant_foundation": {
@@ -16,16 +16,16 @@
       "scope": "email/password foundation, tenant context, roles, permissions, bearer sessions, protected API reads"
     },
     "company_360": {
-      "status": "foundation_completed_pending_deploy",
-      "scope": "Company list search/filter/sort, Company 360 overview, KPI cards, contacts, inventory summary, documents integration, commercial activity panels, and non-persistent workflow boundaries"
+      "status": "foundation_completed_with_local_crud_api_not_deployed",
+      "scope": "Company list search/filter/sort, Company 360 overview, KPI cards, contacts, inventory summary, documents integration, commercial activity panels, non-persistent static workflow boundaries, and local tenant-scoped Company/Contact CRUD API foundation"
     },
     "part_360": {
-      "status": "workspace_completion_sprint_implemented_pending_deploy",
-      "scope": "tenant-scoped Part 360 business workspace: part header (status/condition/certification/last-update), internal/external stock panels with loading/empty/error states, related RFQs, supplier quotes, customer quotes, purchase/sales history placeholders, documents & certificates, dedicated traceability panel, and non-persistent workflow-boundary quick actions"
+      "status": "workspace_completed_with_local_part_crud_api_not_deployed",
+      "scope": "tenant-scoped Part 360 business workspace plus local Part Number CRUD API foundation with normalized part-number uniqueness"
     },
     "stock_360": {
-      "status": "read_model_foundation_implemented_pending_deploy",
-      "scope": "tenant-scoped Stock 360 read model, owner/company, supplier, tag info, traceability, documents, lifecycle, RFQ/quote/order links, reservation/movement/upload boundaries"
+      "status": "read_model_foundation_with_local_stock_crud_api_not_deployed",
+      "scope": "tenant-scoped Stock 360 read model plus local Stock CRUD API foundation preserving independent owner/supplier/tag-info/traceability company relationships"
     },
     "company_inventory": {
       "status": "read_model_foundation_implemented_pending_deploy",
@@ -105,6 +105,9 @@
     "needs_reverification_before_deploy": true
   },
   "pending_tasks": [
+    "Select and configure the concrete PostgreSQL client/ORM for SaaS_Aviation development database.",
+    "Run the core persistence migration against a development/test SaaS database after provider approval.",
+    "Replace the in-memory local core persistence adapter with a PostgreSQL-backed implementation.",
     "Create read-only legacy MySQL adapter query map for dashboard workflow data.",
     "Replace in-memory auth/session storage with persistent provider-backed implementation.",
     "Add rate limiting, secure cookies, CSRF strategy, password reset, and MFA/TOTP.",
@@ -203,7 +206,7 @@
     "strategy": "read-only adapter first, migration after business rule validation",
     "schema_changes": "not_approved"
   },
-  "current_sprint": "Company 360 foundation completion",
-  "last_completed_task": "Completed the Company 360 foundation locally with list search/filter/sort, detail KPI/profile/contact/inventory/document/commercial panels, explicit non-persistent workflow boundaries, tests, and docs. No deployment performed.",
-  "next_recommended_task": "Review and deploy the CTO Dashboard Phase 2 static metadata only when explicitly approved. Documents Phase 2 remains gated on infrastructure approval: object storage, quarantine, malware scanning, checksum, signed download/preview URLs, persisted audit, and retention/legal-hold workflow. Also still pending: map dashboard and Part/Stock/Company Inventory read models to read-only Yoyamic legacy adapter queries, then replace in-memory auth/session storage before mutations."
+  "current_sprint": "Persistent Data Foundation Phase 1",
+  "last_completed_task": "Added local persistent data foundation for Tenant/User reference/Company/Company Role/Contact/Part/Stock/legacy mappings with SQL migration, repository contracts, local CRUD API routes, explicit frontend data-source mode, importer dry-run foundation, tests, and docs. No deployment performed.",
+  "next_recommended_task": "Review the Persistent Data Foundation Phase 1 changes, then approve a development PostgreSQL provider/client implementation before replacing the in-memory local repository. Do not deploy API/database until auth, RBAC, tenant isolation, audit persistence, and secrets management are production-ready."
 }

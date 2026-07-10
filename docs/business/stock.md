@@ -51,3 +51,13 @@ Each panel lists required data, tenant/context checks, and the future owning mod
 - No document storage or certificate validation pipeline yet.
 - No real consignment lifecycle persistence yet.
 - No Yoyamic MySQL read adapter query map yet.
+## Persistence Foundation Phase 1
+
+Stock 360 and Company Inventory remain deployed as static/sample read-model screens. Locally, the Express API now has tenant-scoped Stock CRUD foundation routes backed by repository contracts and validation:
+
+- `GET/POST /v1/stock`
+- `GET/PATCH /v1/stock/:id`
+
+The persistent schema keeps owner company, supplier company, tag-info company, and traceability company as independent relationships. Quantity `0` rows remain valid and visible. `locationText` is intentionally temporary until Warehouse/location modeling is approved.
+
+This does not make deployed stock mutations operational. Add stock, reserve stock, move stock, and lifecycle changes remain workflow boundaries in the static frontend.

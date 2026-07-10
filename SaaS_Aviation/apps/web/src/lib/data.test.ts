@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { sampleRequestContext } from "@saas-aviation/shared";
 import { currentSession, data, getCompany360ReadModel, getCompanyListReadModel, getStock } from "./data.js";
 import { getCtoStatus } from "./cto-status.js";
+import { assertPersistentApiMode, getDataSourceConfig } from "./data-source-mode.js";
 import { getDashboardData } from "./dashboard.js";
 import { getDocumentCenterReadModel, getEntityDocumentReadModel, validateDocumentUpload } from "./documents.js";
 import { getCompanyInventoryReadModel, getPart360ReadModel, getStock360ReadModel } from "./part-stock.js";
@@ -22,6 +23,24 @@ test("web session is tied to the seeded tenant", () => {
   assert.equal(currentSession.tenant.code, "ACI770");
   assert.equal(currentSession.user.tenantId, currentSession.tenant.id);
   assert.equal(data.companies.every((company) => company.tenantId === currentSession.tenant.id), true);
+});
+
+test("web data source mode defaults to explicit sample static mode", () => {
+  const previousMode = process.env.NEXT_PUBLIC_SAAS_DATA_SOURCE_MODE;
+  const previousUrl = process.env.NEXT_PUBLIC_SAAS_API_BASE_URL;
+  delete process.env.NEXT_PUBLIC_SAAS_DATA_SOURCE_MODE;
+  delete process.env.NEXT_PUBLIC_SAAS_API_BASE_URL;
+
+  try {
+    const config = getDataSourceConfig();
+    assert.equal(config.mode, "sample-static");
+    assert.equal(config.apiBaseUrl, null);
+    assert.equal(config.staticExport, true);
+    assert.throws(() => assertPersistentApiMode(config), /Persistent API mode is not enabled/);
+  } finally {
+    if (previousMode) process.env.NEXT_PUBLIC_SAAS_DATA_SOURCE_MODE = previousMode;
+    if (previousUrl) process.env.NEXT_PUBLIC_SAAS_API_BASE_URL = previousUrl;
+  }
 });
 
 test("web Company list read model searches, filters, sorts, and paginates tenant companies", () => {
