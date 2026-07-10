@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sampleRequestContext } from "@saas-aviation/shared";
-import { currentSession, data, getStock } from "./data.js";
+import { currentSession, data, getCompany360ReadModel, getCompanyListReadModel, getStock } from "./data.js";
 import { getCtoStatus } from "./cto-status.js";
 import { getDashboardData } from "./dashboard.js";
 import { getDocumentCenterReadModel, getEntityDocumentReadModel, validateDocumentUpload } from "./documents.js";
@@ -22,6 +22,48 @@ test("web session is tied to the seeded tenant", () => {
   assert.equal(currentSession.tenant.code, "ACI770");
   assert.equal(currentSession.user.tenantId, currentSession.tenant.id);
   assert.equal(data.companies.every((company) => company.tenantId === currentSession.tenant.id), true);
+});
+
+test("web Company list read model searches, filters, sorts, and paginates tenant companies", () => {
+  const list = getCompanyListReadModel({
+    query: "better",
+    type: "supplier",
+    status: "active",
+    sort: "name",
+    direction: "asc",
+    page: 1,
+    pageSize: 2
+  });
+
+  assert.equal(list.tenantId, currentSession.tenant.id);
+  assert.equal(list.state, "ready");
+  assert.equal(list.rows.length, 1);
+  assert.equal(list.rows[0]?.company.name, "Better Aviation Products");
+  assert.equal(list.rows[0]?.primaryContact?.email, "maria@example.test");
+  assert.deepEqual(list.filters.availableTypes, ["customer", "supplier", "owner", "repair-vendor", "mixed"]);
+  assert.equal(list.pagination.totalRows, 1);
+});
+
+test("web Company list read model exposes empty state for unmatched searches", () => {
+  const list = getCompanyListReadModel({ query: "no-match-company" });
+
+  assert.equal(list.state, "empty");
+  assert.equal(list.rows.length, 0);
+  assert.match(list.emptyState.detail, /No tenant company matches/);
+});
+
+test("web Company 360 read model aggregates contacts inventory documents activity and workflow boundaries", () => {
+  const company360 = getCompany360ReadModel("company-1527");
+
+  assert.equal(company360.company.name, "Better Aviation Products");
+  assert.equal(company360.contacts.length, 1);
+  assert.equal(company360.inventorySummary.externalUnits, 12);
+  assert.equal(company360.documents.documents.length, 1);
+  assert.ok(company360.boundaryActions.find((action) => action.id === "create-contact"));
+  assert.ok(company360.boundaryActions.find((action) => action.id === "add-document"));
+  assert.ok(company360.boundaryActions.find((action) => action.id === "create-rfq"));
+  assert.equal(company360.commercialActivity.rfqs.state, "empty");
+  assert.equal(company360.commercialActivity.purchaseOrders.rows.length, 1);
 });
 
 test("web dashboard data is generated from the current tenant context", () => {

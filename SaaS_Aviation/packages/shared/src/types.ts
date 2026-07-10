@@ -448,7 +448,7 @@ export interface WorkflowBoundaryAction {
   id: string;
   label: string;
   tenantId: TenantId;
-  entityType: "part" | "stock" | "company-inventory";
+  entityType: DocumentOwnerModule | "company-inventory";
   entityId: string;
   mode: "boundary";
   persistence: "none";

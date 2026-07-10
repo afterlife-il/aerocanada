@@ -11,8 +11,8 @@ export interface Column<T> {
 
 export function DataTable<T>({ columns, rows, rowHref }: { columns: Column<T>[]; rows: T[]; rowHref?: (row: T) => string }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-panel">
-      <table className="w-full border-collapse text-left text-sm">
+    <div className="overflow-x-auto rounded-lg border border-border bg-panel">
+      <table className="min-w-full border-collapse text-left text-sm">
         <thead className="bg-panel-muted text-xs font-semibold uppercase text-muted">
           <tr>
             {columns.map((column) => (
