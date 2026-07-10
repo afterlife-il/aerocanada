@@ -112,7 +112,7 @@
   "pending_tasks": [
     "Provision an isolated local PostgreSQL test database for SaaS_Aviation.",
     "Run the core persistence migration status/apply commands against that isolated development/test SaaS database.",
-    "Run PostgreSQL repository integration tests with TEST_DATABASE_URL.",
+    "Run PostgreSQL repository integration tests with TEST_DATABASE_URL or the root GitHub Actions postgres-integration job.",
     "Create read-only legacy MySQL adapter query map for dashboard workflow data.",
     "Replace in-memory auth/session storage with persistent provider-backed implementation.",
     "Add rate limiting, secure cookies, CSRF strategy, password reset, and MFA/TOTP.",
@@ -134,7 +134,7 @@
     },
     {
       "task": "PostgreSQL runtime verification",
-      "reason": "No local postgres/psql/Docker runtime or DATABASE_URL/TEST_DATABASE_URL was available during Phase 2 implementation."
+      "reason": "No local postgres/psql/Docker/Podman/WSL distribution or DATABASE_URL/TEST_DATABASE_URL is available on this machine; root CI PostgreSQL job is configured but not run locally."
     }
   ],
   "reports": {
@@ -164,7 +164,9 @@
     "documents_security": "docs/security/documents.md",
     "aviation_erp_benchmark": "SaaS_Aviation/AVIATION_ERP_BENCHMARK.md",
     "cto_status": "SaaS_Aviation/CTO_STATUS.md",
-    "warehouse_architecture": "docs/architecture/warehouse.md"
+    "warehouse_architecture": "docs/architecture/warehouse.md",
+    "local_postgres_setup": "docs/deployment/local-postgres.md",
+    "postgres_integration_testing": "docs/testing/postgres-integration.md"
   },
   "architecture": {
     "strategy": "adapter-first SaaS application separate from legacy Yoyamic",
@@ -214,5 +216,5 @@
   },
   "current_sprint": "Persistent Data Foundation Phase 2",
   "last_completed_task": "Added local PostgreSQL persistence provider foundation for Company/Contact/Part/Stock with native pg, explicit provider selection, deterministic migration runner, persistent-api frontend client boundary, Yoyamic read-only source policy scaffold, gated PostgreSQL integration tests, and docs. No deployment performed.",
-  "next_recommended_task": "Provision an isolated local PostgreSQL test database, run migration apply/status and PostgreSQL integration tests with TEST_DATABASE_URL, then continue Auth/Tenant persistence and read-only legacy adapter mapping. Do not deploy API/database until auth, RBAC, tenant isolation, audit persistence, and secrets management are production-ready."
+  "next_recommended_task": "Provision an isolated local PostgreSQL test database or run the root CI PostgreSQL job, run migration apply/status and PostgreSQL integration tests with TEST_DATABASE_URL, then continue Auth/Tenant persistence and read-only legacy adapter mapping. Do not deploy API/database until auth, RBAC, tenant isolation, audit persistence, and secrets management are production-ready."
 }

@@ -221,10 +221,10 @@ test("CTO status exposes static build and deployment metadata", () => {
   const status = getCtoStatus();
 
   assert.equal(status.buildMetadata.branch, "main");
-  assert.equal(status.buildMetadata.latestLocalCommit, "bb0ba80");
-  assert.equal(status.buildMetadata.latestOriginMainCommit, "bb0ba80");
+  assert.equal(status.buildMetadata.latestLocalCommit, "4df9e14");
+  assert.equal(status.buildMetadata.latestOriginMainCommit, "8a266ba");
   assert.equal(status.buildMetadata.staticExportMode, "Next.js output export");
-  assert.match(status.buildMetadata.buildTimestamp, /^2026-07-07T/);
+  assert.match(status.buildMetadata.buildTimestamp, /^2026-07-10T/);
 
   assert.equal(status.deployment.lastDeployedCommit, "bb0ba80");
   assert.equal(status.deployment.environment, "staging/public static frontend");
@@ -239,12 +239,13 @@ test("CTO status exposes check and security metadata", () => {
   assert.equal(status.checks.typecheckStatus, "passing");
   assert.equal(status.checks.lintStatus, "passing");
   assert.equal(status.checks.buildStatus, "passing");
-  assert.match(status.checks.lastCheckedAt, /^2026-07-07T/);
+  assert.match(status.checks.lastCheckedAt, /^2026-07-10T/);
 
   assert.equal(status.security.adminProtectedByBasicAuth, true);
   assert.equal(status.security.ctoRouteHiddenFromPublicSidebar, true);
   assert.equal(status.security.apiRuntimeDeployed, false);
   assert.equal(status.security.dbOrYoyamicTouched, false);
+  assert.equal(status.security.notes.some((note) => note.includes("PostgreSQL provider code is local only")), true);
 });
 
 test("CTO status activity timeline includes the last ten commits with authors", () => {
@@ -253,7 +254,7 @@ test("CTO status activity timeline includes the last ten commits with authors", 
   assert.equal(status.activity.length, 10);
   assert.deepEqual(
     status.activity.map((entry) => entry.commit),
-    ["bb0ba80", "3c32468", "20bdc67", "088e9d8", "362c4a7", "f14ddd4", "46f6e72", "366e375", "05b04d7", "5372dc2"]
+    ["4df9e14", "11baac6", "786aaa7", "8a266ba", "ba1755f", "7e7fe5e", "d803c9d", "bb0ba80", "3c32468", "20bdc67"]
   );
   assert.equal(status.activity.every((entry) => entry.author.length > 0), true);
 });

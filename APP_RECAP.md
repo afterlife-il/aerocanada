@@ -92,12 +92,13 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 1. Keep project memory synchronized.
 2. Inventory deployed vs working-tree Yoyamic changes before any future deployment.
-3. Continue SaaS Phase 2 with read-only legacy adapter planning.
+3. Provision or use CI PostgreSQL to execute the gated migration/restart/tenant-isolation tests.
 4. Define auth, RBAC, tenant isolation, and audit strategy before SaaS mutations.
 
 ## Changelog
 
 - 2026-07-10: Added Persistent Data Foundation Phase 2 locally. Implemented explicit memory/postgres provider selection, native `pg` PostgreSQL repository for Company/Contact/Part/Stock, deterministic migration status/apply runner with checksums, tenant-composite schema constraints including part alternates, persistent-api frontend client boundary with no sample fallback, and Yoyamic read-only source policy scaffold with no live queries or writes. Added PostgreSQL integration tests gated on `TEST_DATABASE_URL`/`DATABASE_URL`; this machine had no PostgreSQL runtime or database URL, so real DB apply/restart verification remains blocked until a local test DB is provisioned. No deployment, push, Yoyamic change, live DB change, legacy PHP change, or Express API deployment was performed.
+- 2026-07-10: Hardened the PostgreSQL persistence provider path with localhost-only Docker Compose dev configuration, root GitHub Actions PostgreSQL integration job, npm `db:*`/`test:postgres` scripts, migration idempotency and checksum mismatch test coverage, transaction rollback test coverage, and updated local Postgres docs. Local DB execution remains blocked on this machine because no postgres/psql/Docker/Podman/WSL/database URL is available.
 - 2026-07-10: Added the Warehouse architecture design under `docs/architecture/warehouse.md`. The document defines the future physical warehouse execution layer, append-only movement ledger, location hierarchy, condition/disposition separation, receiving/inspection/put-away/pick/pack/ship/transfer/count/adjustment/audit/quarantine-release workflows, Documents boundaries, and Yoyamic read-only migration stance. Documentation only; no Warehouse production code, schema, API route, UI workflow, deployment, Yoyamic change, or live DB change was made.
 - 2026-07-10: Added Persistent Data Foundation Phase 1 locally. Created PostgreSQL-compatible core schema migration for tenants, companies, company roles, contacts, part numbers, stock items, and legacy mappings; added shared persistence types, validation schemas, repository interfaces, domain errors, local in-memory repository implementation, Express CRUD endpoints for Company/Contact/Part/Stock, OpenAPI route contracts, explicit web data-source mode, dry-run Yoyamic importer/reconciliation foundation, tests, and persistence/database/API docs. Legacy Yoyamic was inspected only via repository PHP references; no live DB query, DB deployment, API deployment, Yoyamic write, legacy PHP change, or push/deploy was performed.
 - 2026-07-07: Completed the Part 360 business workspace as a read-only aggregation layer: a part header (status,
@@ -149,4 +150,4 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 ## Next Sprint
 
-Provision an isolated local PostgreSQL test database, run migration apply/status and PostgreSQL integration tests, then continue Auth/Tenant persistence and read-only legacy adapter mapping before any production mutations.
+Provision an isolated local PostgreSQL test database or run the root CI PostgreSQL job, then run migration apply/status and PostgreSQL integration tests before persistent business workflows are called operational.

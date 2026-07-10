@@ -52,9 +52,9 @@ The dashboard now includes:
 | Field | Value |
 |---|---|
 | Current branch | `main` |
-| Latest local commit | `bb0ba80` |
-| Latest origin/main commit | `bb0ba80` |
-| Build timestamp | `2026-07-07T15:42:00Z` |
+| Latest local commit | `4df9e14` |
+| Latest origin/main commit | `8a266ba` |
+| Build timestamp | `2026-07-10T17:55:07+03:00` |
 | Static export mode | `Next.js output export` |
 
 This is a static snapshot. The commit that introduces this Phase 2 metadata cannot self-reference its own final hash
@@ -78,7 +78,9 @@ without another manual update.
 | Typecheck | passing |
 | Lint | passing |
 | Build | passing |
-| Last checked | `2026-07-07T15:42:00Z` |
+| Last checked | `2026-07-10T17:55:07+03:00` |
+
+PostgreSQL runtime tests are implemented but skipped locally until `TEST_DATABASE_URL` or `DATABASE_URL` is configured against a real isolated database.
 
 ## Security Status
 
@@ -92,16 +94,16 @@ without another manual update.
 
 | Commit | Date | Author | Message |
 |---|---|---|---|
+| `4df9e14` | 2026-07-10 | Afterlife | Add Warehouse architecture design |
+| `11baac6` | 2026-07-10 | Afterlife | Harden PostgreSQL persistence provider |
+| `786aaa7` | 2026-07-10 | Afterlife | Implement PostgreSQL persistence provider |
+| `8a266ba` | 2026-07-10 | Afterlife | Build persistent data foundation |
+| `ba1755f` | 2026-07-09 | Afterlife | Complete Company 360 foundation |
+| `7e7fe5e` | 2026-07-08 | Afterlife | Complete Part 360 foundation |
+| `d803c9d` | 2026-07-07 | Afterlife | Improve CTO Dashboard metadata |
 | `bb0ba80` | 2026-07-07 | Afterlife | Protect CTO Dashboard |
 | `3c32468` | 2026-07-07 | Afterlife | Build CTO Dashboard |
 | `20bdc67` | 2026-07-07 | Afterlife | Add CTO status dashboard |
-| `088e9d8` | 2026-07-06 | Afterlife | Harden documents read error handling |
-| `362c4a7` | 2026-07-02 | Afterlife | Add documents phase 2 architecture |
-| `f14ddd4` | 2026-07-02 | Afterlife | Correct documents phase 1 foundation |
-| `46f6e72` | 2026-07-02 | Afterlife | Build documents foundation |
-| `366e375` | 2026-07-02 | Afterlife | Build part stock inventory read models |
-| `05b04d7` | 2026-07-01 | root | Build tenant ERP dashboard |
-| `5372dc2` | 2026-06-30 | root | feat: add auth tenant foundation |
 
 ## Module Table
 
