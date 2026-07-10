@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import type { AddressInfo } from "node:net";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import type { Express } from "express";
 import pg from "pg";
+import { CoreDomainError } from "@saas-aviation/shared";
 import type { AuthSession, Permission, RequestContext } from "@saas-aviation/shared";
 import { sampleRequestContext, sampleTenants, sampleUsers } from "@saas-aviation/shared";
 import type { AuthProvider } from "./auth/auth-provider.js";
@@ -13,6 +17,11 @@ import { PostgresCorePersistence } from "./persistence/postgres-core-repository.
 
 const { Pool } = pg;
 const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+const migrationFile = path.resolve(process.cwd(), "database", "migrations", "001_core_persistence.sql");
+
+function hasCode(code: string): (error: unknown) => boolean {
+  return (error: unknown): boolean => error instanceof CoreDomainError && error.code === code;
+}
 
 function context(suffix: string): RequestContext {
   return {
@@ -141,6 +150,28 @@ test(
       const migrated = await applyMigrations({ provider: "postgres", postgres: isolated.config });
       assert.equal(migrated.find((row) => row.id === "001_core_persistence.sql")?.applied, true);
       assert.equal((await getMigrationStatus({ provider: "postgres", postgres: isolated.config })).every((row) => row.applied), true);
+      const appliedAgain = await applyMigrations({ provider: "postgres", postgres: isolated.config });
+      assert.deepEqual(appliedAgain, migrated);
+
+      const mismatchDir = path.join(tmpdir(), `saas-migrations-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      await mkdir(mismatchDir, { recursive: true });
+      try {
+        const originalSql = await readFile(migrationFile, "utf8");
+        await writeFile(path.join(mismatchDir, "001_core_persistence.sql"), `${originalSql}\n-- checksum mismatch probe\n`);
+        const previousDir = process.env.MIGRATIONS_DIR;
+        process.env.MIGRATIONS_DIR = mismatchDir;
+        try {
+          await assert.rejects(applyMigrations({ provider: "postgres", postgres: isolated.config }), /checksum mismatch/);
+        } finally {
+          if (previousDir === undefined) {
+            delete process.env.MIGRATIONS_DIR;
+          } else {
+            process.env.MIGRATIONS_DIR = previousDir;
+          }
+        }
+      } finally {
+        await rm(mismatchDir, { recursive: true, force: true });
+      }
 
       const repo = new PostgresCorePersistence(isolated.config);
       const companyA = await repo.createCompany(tenantA, { name: "PG Company A", roles: ["supplier"] });
@@ -168,15 +199,32 @@ test(
 
       assert.equal((await restarted.listCompanies(tenantA)).some((company) => company.id === companyB.id), false);
       assert.equal(await restarted.getCompanyById(tenantA, companyB.id), null);
-      await assert.rejects(restarted.updateCompany(tenantA, companyB.id, { name: "Blocked" }), /not_found/);
-      await assert.rejects(restarted.listContactsByCompany(tenantA, companyB.id), /not_found/);
+      await assert.rejects(restarted.updateCompany(tenantA, companyB.id, { name: "Blocked" }), hasCode("not_found"));
+      await assert.rejects(restarted.listContactsByCompany(tenantA, companyB.id), hasCode("not_found"));
       assert.equal(await restarted.getPartById(tenantA, partB.id), null);
-      await assert.rejects(restarted.createStockItem(tenantA, { partId: partB.id, quantity: 1, status: "available" }), /tenant_mismatch|not_found/);
+      await assert.rejects(restarted.createStockItem(tenantA, { partId: partB.id, quantity: 1, status: "available" }), hasCode("tenant_mismatch"));
       await assert.rejects(
         restarted.createStockItem(tenantA, { partId: partA.id, quantity: 1, status: "available", ownerCompanyId: companyB.id }),
-        /tenant_mismatch/
+        hasCode("tenant_mismatch")
       );
-      await assert.rejects(restarted.createCompany(tenantA, { name: "PG Company A", roles: ["supplier"] }), /duplicate_company/);
+      await assert.rejects(restarted.createCompany(tenantA, { name: "PG Company A", roles: ["supplier"] }), hasCode("duplicate_company"));
+
+      const originalPart = await restarted.getPartById(tenantA, partA.id);
+      assert.ok(originalPart);
+      await assert.rejects(
+        restarted.updatePart(tenantA, partA.id, { description: "Should rollback", alternates: ["DUP-ALT", "DUP-ALT"] }),
+        hasCode("database_error")
+      );
+      assert.equal((await restarted.getPartById(tenantA, partA.id))?.description, originalPart.description);
+      assert.deepEqual((await restarted.getPartById(tenantA, partA.id))?.alternates, originalPart.alternates);
+
+      await assert.rejects(
+        restarted.updateStockItem(tenantA, stockA.id, { quantity: 5, ownerCompanyId: companyB.id }),
+        hasCode("tenant_mismatch")
+      );
+      const rolledBackStock = await restarted.getStockById(tenantA, stockA.id);
+      assert.equal(rolledBackStock?.quantity, 0);
+      assert.equal(rolledBackStock?.ownerCompanyId, companyA.id);
 
       const tokenA = "pg-api-a";
       const app = createApp({

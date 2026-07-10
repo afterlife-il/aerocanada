@@ -16,6 +16,12 @@
     "test": "npm run test -w @saas-aviation/shared && npm run build -w @saas-aviation/shared && npm run test -w @saas-aviation/api && npm run test -w @saas-aviation/web",
     "migrate:status": "npm run migrate:status -w @saas-aviation/api",
     "migrate:apply": "npm run migrate:apply -w @saas-aviation/api",
+    "db:dev:up": "docker compose -f docker-compose.dev.yml up -d postgres",
+    "db:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "db:dev:reset": "docker compose -f docker-compose.dev.yml down -v && docker compose -f docker-compose.dev.yml up -d postgres",
+    "db:migrate:status": "npm run migrate:status",
+    "db:migrate:apply": "npm run migrate:apply",
+    "test:postgres": "npm run build -w @saas-aviation/shared && npm run test -w @saas-aviation/api",
     "format": "prettier --check ."
   },
   "devDependencies": {
