@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-07-10",
+  "last_updated": "2026-07-13",
   "modules": {
     "legacy_yoyamic": {
       "purpose": "staging workflow, legacy reference, migration source",
-      "status": "active_reference",
+      "status": "active_reference_readonly_adapter_hardened_locally",
       "rewrite_allowed": false
     },
     "saas_aviation": {
@@ -113,6 +113,8 @@
     "Provision an isolated local PostgreSQL test database for SaaS_Aviation.",
     "Run the core persistence migration status/apply commands against that isolated development/test SaaS database.",
     "Run PostgreSQL repository integration tests with TEST_DATABASE_URL or the root GitHub Actions postgres-integration job.",
+    "Provision approved read-only Yoyamic credentials before adding a live MySQL read implementation.",
+    "Use the hardened Yoyamic SELECT-only query plans for future company/contact/part/stock source sampling.",
     "Create read-only legacy MySQL adapter query map for dashboard workflow data.",
     "Replace in-memory auth/session storage with persistent provider-backed implementation.",
     "Add rate limiting, secure cookies, CSRF strategy, password reset, and MFA/TOTP.",
@@ -173,7 +175,7 @@
     "frontend": "Next.js App Router",
     "api": "Express REST API shell plus web route handlers with OpenAPI component schemas and bearer-protected business reads",
     "shared_contracts": "TypeScript package",
-    "data_source": "tenant-scoped sample adapter for deployed static frontend; local memory/postgres API providers for development; read-only legacy adapter next"
+    "data_source": "tenant-scoped sample adapter for deployed static frontend; local memory/postgres API providers for development; hardened offline read-only legacy adapter guardrails"
   },
   "business_rules": [
     "RFQ_ID remains the canonical business workflow key.",
@@ -211,10 +213,10 @@
   "migration_status": {
     "source": "Yoyamic",
     "target": "SaaS_Aviation",
-    "strategy": "read-only adapter first, explicit PostgreSQL migrations for SaaS development database, migration after business rule validation",
+    "strategy": "hardened read-only adapter first, explicit PostgreSQL migrations for SaaS development database, migration after business rule validation",
     "schema_changes": "local_postgres_migration_contract_only_not_deployed"
   },
   "current_sprint": "Persistent Data Foundation Phase 2",
-  "last_completed_task": "Added local PostgreSQL persistence provider foundation for Company/Contact/Part/Stock with native pg, explicit provider selection, deterministic migration runner, persistent-api frontend client boundary, Yoyamic read-only source policy scaffold, gated PostgreSQL integration tests, and docs. No deployment performed.",
+  "last_completed_task": "Hardened the offline Yoyamic read-only migration adapter with SELECT/SHOW-only SQL validation, bounded query plans, batch pagination planning, deterministic legacy mapping checksums, reconciliation summaries, tests, and docs. No live Yoyamic query, write, credential, import, deployment, or database change was performed.",
   "next_recommended_task": "Provision an isolated local PostgreSQL test database or run the root CI PostgreSQL job, run migration apply/status and PostgreSQL integration tests with TEST_DATABASE_URL, then continue Auth/Tenant persistence and read-only legacy adapter mapping. Do not deploy API/database until auth, RBAC, tenant isolation, audit persistence, and secrets management are production-ready."
 }

@@ -1,6 +1,6 @@
 # CTO Status Dashboard - SaaS_Aviation
 
-Last updated: 2026-07-10
+Last updated: 2026-07-13
 Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 protected static deploy report.
 
 A protected in-app mirror of this snapshot exists at `/admin/cto` in the static SaaS_Aviation frontend. The frontend
@@ -12,8 +12,9 @@ is exported with `output: "export"`, so dashboard data is baked into the static 
 
 Pre-MVP foundation. Static, sample-data-backed SaaS ERP shell remains deployed alongside legacy Yoyamic. Local
 Persistent Data Foundation Phase 2 now exists for Company, Contact, Part, and Stock with memory and PostgreSQL
-providers, but no SaaS database or Express API runtime has been deployed. The static frontend is deployed to staging
-and the admin path is protected by Apache Basic Auth.
+providers, plus hardened offline Yoyamic read-only migration adapter guardrails. No SaaS database or Express API
+runtime has been deployed. The static frontend is deployed to staging and the admin path is protected by Apache
+Basic Auth.
 
 ## Persistent Data Foundation Phase 2
 
@@ -28,9 +29,9 @@ Local only, not deployed:
 - Explicit frontend data-source mode: `sample-static` vs `persistent-api`.
 - Persistent API client boundary that refuses to fall back to sample data.
 - Controlled Yoyamic importer dry-run and reconciliation foundation.
-- Yoyamic read-only source policy scaffold only; no live query, write method, or credential.
+- Hardened Yoyamic read-only source policy and query planning guardrails; no live query, write method, or credential.
 
-PostgreSQL integration tests are implemented and gated on `TEST_DATABASE_URL` or `DATABASE_URL`. This machine had no local PostgreSQL runtime, `psql`, Docker PostgreSQL runtime, or database URL during implementation, so migration apply/restart verification against a real database remains blocked until a local test database is provisioned.
+PostgreSQL integration tests are implemented and gated on `TEST_DATABASE_URL` or `DATABASE_URL`. This machine has no local PostgreSQL runtime, `psql`, Docker runtime, installed WSL distribution, or database URL, so migration apply/restart verification against a real database remains blocked until a local test database is provisioned or CI runs the PostgreSQL job.
 
 Yoyamic was not touched in this sprint. No live Yoyamic database query, write, API deployment, database deployment, legacy PHP change, Plesk change, or Apache/Basic Auth change was performed.
 
@@ -52,9 +53,9 @@ The dashboard now includes:
 | Field | Value |
 |---|---|
 | Current branch | `main` |
-| Latest local commit | `4df9e14` |
+| Latest local commit | `c0d901d` |
 | Latest origin/main commit | `8a266ba` |
-| Build timestamp | `2026-07-10T17:55:07+03:00` |
+| Build timestamp | `2026-07-13T00:00:00+03:00` |
 | Static export mode | `Next.js output export` |
 
 This is a static snapshot. The commit that introduces this Phase 2 metadata cannot self-reference its own final hash
@@ -78,7 +79,7 @@ without another manual update.
 | Typecheck | passing |
 | Lint | passing |
 | Build | passing |
-| Last checked | `2026-07-10T17:55:07+03:00` |
+| Last checked | `2026-07-13T00:00:00+03:00` |
 
 PostgreSQL runtime tests are implemented but skipped locally until `TEST_DATABASE_URL` or `DATABASE_URL` is configured against a real isolated database.
 
@@ -94,6 +95,8 @@ PostgreSQL runtime tests are implemented but skipped locally until `TEST_DATABAS
 
 | Commit | Date | Author | Message |
 |---|---|---|---|
+| `c0d901d` | 2026-07-13 | Afterlife | Harden Yoyamic read-only migration adapter |
+| `e473550` | 2026-07-10 | Afterlife | Update project operational status |
 | `4df9e14` | 2026-07-10 | Afterlife | Add Warehouse architecture design |
 | `11baac6` | 2026-07-10 | Afterlife | Harden PostgreSQL persistence provider |
 | `786aaa7` | 2026-07-10 | Afterlife | Implement PostgreSQL persistence provider |
@@ -102,8 +105,6 @@ PostgreSQL runtime tests are implemented but skipped locally until `TEST_DATABAS
 | `7e7fe5e` | 2026-07-08 | Afterlife | Complete Part 360 foundation |
 | `d803c9d` | 2026-07-07 | Afterlife | Improve CTO Dashboard metadata |
 | `bb0ba80` | 2026-07-07 | Afterlife | Protect CTO Dashboard |
-| `3c32468` | 2026-07-07 | Afterlife | Build CTO Dashboard |
-| `20bdc67` | 2026-07-07 | Afterlife | Add CTO status dashboard |
 
 ## Module Table
 
@@ -115,7 +116,7 @@ PostgreSQL runtime tests are implemented but skipped locally until `TEST_DATABAS
 | Company 360 | Foundation complete + local PostgreSQL provider | 75% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
 | Part 360 | Workspace complete + local PostgreSQL provider | 75% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
 | Stock 360 | Foundation + local PostgreSQL provider | 60% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
-| Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Map to read-only Yoyamic adapter |
+| Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Use hardened read-only Yoyamic adapter plans for future mapping |
 | Documents | In progress | 40% | `088e9d8` | `46f6e72`, `f14ddd4` reviewed; `088e9d8` pending | Static UI on staging; API runtime not deployed | Review `088e9d8`; hold Phase 2 for persistent audit + API deploy |
 | Warehouse | Architecture documented | 10% | local pending commit | Not reviewed | Not deployed | Review `docs/architecture/warehouse.md`; no production code implemented |
 | RFQ | Planned | 15% | `05b04d7` | - | Not deployed (sample model only) | Design dedicated workspace |
@@ -128,17 +129,18 @@ PostgreSQL runtime tests are implemented but skipped locally until `TEST_DATABAS
 | Reports | Not started | 0% | - | - | - | Not yet scoped |
 | Administration | Not started | 0% | - | - | - | Tenant admin / RBAC UI not yet scoped |
 | AI | Planned | 5% | - | - | - | No LLM provider selected; tool-layer architecture only |
-| API | Foundation | 40% | `088e9d8` | Reads reviewed as part of Documents review | Never deployed as a running service | Deploy API runtime for the first time; add mutation routes behind RBAC |
+| API | Foundation | 47% | `c0d901d` | Local validation passed; PostgreSQL runtime test blocked locally | Never deployed as a running service | Run PostgreSQL integration via local DB or CI before operational persistence claims |
 | Security | Foundation | 35% | `bb0ba80` | Basic Auth protection deployed for `/admin` | Static `/admin` protected on staging | Persistent audit storage, RBAC hardening, rate limiting, secrets manager |
 | Multi-Tenant | Foundation | 50% | `f14ddd4` | Tenant scoping reviewed per-module | Not deployed | Validate isolation with a second real tenant; add DB-level constraints once persistence exists |
 
 ## Current Sprint
 
 Persistent Data Foundation Phase 2 adds the local PostgreSQL provider, explicit migrations, persistent-api frontend
-boundary, read-only Yoyamic adapter preparation, and Warehouse architecture documentation. It is not deployed.
+boundary, hardened offline read-only Yoyamic adapter preparation, and Warehouse architecture documentation. It is
+not deployed.
 
 ## Next Recommended Sprint
 
-Provision an isolated local PostgreSQL test database, run migration apply/status and PostgreSQL integration tests,
-then resume Auth/Tenant persistence and read-only legacy MySQL adapter mapping. Hold production API/database deploy
-until infrastructure, RBAC, audit, and secrets decisions are approved.
+Provision an isolated local PostgreSQL test database or run the CI PostgreSQL job, run migration apply/status and
+PostgreSQL integration tests, then resume Auth/Tenant persistence and approved read-only legacy MySQL adapter
+mapping. Hold production API/database deploy until infrastructure, RBAC, audit, and secrets decisions are approved.

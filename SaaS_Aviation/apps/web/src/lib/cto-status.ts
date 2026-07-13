@@ -84,7 +84,7 @@ export interface CtoDashboardData {
  */
 export function getCtoStatus(): CtoDashboardData {
   return {
-    lastUpdated: "2026-07-10",
+    lastUpdated: "2026-07-13",
     dataNote:
       "Static snapshot baked at build time from APP_RECAP.md / PROJECT_STATE.json / git log - not a live query, and it cannot self-reference the commit that introduces a status change. Update this file alongside CTO_STATUS.md on every status-relevant change.",
     global: {
@@ -95,13 +95,13 @@ export function getCtoStatus(): CtoDashboardData {
       buildStatus: "passing",
       testStatus: "passing",
       deploymentStatus:
-        "Static frontend on staging/public path, deployed 2026-07-07 with /admin protected by Apache Basic Auth. Local commits through Warehouse architecture are not deployed. API runtime and database never deployed."
+        "Static frontend on staging/public path, deployed 2026-07-07 with /admin protected by Apache Basic Auth. Local commits through Yoyamic read-only adapter hardening are not deployed or pushed. API runtime and database never deployed."
     },
     buildMetadata: {
       branch: "main",
-      latestLocalCommit: "4df9e14",
+      latestLocalCommit: "c0d901d",
       latestOriginMainCommit: "8a266ba",
-      buildTimestamp: "2026-07-10T17:55:07+03:00",
+      buildTimestamp: "2026-07-13T00:00:00+03:00",
       staticExportMode: "Next.js output export"
     },
     deployment: {
@@ -116,7 +116,7 @@ export function getCtoStatus(): CtoDashboardData {
       typecheckStatus: "passing",
       lintStatus: "passing",
       buildStatus: "passing",
-      lastCheckedAt: "2026-07-10T17:55:07+03:00"
+      lastCheckedAt: "2026-07-13T00:00:00+03:00"
     },
     security: {
       adminProtectedByBasicAuth: true,
@@ -129,7 +129,8 @@ export function getCtoStatus(): CtoDashboardData {
         "The Express API runtime was not deployed.",
         "No database, Yoyamic, or legacy PHP changes were made during the CTO protection deploy.",
         "PostgreSQL provider code is local only; runtime database verification is blocked on this machine because no postgres, psql, Docker, Podman, WSL distro, DATABASE_URL, or TEST_DATABASE_URL is available.",
-        "Root CI now has a PostgreSQL service job to execute the gated integration tests when pushed."
+        "Root CI now has a PostgreSQL service job to execute the gated integration tests when pushed.",
+        "Yoyamic read-only adapter hardening is local-only and offline; no live Yoyamic query or write occurred."
       ]
     },
     modules: [
@@ -139,7 +140,7 @@ export function getCtoStatus(): CtoDashboardData {
       { module: "Company 360", status: "foundation", progressPct: 75, sprint: "Persistent Data Foundation Phase 2", lastCommit: "786aaa7", reviewStatus: "Not reviewed", deployStatus: "Local only; API/DB not deployed", nextAction: "Run PostgreSQL integration against isolated test DB before calling workflows operational" },
       { module: "Part 360", status: "foundation", progressPct: 75, sprint: "Persistent Data Foundation Phase 2", lastCommit: "786aaa7", reviewStatus: "Not reviewed", deployStatus: "Local only; API/DB not deployed", nextAction: "Run PostgreSQL integration against isolated test DB before calling workflows operational" },
       { module: "Stock 360", status: "foundation", progressPct: 60, sprint: "Persistent Data Foundation Phase 2", lastCommit: "786aaa7", reviewStatus: "Not reviewed", deployStatus: "Local only; API/DB not deployed", nextAction: "Run PostgreSQL integration against isolated test DB before calling workflows operational" },
-      { module: "Company Inventory", status: "foundation", progressPct: 50, sprint: "Part/Stock/Company Inventory read models", lastCommit: "366e375", reviewStatus: "Not reviewed", deployStatus: "Not deployed", nextAction: "Map to read-only Yoyamic adapter" },
+      { module: "Company Inventory", status: "foundation", progressPct: 50, sprint: "Part/Stock/Company Inventory read models", lastCommit: "366e375", reviewStatus: "Not reviewed", deployStatus: "Not deployed", nextAction: "Use hardened read-only Yoyamic adapter plans for future mapping" },
       { module: "Documents", status: "in-progress", progressPct: 40, sprint: "Documents Phase 1.1 / Phase 2 planning", lastCommit: "088e9d8", reviewStatus: "46f6e72, f14ddd4 reviewed; 088e9d8 pending review", deployStatus: "Static UI on staging; API runtime not deployed", nextAction: "Review 088e9d8; hold Phase 2 build for persistent audit + API deploy" },
       { module: "Warehouse", status: "planned", progressPct: 10, sprint: "Architecture design", lastCommit: "4df9e14", reviewStatus: "Not reviewed", deployStatus: "Documentation only; no Warehouse production code", nextAction: "Review docs/architecture/warehouse.md before any schema/API/UI implementation" },
       { module: "RFQ", status: "planned", progressPct: 15, sprint: "-", lastCommit: "05b04d7", reviewStatus: "-", deployStatus: "Not deployed (dashboard sample model only)", nextAction: "Design dedicated RFQ workspace and read model" },
@@ -152,12 +153,12 @@ export function getCtoStatus(): CtoDashboardData {
       { module: "Reports", status: "not-started", progressPct: 0, sprint: "-", lastCommit: "-", reviewStatus: "-", deployStatus: "-", nextAction: "Not yet scoped" },
       { module: "Administration", status: "not-started", progressPct: 0, sprint: "-", lastCommit: "-", reviewStatus: "-", deployStatus: "-", nextAction: "Tenant admin / RBAC UI not yet scoped" },
       { module: "AI", status: "planned", progressPct: 5, sprint: "-", lastCommit: "-", reviewStatus: "-", deployStatus: "-", nextAction: "No LLM provider selected yet; tool-layer architecture only" },
-      { module: "API", status: "foundation", progressPct: 45, sprint: "Persistent Data Foundation Phase 2", lastCommit: "11baac6", reviewStatus: "Local validation passed; PostgreSQL runtime test blocked locally", deployStatus: "Never deployed as a running service", nextAction: "Run CI/local PostgreSQL integration; deploy API only after explicit approval" },
+      { module: "API", status: "foundation", progressPct: 47, sprint: "Persistent Data Foundation Phase 2 / Yoyamic adapter hardening", lastCommit: "c0d901d", reviewStatus: "Local validation passed; PostgreSQL runtime test blocked locally", deployStatus: "Never deployed as a running service", nextAction: "Run CI/local PostgreSQL integration; deploy API only after explicit approval" },
       { module: "Security", status: "foundation", progressPct: 35, sprint: "CTO protection", lastCommit: "bb0ba80", reviewStatus: "Basic Auth protection deployed for /admin", deployStatus: "Static /admin protected on staging", nextAction: "Persistent audit storage, RBAC hardening, rate limiting, secrets manager" },
       { module: "Multi-Tenant", status: "foundation", progressPct: 50, sprint: "-", lastCommit: "f14ddd4", reviewStatus: "Tenant scoping reviewed per-module", deployStatus: "Not deployed", nextAction: "Validate isolation with a second real tenant; add DB-level constraints once persistence exists" }
     ],
     currentSprint:
-      "Persistent Data Foundation Phase 2 added local memory/postgres provider selection, gated PostgreSQL tests, CI Postgres service configuration, and Warehouse architecture documentation. PostgreSQL runtime verification remains blocked locally.",
+      "Persistent Data Foundation Phase 2 added local memory/postgres provider selection, gated PostgreSQL tests, CI Postgres service configuration, Warehouse architecture documentation, and hardened offline Yoyamic read-only migration adapter guardrails. PostgreSQL runtime verification remains blocked locally.",
     nextSprint:
       "Provision an isolated local PostgreSQL test database or use the CI Postgres job, then run migration apply/status and PostgreSQL integration tests before persistent business workflows are called operational.",
     blockers: [
@@ -175,6 +176,7 @@ export function getCtoStatus(): CtoDashboardData {
       "Authenticated Yoyamic visual verification has been blocked by login/session access.",
       "DocumentAlert (legacy compliance/expiry model) and DocumentRecord (Phase 1 file model) still need code-level reconciliation; currently only clarified in docs.",
       "Persistent API frontend client exists, but authenticated persistent workflow UI is not operational yet.",
+      "Yoyamic read-only adapter now validates SQL intent and query bounds, but it still has no live read implementation or approved credentials.",
       "This CTO dashboard's data is a hand-maintained snapshot; it will drift from reality if not updated alongside future commits."
     ],
     architectureDecisions: [
@@ -184,11 +186,14 @@ export function getCtoStatus(): CtoDashboardData {
       "Document ownership is single-sourced from the DocumentLinkRecord with relation \"primary\"; DocumentRecord does not duplicate owner fields (Phase 1.1, f14ddd4).",
       "The web frontend ships as a static export with no server runtime yet; every page's data is baked at build time from typed fixtures, not live queries.",
       "PostgreSQL persistence mode fails fast without DATABASE_URL and never silently falls back to memory.",
+      "Yoyamic migration reads must go through SELECT/SHOW-only validation, bounded query plans, dry-run reports, and legacy mapping checksums before any import is considered.",
       "Warehouse is documented as a future physical execution layer; Stock 360 remains the current stock read model and no Warehouse production code exists.",
       "CTO dashboard protection is server-side Apache Basic Auth for /SaaS_Aviation/admin/; credentials are not committed.",
       "Mutations stay blocked until persistent auth/session/audit storage replaces the current in-memory foundation."
     ],
     activity: [
+      { commit: "c0d901d", date: "2026-07-13", author: "Afterlife", summary: "Harden Yoyamic read-only migration adapter" },
+      { commit: "e473550", date: "2026-07-10", author: "Afterlife", summary: "Update project operational status" },
       { commit: "4df9e14", date: "2026-07-10", author: "Afterlife", summary: "Add Warehouse architecture design" },
       { commit: "11baac6", date: "2026-07-10", author: "Afterlife", summary: "Harden PostgreSQL persistence provider" },
       { commit: "786aaa7", date: "2026-07-10", author: "Afterlife", summary: "Implement PostgreSQL persistence provider" },
@@ -196,9 +201,7 @@ export function getCtoStatus(): CtoDashboardData {
       { commit: "ba1755f", date: "2026-07-09", author: "Afterlife", summary: "Complete Company 360 foundation" },
       { commit: "7e7fe5e", date: "2026-07-08", author: "Afterlife", summary: "Complete Part 360 foundation" },
       { commit: "d803c9d", date: "2026-07-07", author: "Afterlife", summary: "Improve CTO Dashboard metadata" },
-      { commit: "bb0ba80", date: "2026-07-07", author: "Afterlife", summary: "Protect CTO Dashboard" },
-      { commit: "3c32468", date: "2026-07-07", author: "Afterlife", summary: "Build CTO Dashboard" },
-      { commit: "20bdc67", date: "2026-07-07", author: "Afterlife", summary: "Add CTO status dashboard" }
+      { commit: "bb0ba80", date: "2026-07-07", author: "Afterlife", summary: "Protect CTO Dashboard" }
     ]
   };
 }

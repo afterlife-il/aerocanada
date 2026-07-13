@@ -1,6 +1,6 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-07-10
+Last updated: 2026-07-13
 
 ## Vision
 
@@ -16,7 +16,7 @@ CTO-level status snapshot: `SaaS_Aviation/CTO_STATUS.md`.
 
 ## Current Sprint
 
-Build SaaS_Aviation Persistent Data Foundation Phase 2 locally: native PostgreSQL provider, explicit migration runner, tenant-scoped local persistence integration, persistent-api frontend client boundary, and Yoyamic read-only adapter preparation. No deployment.
+Build SaaS_Aviation Persistent Data Foundation Phase 2 locally: native PostgreSQL provider, explicit migration runner, tenant-scoped local persistence integration, persistent-api frontend client boundary, and hardened offline Yoyamic read-only adapter preparation. No deployment.
 
 ## Active Tracks
 
@@ -48,7 +48,7 @@ Build SaaS_Aviation Persistent Data Foundation Phase 2 locally: native PostgreSQ
 - Legacy read adapter boundary.
 - OpenAPI route contract refinement for future generated clients and validation.
 - Permanent project memory.
-- Persistent Data Foundation Phase 2 local code: core Company/Contact/Part/Stock schema, repository contracts, in-memory local implementation, PostgreSQL repository provider, explicit migration runner, CRUD API routes, OpenAPI contract updates, importer dry-run/reconciliation tests, persistent-api client boundary, and documentation. Not deployed.
+- Persistent Data Foundation Phase 2 local code: core Company/Contact/Part/Stock schema, repository contracts, in-memory local implementation, PostgreSQL repository provider, explicit migration runner, CRUD API routes, OpenAPI contract updates, hardened Yoyamic read-only query planning, importer dry-run/reconciliation tests, persistent-api client boundary, and documentation. Not deployed.
 
 ## Pending Modules
 
@@ -93,10 +93,12 @@ Main is the active branch. The standing untracked local workspace files are the 
 1. Keep project memory synchronized.
 2. Inventory deployed vs working-tree Yoyamic changes before any future deployment.
 3. Provision or use CI PostgreSQL to execute the gated migration/restart/tenant-isolation tests.
-4. Define auth, RBAC, tenant isolation, and audit strategy before SaaS mutations.
+4. Use the hardened read-only Yoyamic adapter plans for future source sampling only after approved read-only credentials exist.
+5. Define auth, RBAC, tenant isolation, and audit strategy before SaaS mutations.
 
 ## Changelog
 
+- 2026-07-13: Hardened the Yoyamic read-only migration adapter locally. Added SELECT/SHOW-only SQL validation, multi-statement/write/locking/file-write rejection, bounded tenant-aware read options, canonical company/contact/part/stock query plans, batch pagination planning, deterministic legacy mapping checksums, reconciliation summaries, tests, and migration docs. No live Yoyamic query, credential, write, import, database change, legacy PHP change, deployment, or push was performed.
 - 2026-07-10: Added Persistent Data Foundation Phase 2 locally. Implemented explicit memory/postgres provider selection, native `pg` PostgreSQL repository for Company/Contact/Part/Stock, deterministic migration status/apply runner with checksums, tenant-composite schema constraints including part alternates, persistent-api frontend client boundary with no sample fallback, and Yoyamic read-only source policy scaffold with no live queries or writes. Added PostgreSQL integration tests gated on `TEST_DATABASE_URL`/`DATABASE_URL`; this machine had no PostgreSQL runtime or database URL, so real DB apply/restart verification remains blocked until a local test DB is provisioned. No deployment, push, Yoyamic change, live DB change, legacy PHP change, or Express API deployment was performed.
 - 2026-07-10: Hardened the PostgreSQL persistence provider path with localhost-only Docker Compose dev configuration, root GitHub Actions PostgreSQL integration job, npm `db:*`/`test:postgres` scripts, migration idempotency and checksum mismatch test coverage, transaction rollback test coverage, and updated local Postgres docs. Local DB execution remains blocked on this machine because no postgres/psql/Docker/Podman/WSL/database URL is available.
 - 2026-07-10: Added the Warehouse architecture design under `docs/architecture/warehouse.md`. The document defines the future physical warehouse execution layer, append-only movement ledger, location hierarchy, condition/disposition separation, receiving/inspection/put-away/pick/pack/ship/transfer/count/adjustment/audit/quarantine-release workflows, Documents boundaries, and Yoyamic read-only migration stance. Documentation only; no Warehouse production code, schema, API route, UI workflow, deployment, Yoyamic change, or live DB change was made.
@@ -150,4 +152,4 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 ## Next Sprint
 
-Provision an isolated local PostgreSQL test database or run the root CI PostgreSQL job, then run migration apply/status and PostgreSQL integration tests before persistent business workflows are called operational.
+Provision an isolated local PostgreSQL test database or run the root CI PostgreSQL job, then run migration apply/status and PostgreSQL integration tests before persistent business workflows are called operational. After that, wire a real MySQL read implementation only behind approved read-only Yoyamic credentials and the hardened adapter guardrails.
