@@ -10,6 +10,13 @@ import { createApp } from "./server.js";
 import { openApiDocument } from "./openapi/openapi.js";
 import { InMemoryCorePersistence } from "./persistence/core-memory-repository.js";
 import { dryRunYoyamicCoreImport, type LegacyYoyamicSnapshot } from "./importers/yoyamic-core-importer.js";
+import {
+  assertYoyamicSelectOnly,
+  buildLegacyMappingRecord,
+  buildYoyamicBatchPlan,
+  buildYoyamicReadQuery,
+  summarizeYoyamicReconciliation
+} from "./importers/yoyamic-readonly-source.js";
 import { getPersistenceConfig } from "./persistence/config.js";
 import { createCorePersistenceProvider } from "./persistence/provider.js";
 import {
@@ -360,6 +367,45 @@ test("migration validation and importer dry run are repeatable", async () => {
   assert.ok(first.anomalies.includes("unknown_supplier_company=30:99"));
   assert.ok(first.anomalies.includes("orphan_stock=31"));
   assert.ok(first.anomalies.includes("invalid_quantity=31"));
+
+  assert.doesNotThrow(() => assertYoyamicSelectOnly("SELECT * FROM tb_company WHERE CompanyID > 0"));
+  assert.throws(() => assertYoyamicSelectOnly("SELECT * FROM tb_company; UPDATE tb_company SET Name = 'bad'"), /one statement/);
+  assert.throws(() => assertYoyamicSelectOnly("DELETE FROM tb_company"), /SELECT\/SHOW/);
+  assert.throws(() => assertYoyamicSelectOnly("SELECT * FROM tb_company FOR UPDATE"), /rejected/);
+
+  const query = buildYoyamicReadQuery("companies", {
+    tenantId: sampleRequestContext.tenant.tenantId,
+    limit: 50,
+    offset: 100,
+    timeoutMs: 5_000,
+    since: "2026-01-01T00:00:00.000Z"
+  });
+  assert.equal(query.entity, "companies");
+  assert.match(query.sql, /^SELECT \* FROM tb_company WHERE ModifiedDate >= \? ORDER BY CompanyID LIMIT \? OFFSET \?$/);
+  assert.deepEqual(query.params, ["2026-01-01T00:00:00.000Z", 50, 100]);
+
+  const batches = buildYoyamicBatchPlan("stock", { tenantId: sampleRequestContext.tenant.tenantId, limit: 25, timeoutMs: 1_000 }, 3);
+  assert.deepEqual(
+    batches.map((batch) => batch.offset),
+    [0, 25, 50]
+  );
+
+  const mapping = buildLegacyMappingRecord({
+    tenantId: sampleRequestContext.tenant.tenantId,
+    sourceTable: "tb_company",
+    sourceId: 1,
+    targetEntityType: "company",
+    targetEntityId: "company-new",
+    sourceRow: snapshot.companies[0],
+    importedAt: "2026-07-13T00:00:00.000Z"
+  });
+  assert.equal(mapping.sourceSystem, "yoyamic");
+  assert.equal(mapping.checksum?.length, 64);
+
+  const reconciliation = summarizeYoyamicReconciliation(sampleRequestContext.tenant.tenantId, first);
+  assert.equal(reconciliation.sourceRows, 8);
+  assert.equal(reconciliation.zeroQuantityRows, 1);
+  assert.ok(reconciliation.anomalyCodes.includes("duplicate_company_names"));
 });
 
 test("persistence provider does not fall back from postgres to memory", () => {

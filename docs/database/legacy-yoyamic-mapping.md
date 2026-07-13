@@ -1,6 +1,6 @@
 # Legacy Yoyamic Mapping
 
-Status: PHP-code audit only. No live database query was executed in this sprint.
+Status: PHP-code audit plus offline read-only adapter hardening. No live database query was executed in this sprint.
 
 ## Tables Identified From Legacy PHP References
 
@@ -26,3 +26,20 @@ Legacy stock code references separate fields for supplier, owner/company, tag in
 - Nullability and date/encoding anomalies require read-only database sampling.
 - Duplicate company, contact email, and part-number rules require source-count reconciliation.
 - Some legacy PHP paths insert or update tables directly; importer work must remain separate and read-only against Yoyamic.
+
+## Read-Only Adapter Guardrails
+
+`SaaS_Aviation/apps/api/src/importers/yoyamic-readonly-source.ts` is the only planned interface for future Yoyamic reads. It remains offline in this repository and does not contain credentials or connection code.
+
+Implemented guardrails:
+
+- SELECT/SHOW-only SQL validation.
+- Rejection of multi-statement SQL.
+- Rejection of write-capable keywords, unknown procedure calls, locking reads, and file-writing reads.
+- Required tenant ID, bounded row limit, bounded offset, and bounded timeout options.
+- Canonical source mappings for companies, contacts, parts, and stock.
+- Batch query planning for paginated dry-run reads.
+- Deterministic legacy mapping records with optional source-row checksums.
+- Reconciliation summaries derived from dry-run reports.
+
+Future live usage must still use explicit read-only database credentials, statement timeouts at the driver/server layer, and human-reviewed source-to-target mapping before any import is allowed.

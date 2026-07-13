@@ -1,6 +1,6 @@
 # Migration Strategy
 
-Status: explicit local migration runner and read-only import foundation.
+Status: explicit local migration runner and hardened read-only import foundation.
 
 ## Direction
 
@@ -25,7 +25,15 @@ The local PostgreSQL provider is selected only when `PERSISTENCE_PROVIDER=postgr
 
 `apps/api/src/importers/yoyamic-core-importer.ts` accepts an already-read `LegacyYoyamicSnapshot` and produces a dry-run report. It does not contain credentials, does not connect to Yoyamic, and does not write data.
 
-`apps/api/src/importers/yoyamic-readonly-source.ts` documents the future read-only Yoyamic access policy. It allows only read statements conceptually and exposes no mutation methods or live connection code.
+`apps/api/src/importers/yoyamic-readonly-source.ts` defines the future read-only Yoyamic access policy. It exposes no live connection code, no credentials, and no mutation methods. It now provides offline guardrails for:
+
+- SELECT/SHOW-only SQL validation.
+- Rejection of multi-statement, write-capable, locking, file-writing, or unknown-procedure SQL.
+- Required tenant ID, bounded row limits, bounded offsets, and bounded statement timeout options.
+- Canonical read-query plans for company, contact, part, and stock source tables.
+- Batch pagination plans for future dry-run reads.
+- Deterministic legacy mapping records with optional source-row checksums.
+- Reconciliation summaries over dry-run anomaly counts.
 
 ## Reconciliation Checks
 
@@ -44,3 +52,5 @@ Implemented dry-run checks include:
 ## Next Step
 
 Provision an isolated development/test PostgreSQL database, set `TEST_DATABASE_URL`, run `npm run migrate:apply`, then run the PostgreSQL integration tests. Do not point this provider at Yoyamic or any live customer database.
+
+After PostgreSQL proof is available, the next migration-adapter step is to add a real MySQL read implementation behind `YoyamicReadonlySource` using read-only credentials, server-side statement timeout, and the existing query plans. Do not run a live import until read-only access, mapping review, anomaly thresholds, and rollback/reconciliation procedure are approved.
