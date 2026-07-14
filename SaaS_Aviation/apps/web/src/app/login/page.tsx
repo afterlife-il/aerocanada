@@ -1,5 +1,5 @@
 import { currentSession } from "@/lib/data";
-import { Button } from "@/components/ui/button";
+import { PersistentLoginForm } from "@/components/modules/persistent-login-form";
 
 const providers = ["Google", "LinkedIn", "Microsoft", "Apple"];
 
@@ -38,31 +38,7 @@ export default function LoginPage() {
             <div className="rounded-md border border-border bg-panel-muted px-2 py-1 text-xs font-semibold text-muted">Password</div>
           </div>
 
-          <form className="mt-5 space-y-4">
-            <label className="block text-sm font-semibold">
-              Email
-              <input
-                className="mt-1 h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-accent"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="name@company.com"
-              />
-            </label>
-            <label className="block text-sm font-semibold">
-              Password
-              <input
-                className="mt-1 h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-accent"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="Enter password"
-              />
-            </label>
-            <Button className="w-full" variant="primary" type="button">
-              Continue
-            </Button>
-          </form>
+          <PersistentLoginForm />
 
           <div className="mt-5 border-t border-border pt-4">
             <div className="text-xs font-semibold text-muted">Provider-ready</div>

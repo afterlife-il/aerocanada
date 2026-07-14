@@ -1,45 +1,19 @@
 # Company 360 Data Model Notes
 
-Last updated: 2026-07-07
+Last updated: 2026-07-14
 
-## Current State
+Company 360 now uses the dedicated local PostgreSQL schema described in `docs/database/company.md`. Migration 001 owns tenants, companies, roles, contacts, and stock relationships. Migration 002 adds ICAO/IATA/VAT/tags, multiple tenant-scoped addresses, and persisted Company activity.
 
-No live database schema was changed for this slice. Company 360 uses tenant-scoped TypeScript fixtures and web read-model composition in `SaaS_Aviation/apps/web/src/lib/data.ts`.
+The public static frontend remains fixture-backed. Local `persistent-api` mode uses the PostgreSQL records and never falls back to fixtures.
 
-## Read Model Inputs
+Core rules:
 
-- `Company`: tenant-owned company profile, type, location, email, tags, risk, legacy id, and last activity.
-- `Contact`: tenant-owned contacts linked by `companyId`.
-- `CompanyInventoryReadModel`: derived company stock summary from internal and external stock.
-- `EntityDocumentReadModel`: documents linked through the shared Documents metadata/link model.
-- `RfqSummary`, `SupplierQuoteSummary`, `QuoteSummary`, and `OrderSummary`: commercial read-model rows linked by company name in the current sample layer.
-- `AuditEvent`: read-only tenant activity.
-- `WorkflowBoundaryAction`: explicit non-persistent action boundary metadata.
+- Every Company, Contact, Address, Activity, and Stock relationship is tenant-scoped.
+- Company roles are many-to-many values, not one exclusive display type.
+- One primary address is allowed per tenant/company.
+- Owner, supplier, tag-info, and traceability Company relationships remain independent.
+- Quantity zero remains valid and visible.
+- Company deletion is rejected while stock references exist.
+- RFQ/quote/order identifiers remain workflow boundaries until those modules are implemented.
 
-## Future Persistence Requirements
-
-Before real persistence:
-
-- Every company, address, contact, commercial relationship, document link, and activity row must include `tenant_id`.
-- Repository methods must require `RequestContext`.
-- Queries must filter by `tenant_id` at database level.
-- Company aliases, parent/subsidiary/DBA relationships, address records, and contact roles should be modeled as first-class records instead of display-only fields.
-- Commercial links should use stable workflow identifiers, especially `RFQ_ID`, not display labels.
-- Mutations require persistent auth, RBAC, audit, and tenant isolation before they are enabled.
-
-## Migration Notes From Yoyamic
-
-Yoyamic behavior to preserve:
-
-- `tb_company` and company detail/contact rows must map to tenant-scoped company and contact records.
-- `Fld_Company_ID` / legacy company ids remain visible for traceability.
-- Company contacts from `tb_company_contact` should preserve role/title, email, phone, mobile, and remarks where available.
-- Legacy company documents from `tbl_docs_attachment_company` and `docsattachmentcompany/` should migrate through the shared Documents ownership model.
-- Stock owner/company, supplier, tag info company, and traceability company must remain separate relationships.
-## Persistence Foundation Phase 1
-
-Dedicated SaaS_Aviation persistence is defined in `SaaS_Aviation/database/migrations/001_core_persistence.sql`.
-
-Company data should migrate into `companies` plus `company_roles`, not into a single exclusive type field. Contacts migrate into `contacts` and remain tenant-scoped by `tenant_id`.
-
-Legacy Yoyamic source references identified from PHP code include `tb_company`, `tbl_Company_Details`, `tbl_Company_Type`, and `tb_company_contact`. These were not queried live in this sprint; read-only DB verification remains required before any production import.
+No Yoyamic query, legacy PHP change, live database access, deployment, or production migration occurred.

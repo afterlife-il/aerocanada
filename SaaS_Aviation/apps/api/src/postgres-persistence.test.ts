@@ -175,12 +175,16 @@ test(
       }
 
       const repo = new PostgresCorePersistence(isolated.config);
-      const companyA = await repo.createCompany(tenantA, { name: "PG Company A", roles: ["supplier"] });
+      const companyA = await repo.createCompany(tenantA, { name: "PG Company A", legalName: "PG Company A Legal", code: "PGA", icaoCode: "PGAA", iataCode: "PGA", vatNumber: "VAT-PG-A", tags: ["verified", "aviation"], country: "Canada", roles: ["supplier"] });
       const supplierA = await repo.createCompany(tenantA, { name: "PG Supplier A", roles: ["supplier"] });
       const tagInfoA = await repo.createCompany(tenantA, { name: "PG Tag Info A", roles: ["repair-station"] });
       const traceabilityA = await repo.createCompany(tenantA, { name: "PG Traceability A", roles: ["stock-owner"] });
       const companyB = await repo.createCompany(tenantB, { name: "PG Company B", roles: ["customer"] });
       const contactA = await repo.createContact(tenantA, companyA.id, { firstName: "Alex", lastName: "Aero", email: "alex@example.test" });
+      const addressA = await repo.createCompanyAddress(tenantA, companyA.id, { label: "Head Office", addressLine1: "1 Aviation Way", city: "Montreal", country: "Canada", isPrimary: true });
+      const temporaryContact = await repo.createContact(tenantA, companyA.id, { firstName: "Delete", lastName: "Me" });
+      await repo.updateContact(tenantA, temporaryContact.id, { jobTitle: "Temporary" });
+      await repo.deleteContact(tenantA, temporaryContact.id);
       const partA = await repo.createPart(tenantA, { partNumber: "PG-123", description: "Postgres part", manufacturer: "OEM", alternates: ["PG-ALT"] });
       const partB = await repo.createPart(tenantB, { partNumber: "PG-456", description: "Other tenant part", manufacturer: "OEM" });
       const stockA = await repo.createStockItem(tenantA, {
@@ -197,7 +201,13 @@ test(
 
       const restarted = new PostgresCorePersistence(isolated.config);
       assert.equal((await restarted.getCompanyById(tenantA, companyA.id))?.name, "PG Company A");
+      assert.equal((await restarted.getCompanyById(tenantA, companyA.id))?.icaoCode, "PGAA");
+      assert.deepEqual((await restarted.getCompanyById(tenantA, companyA.id))?.tags, ["verified", "aviation"]);
       assert.equal((await restarted.listContactsByCompany(tenantA, companyA.id))[0]?.id, contactA.id);
+      assert.equal((await restarted.listCompanyAddresses(tenantA, companyA.id))[0]?.id, addressA.id);
+      assert.equal((await restarted.listCompanyActivity(tenantA, companyA.id)).some((event) => event.action === "address-created"), true);
+      await assert.rejects(restarted.listCompanyAddresses(tenantB, companyA.id), hasCode("not_found"));
+      await assert.rejects(restarted.listCompanyActivity(tenantB, companyA.id), hasCode("not_found"));
       assert.equal((await restarted.getPartById(tenantA, partA.id))?.alternates[0], "PG-ALT");
       const restartedStock = await restarted.getStockById(tenantA, stockA.id);
       assert.equal(restartedStock?.quantity, 0);
@@ -262,6 +272,7 @@ test(
         traceabilityCompanyId: apiCompanyId
       });
       assert.equal(apiStock.status, 201);
+      const apiStockId = (apiStock.body as { data: { id: string } }).data.id;
       await restarted.close();
 
       const apiRestartedRepo = new PostgresCorePersistence(isolated.config);
@@ -270,16 +281,24 @@ test(
         auth: new StaticAuthProvider([session(tokenA, tenantA), session("pg-api-b", tenantB)])
       });
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}`, tokenA)).status, 200);
+      const company360 = await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/360`, tokenA);
+      assert.equal(company360.status, 200);
+      assert.equal((company360.body as { data: { contacts: Array<{ id: string }>; inventory: Array<{ id: string }>; workflowBoundaries: unknown[] } }).data.contacts[0]?.id, apiContactId);
+      assert.equal((company360.body as { data: { contacts: unknown[]; inventory: Array<{ id: string }>; workflowBoundaries: unknown[] } }).data.inventory.some((item) => item.id === apiStockId), true);
+      assert.equal((company360.body as { data: { workflowBoundaries: unknown[] } }).data.workflowBoundaries.length, 5);
       const restartedContacts = await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/contacts`, tokenA);
       assert.equal(restartedContacts.status, 200);
       assert.equal((restartedContacts.body as { data: Array<{ id: string }> }).data[0]?.id, apiContactId);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/parts/${apiPartId}`, tokenA)).status, 200);
-      const apiStockId = (apiStock.body as { data: { id: string } }).data.id;
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/stock/${apiStockId}`, tokenA)).status, 200);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}`, "pg-api-b")).status, 404);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/contacts`, "pg-api-b")).status, 404);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/parts/${apiPartId}`, "pg-api-b")).status, 404);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/stock/${apiStockId}`, "pg-api-b")).status, 404);
+      assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/360`, "pg-api-b")).status, 404);
+      const deletable = await apiRestartedRepo.createCompany(tenantA, { name: "Delete Company", roles: ["customer"] });
+      await apiRestartedRepo.deleteCompany(tenantA, deletable.id);
+      assert.equal(await apiRestartedRepo.getCompanyById(tenantA, deletable.id), null);
       await apiRestartedRepo.close();
     } finally {
       await isolated.cleanup();

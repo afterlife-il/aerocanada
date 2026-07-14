@@ -127,7 +127,7 @@ export function createApp(dependencies: AppDependencies = {}) {
         return;
       }
 
-      res.json({ session });
+      res.json({ session, data: session });
     })
   );
 
@@ -157,7 +157,26 @@ export function createApp(dependencies: AppDependencies = {}) {
       const context = await requireSession(req, res, auth);
       if (!context) return;
       if (!requirePermission(context, res, "company.read")) return;
-      await handleCoreResponse(res, () => corePersistence.listCompanies(context));
+      await handleCoreResponse(res, async () => {
+        const companies = await corePersistence.listCompanies(context);
+        const query = String(req.query.q ?? "").trim().toLowerCase();
+        const status = String(req.query.status ?? "all");
+        const role = String(req.query.role ?? "all");
+        const sort = String(req.query.sort ?? "name");
+        const direction = req.query.direction === "desc" ? -1 : 1;
+        const page = Math.max(1, Number(req.query.page ?? 1) || 1);
+        const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize ?? 25) || 25));
+        const filtered = companies.filter((company) => {
+          if (status !== "all" && company.status !== status) return false;
+          if (role !== "all" && !company.roles.includes(role as never)) return false;
+          if (!query) return true;
+          return [company.name, company.legalName, company.code, company.icaoCode, company.iataCode, company.vatNumber, company.email, company.phone, company.website, company.city, company.country, ...company.tags]
+            .some((value) => String(value ?? "").toLowerCase().includes(query));
+        });
+        filtered.sort((left, right) => String(sort === "updatedAt" ? left.updatedAt : sort === "code" ? left.code ?? "" : left.name).localeCompare(String(sort === "updatedAt" ? right.updatedAt : sort === "code" ? right.code ?? "" : right.name), "en-US", { numeric: true }) * direction);
+        if (Object.keys(req.query).length === 0) return filtered;
+        return { rows: filtered.slice((page - 1) * pageSize, page * pageSize), pagination: { page, pageSize, totalRows: filtered.length, totalPages: Math.max(1, Math.ceil(filtered.length / pageSize)) } };
+      });
     })
   );
 
@@ -182,7 +201,7 @@ export function createApp(dependencies: AppDependencies = {}) {
     asyncHandler(async (req, res) => {
       const context = await requireSession(req, res, auth);
       if (!context) return;
-      if (!requirePermission(context, res, "company.read")) return;
+      if (!requirePermission(context, res, "company.manage")) return;
       await handleCoreResponse(res, () => corePersistence.createCompany(context, req.body), 201);
     })
   );
@@ -192,12 +211,64 @@ export function createApp(dependencies: AppDependencies = {}) {
     asyncHandler(async (req, res) => {
       const context = await requireSession(req, res, auth);
       if (!context) return;
-      if (!requirePermission(context, res, "company.read")) return;
+      if (!requirePermission(context, res, "company.manage")) return;
       const id = requiredParam(req, res, "id");
       if (!id) return;
       await handleCoreResponse(res, () => corePersistence.updateCompany(context, id, req.body));
     })
   );
+
+  app.delete("/v1/companies/:id", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.manage")) return;
+    const id = requiredParam(req, res, "id"); if (!id) return;
+    await handleCoreResponse(res, async () => { await corePersistence.deleteCompany(context, id); return { deleted: true }; });
+  }));
+
+  app.get("/v1/companies/:companyId/360", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.read")) return;
+    const companyId = requiredParam(req, res, "companyId"); if (!companyId) return;
+    await handleCoreResponse(res, async () => {
+      const company = await corePersistence.getCompanyById(context, companyId);
+      if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+      const [contacts, addresses, stock, documents, activity] = await Promise.all([
+        corePersistence.listContactsByCompany(context, company.id), corePersistence.listCompanyAddresses(context, company.id),
+        corePersistence.listStock(context), dataSource.listEntityDocuments(context, "company", company.id), corePersistence.listCompanyActivity(context, company.id)
+      ]);
+      const inventory = stock.filter((item) => [item.ownerCompanyId, item.supplierCompanyId, item.tagInfoCompanyId, item.traceabilityCompanyId].includes(company.id));
+      return { company, contacts, addresses, inventory, documents, activity,
+        workflowBoundaries: ["rfq", "supplier-quote", "customer-quote", "purchase-order", "sales-order"].map((category) => ({ category, status: "boundary", companyId: company.id })) };
+    });
+  }));
+
+  app.get("/v1/companies/:companyId/addresses", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.read")) return;
+    const companyId = requiredParam(req, res, "companyId"); if (!companyId) return;
+    await handleCoreResponse(res, () => corePersistence.listCompanyAddresses(context, companyId));
+  }));
+
+  app.post("/v1/companies/:companyId/addresses", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.manage")) return;
+    const companyId = requiredParam(req, res, "companyId"); if (!companyId) return;
+    await handleCoreResponse(res, () => corePersistence.createCompanyAddress(context, companyId, req.body), 201);
+  }));
+
+  app.patch("/v1/company-addresses/:id", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.manage")) return;
+    const id = requiredParam(req, res, "id"); if (!id) return;
+    await handleCoreResponse(res, () => corePersistence.updateCompanyAddress(context, id, req.body));
+  }));
+
+  app.delete("/v1/company-addresses/:id", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.manage")) return;
+    const id = requiredParam(req, res, "id"); if (!id) return;
+    await handleCoreResponse(res, async () => { await corePersistence.deleteCompanyAddress(context, id); return { deleted: true }; });
+  }));
 
   app.get(
     "/v1/companies/:companyId/contacts",
@@ -216,7 +287,7 @@ export function createApp(dependencies: AppDependencies = {}) {
     asyncHandler(async (req, res) => {
       const context = await requireSession(req, res, auth);
       if (!context) return;
-      if (!requirePermission(context, res, "company.read")) return;
+      if (!requirePermission(context, res, "company.manage")) return;
       const companyId = requiredParam(req, res, "companyId");
       if (!companyId) return;
       await handleCoreResponse(res, () => corePersistence.createContact(context, companyId, req.body), 201);
@@ -228,12 +299,19 @@ export function createApp(dependencies: AppDependencies = {}) {
     asyncHandler(async (req, res) => {
       const context = await requireSession(req, res, auth);
       if (!context) return;
-      if (!requirePermission(context, res, "company.read")) return;
+      if (!requirePermission(context, res, "company.manage")) return;
       const id = requiredParam(req, res, "id");
       if (!id) return;
       await handleCoreResponse(res, () => corePersistence.updateContact(context, id, req.body));
     })
   );
+
+  app.delete("/v1/contacts/:id", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.manage")) return;
+    const id = requiredParam(req, res, "id"); if (!id) return;
+    await handleCoreResponse(res, async () => { await corePersistence.deleteContact(context, id); return { deleted: true }; });
+  }));
 
   app.get(
     "/v1/parts",

@@ -13,6 +13,7 @@ export type Permission =
   | "user.read"
   | "user.manage"
   | "company.read"
+  | "company.manage"
   | "part.read"
   | "stock.read"
   | "document.read"

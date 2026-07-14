@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
   CoreDomainError,
   createCompanySchema,
+  createCompanyAddressSchema,
   createContactSchema,
   createPartSchema,
   createStockSchema,
@@ -13,15 +14,19 @@ import {
   sampleParts,
   sampleTenant,
   updateCompanySchema,
+  updateCompanyAddressSchema,
   updateContactSchema,
   updatePartSchema,
   updateStockSchema
 } from "@saas-aviation/shared";
 import type {
   CompanyRecord,
+  CompanyActivityRecord,
+  CompanyAddressRecord,
   ContactRecord,
   CorePersistence,
   CreateCompanyInput,
+  CreateCompanyAddressInput,
   CreateContactInput,
   CreatePartInput,
   CreateStockInput,
@@ -29,6 +34,7 @@ import type {
   RequestContext,
   StockRecord,
   UpdateCompanyInput,
+  UpdateCompanyAddressInput,
   UpdateContactInput,
   UpdatePartInput,
   UpdateStockInput
@@ -36,6 +42,8 @@ import type {
 
 interface MemoryStore {
   companies: CompanyRecord[];
+  companyAddresses: CompanyAddressRecord[];
+  companyActivity: CompanyActivityRecord[];
   contacts: ContactRecord[];
   parts: PartRecord[];
   stock: StockRecord[];
@@ -101,6 +109,7 @@ function seedStore(): MemoryStore {
       country: company.country,
       risk: company.riskLevel,
       notes: "Seeded from static sample read model.",
+      tags: company.tags,
       roles:
         company.type === "owner"
           ? ["stock-owner"]
@@ -114,6 +123,8 @@ function seedStore(): MemoryStore {
       createdBy: seedActor,
       updatedBy: seedActor
     })),
+    companyAddresses: [],
+    companyActivity: [],
     contacts: sampleContacts.map((contact) => ({
       id: contact.id,
       tenantId: contact.tenantId,
@@ -179,6 +190,8 @@ export class InMemoryCorePersistence implements CorePersistence {
   constructor(store: MemoryStore = seedStore()) {
     this.store = {
       companies: [...store.companies],
+      companyAddresses: [...store.companyAddresses],
+      companyActivity: [...store.companyActivity],
       contacts: [...store.contacts],
       parts: [...store.parts],
       stock: [...store.stock]
@@ -206,6 +219,7 @@ export class InMemoryCorePersistence implements CorePersistence {
       ...auditFields(context)
     };
     this.store.companies.push(company);
+    this.recordCompanyActivity(context, company.id, "company", "created", `Company ${company.name} created.`, company.id);
     return company;
   }
 
@@ -224,7 +238,64 @@ export class InMemoryCorePersistence implements CorePersistence {
     }
     const updated = { ...existing, ...(stripUndefined(parsed) as Partial<CompanyRecord>), ...updateAudit(context) } as CompanyRecord;
     this.store.companies[index] = updated;
+    this.recordCompanyActivity(context, updated.id, "company", "updated", `Company ${updated.name} updated.`, updated.id);
     return updated;
+  }
+
+  async deleteCompany(context: RequestContext, id: string): Promise<void> {
+    const index = this.store.companies.findIndex((company) => matchesTenant(context, company) && (company.id === id || String(company.legacyId) === id));
+    const existing = this.store.companies[index];
+    if (!existing) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    if (this.store.stock.some((stock) => matchesTenant(context, stock) && [stock.ownerCompanyId, stock.supplierCompanyId, stock.tagInfoCompanyId, stock.traceabilityCompanyId].includes(existing.id))) {
+      throw new CoreDomainError("database_error", "Company cannot be deleted while stock relationships exist.");
+    }
+    this.store.companies.splice(index, 1);
+    this.store.contacts = this.store.contacts.filter((contact) => contact.companyId !== existing.id || !matchesTenant(context, contact));
+    this.store.companyAddresses = this.store.companyAddresses.filter((address) => address.companyId !== existing.id || !matchesTenant(context, address));
+    this.store.companyActivity = this.store.companyActivity.filter((activity) => activity.companyId !== existing.id || !matchesTenant(context, activity));
+  }
+
+  async listCompanyAddresses(context: RequestContext, companyId: string): Promise<CompanyAddressRecord[]> {
+    const company = await this.getCompanyById(context, companyId);
+    if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    return this.store.companyAddresses.filter((address) => matchesTenant(context, address) && address.companyId === company.id);
+  }
+
+  async createCompanyAddress(context: RequestContext, companyId: string, input: CreateCompanyAddressInput): Promise<CompanyAddressRecord> {
+    const company = await this.getCompanyById(context, companyId);
+    if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    const parsed = createCompanyAddressSchema.parse(input);
+    if (parsed.isPrimary) this.store.companyAddresses = this.store.companyAddresses.map((address) => address.companyId === company.id ? { ...address, isPrimary: false } : address);
+    const address = { ...parsed, id: randomUUID(), tenantId: context.tenant.tenantId, companyId: company.id, ...auditFields(context) };
+    this.store.companyAddresses.push(address);
+    this.recordCompanyActivity(context, company.id, "company", "address-created", `${address.label} address created.`, address.id);
+    return address;
+  }
+
+  async updateCompanyAddress(context: RequestContext, id: string, input: UpdateCompanyAddressInput): Promise<CompanyAddressRecord> {
+    const index = this.store.companyAddresses.findIndex((address) => address.id === id);
+    const existing = this.store.companyAddresses[index];
+    assertSameTenant(context, existing);
+    const parsed = updateCompanyAddressSchema.parse(input);
+    if (parsed.isPrimary) this.store.companyAddresses = this.store.companyAddresses.map((address) => address.companyId === existing.companyId ? { ...address, isPrimary: false } : address);
+    const updated = { ...existing, ...stripUndefined(parsed), ...updateAudit(context) } as CompanyAddressRecord;
+    this.store.companyAddresses[index] = updated;
+    this.recordCompanyActivity(context, existing.companyId, "company", "address-updated", `${updated.label} address updated.`, updated.id);
+    return updated;
+  }
+
+  async deleteCompanyAddress(context: RequestContext, id: string): Promise<void> {
+    const index = this.store.companyAddresses.findIndex((address) => address.id === id);
+    const existing = this.store.companyAddresses[index];
+    assertSameTenant(context, existing);
+    this.store.companyAddresses.splice(index, 1);
+    this.recordCompanyActivity(context, existing.companyId, "company", "address-deleted", `${existing.label} address deleted.`, existing.id);
+  }
+
+  async listCompanyActivity(context: RequestContext, companyId: string): Promise<CompanyActivityRecord[]> {
+    const company = await this.getCompanyById(context, companyId);
+    if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    return this.store.companyActivity.filter((activity) => matchesTenant(context, activity) && activity.companyId === company.id).sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
   }
 
   async listContactsByCompany(context: RequestContext, companyId: string): Promise<ContactRecord[]> {
@@ -257,6 +328,7 @@ export class InMemoryCorePersistence implements CorePersistence {
       ...auditFields(context)
     };
     this.store.contacts.push(contact);
+    this.recordCompanyActivity(context, company.id, "contact", "created", `Contact ${contact.firstName} ${contact.lastName} created.`, contact.id);
     return contact;
   }
 
@@ -267,7 +339,20 @@ export class InMemoryCorePersistence implements CorePersistence {
     assertSameTenant(context, existing);
     const updated = { ...existing, ...(stripUndefined(parsed) as Partial<ContactRecord>), ...updateAudit(context) } as ContactRecord;
     this.store.contacts[index] = updated;
+    this.recordCompanyActivity(context, updated.companyId, "contact", "updated", `Contact ${updated.firstName} ${updated.lastName} updated.`, updated.id);
     return updated;
+  }
+
+  async deleteContact(context: RequestContext, id: string): Promise<void> {
+    const index = this.store.contacts.findIndex((contact) => contact.id === id || String(contact.legacyId) === id);
+    const existing = this.store.contacts[index];
+    assertSameTenant(context, existing);
+    this.store.contacts.splice(index, 1);
+    this.recordCompanyActivity(context, existing.companyId, "contact", "deleted", `Contact ${existing.firstName} ${existing.lastName} deleted.`, existing.id);
+  }
+
+  private recordCompanyActivity(context: RequestContext, companyId: string, category: CompanyActivityRecord["category"], action: string, summary: string, referenceId?: string): void {
+    this.store.companyActivity.push({ id: randomUUID(), tenantId: context.tenant.tenantId, companyId, category, action, summary, referenceId, occurredAt: now(), actorId: context.tenant.userId });
   }
 
   async listParts(context: RequestContext): Promise<PartRecord[]> {

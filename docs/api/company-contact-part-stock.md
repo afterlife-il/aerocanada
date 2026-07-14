@@ -2,13 +2,13 @@
 
 Status: local Express API foundation with memory and PostgreSQL providers, not deployed.
 
-All routes are under `/v1` and require a bearer session. Existing permissions are reused:
+All routes are under `/v1` and require a bearer session:
 
-- Company and Contact routes require `company.read`.
+- Company/Contact/Address reads require `company.read`; mutations require `company.manage`.
 - Part routes require `part.read`.
 - Stock routes require `stock.read`.
 
-Write-specific production RBAC is not complete. These routes are local persistence foundations and must not be exposed as production mutation workflows until auth, audit, rate limiting, and module ownership are hardened.
+Company write RBAC and activity persistence are implemented locally. Deployment still requires operational auth, rate limiting, secrets, monitoring, backup, and explicit approval.
 
 ## Companies
 
@@ -22,6 +22,9 @@ Write-specific production RBAC is not complete. These routes are local persisten
 - `GET /v1/companies/:companyId/contacts`
 - `POST /v1/companies/:companyId/contacts`
 - `PATCH /v1/contacts/:id`
+- `DELETE /v1/contacts/:id`
+
+See `docs/api/company.md` for the Company 360 aggregate, search, address, and delete contracts.
 
 ## Parts
 

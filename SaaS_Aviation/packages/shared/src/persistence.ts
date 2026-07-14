@@ -59,6 +59,9 @@ export interface CompanyRecord extends PersistentAuditFields {
   name: string;
   legalName?: string | undefined;
   code?: string | undefined;
+  icaoCode?: string | undefined;
+  iataCode?: string | undefined;
+  vatNumber?: string | undefined;
   status: "active" | "inactive" | "blocked";
   email?: string | undefined;
   phone?: string | undefined;
@@ -71,7 +74,34 @@ export interface CompanyRecord extends PersistentAuditFields {
   country?: string | undefined;
   risk: "normal" | "watch" | "blocked";
   notes?: string | undefined;
+  tags: string[];
   roles: CompanyRole[];
+}
+
+export interface CompanyAddressRecord extends PersistentAuditFields {
+  id: string;
+  tenantId: TenantId;
+  companyId: string;
+  label: string;
+  addressLine1: string;
+  addressLine2?: string | undefined;
+  city?: string | undefined;
+  state?: string | undefined;
+  postalCode?: string | undefined;
+  country: string;
+  isPrimary: boolean;
+}
+
+export interface CompanyActivityRecord {
+  id: string;
+  tenantId: TenantId;
+  companyId: string;
+  category: "company" | "contact" | "rfq" | "supplier-quote" | "customer-quote" | "purchase-order" | "sales-order" | "stock" | "document";
+  action: string;
+  summary: string;
+  referenceId?: string | undefined;
+  occurredAt: string;
+  actorId: string;
 }
 
 export interface ContactRecord extends PersistentAuditFields {
@@ -143,6 +173,8 @@ export type CreateCompanyInput = z.input<typeof createCompanySchema>;
 export type UpdateCompanyInput = z.input<typeof updateCompanySchema>;
 export type CreateContactInput = z.input<typeof createContactSchema>;
 export type UpdateContactInput = z.input<typeof updateContactSchema>;
+export type CreateCompanyAddressInput = z.input<typeof createCompanyAddressSchema>;
+export type UpdateCompanyAddressInput = z.input<typeof updateCompanyAddressSchema>;
 export type CreatePartInput = z.input<typeof createPartSchema>;
 export type UpdatePartInput = z.input<typeof updatePartSchema>;
 export type CreateStockInput = z.input<typeof createStockSchema>;
@@ -168,6 +200,9 @@ export const createCompanySchema = z.object({
   name: z.string().trim().min(1).max(240),
   legalName: optionalText,
   code: optionalText,
+  icaoCode: z.string().trim().toUpperCase().length(4).optional(),
+  iataCode: z.string().trim().toUpperCase().length(3).optional(),
+  vatNumber: optionalText,
   status: z.enum(["active", "inactive", "blocked"]).default("active"),
   email: z.string().trim().email().optional(),
   phone: optionalText,
@@ -180,6 +215,7 @@ export const createCompanySchema = z.object({
   country: optionalText,
   risk: z.enum(["normal", "watch", "blocked"]).default("normal"),
   notes: optionalText,
+  tags: z.array(z.string().trim().min(1).max(80)).default([]),
   roles: z.array(companyRoleSchema).min(1).default(["customer"])
 });
 
@@ -203,6 +239,21 @@ export const createContactSchema = z.object({
 
 export const updateContactSchema = createContactSchema.partial().refine((value) => Object.keys(value).length > 0, {
   message: "At least one contact field is required."
+});
+
+export const createCompanyAddressSchema = z.object({
+  label: z.string().trim().min(1).max(120),
+  addressLine1: z.string().trim().min(1).max(500),
+  addressLine2: optionalText,
+  city: optionalText,
+  state: optionalText,
+  postalCode: optionalText,
+  country: z.string().trim().min(2).max(120),
+  isPrimary: z.boolean().default(false)
+});
+
+export const updateCompanyAddressSchema = createCompanyAddressSchema.partial().refine((value) => Object.keys(value).length > 0, {
+  message: "At least one address field is required."
 });
 
 export const createPartSchema = z.object({
@@ -253,12 +304,19 @@ export interface CoreCompanyRepository {
   getCompanyById(context: RequestContext, id: string): Promise<CompanyRecord | null>;
   createCompany(context: RequestContext, input: CreateCompanyInput): Promise<CompanyRecord>;
   updateCompany(context: RequestContext, id: string, input: UpdateCompanyInput): Promise<CompanyRecord>;
+  deleteCompany(context: RequestContext, id: string): Promise<void>;
+  listCompanyAddresses(context: RequestContext, companyId: string): Promise<CompanyAddressRecord[]>;
+  createCompanyAddress(context: RequestContext, companyId: string, input: CreateCompanyAddressInput): Promise<CompanyAddressRecord>;
+  updateCompanyAddress(context: RequestContext, id: string, input: UpdateCompanyAddressInput): Promise<CompanyAddressRecord>;
+  deleteCompanyAddress(context: RequestContext, id: string): Promise<void>;
+  listCompanyActivity(context: RequestContext, companyId: string): Promise<CompanyActivityRecord[]>;
 }
 
 export interface CoreContactRepository {
   listContactsByCompany(context: RequestContext, companyId: string): Promise<ContactRecord[]>;
   createContact(context: RequestContext, companyId: string, input: CreateContactInput): Promise<ContactRecord>;
   updateContact(context: RequestContext, id: string, input: UpdateContactInput): Promise<ContactRecord>;
+  deleteContact(context: RequestContext, id: string): Promise<void>;
 }
 
 export interface CorePartRepository {

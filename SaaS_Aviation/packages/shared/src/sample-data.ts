@@ -42,6 +42,7 @@ export const sampleUsers: AuthUserRecord[] = [
       "user.read",
       "user.manage",
       "company.read",
+      "company.manage",
       "part.read",
       "stock.read",
       "document.read",

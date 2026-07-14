@@ -3,21 +3,26 @@ import pg from "pg";
 import {
   CoreDomainError,
   createCompanySchema,
+  createCompanyAddressSchema,
   createContactSchema,
   createPartSchema,
   createStockSchema,
   normalizePartNumber,
   updateCompanySchema,
+  updateCompanyAddressSchema,
   updateContactSchema,
   updatePartSchema,
   updateStockSchema
 } from "@saas-aviation/shared";
 import type {
   CompanyRecord,
+  CompanyActivityRecord,
+  CompanyAddressRecord,
   CompanyRole,
   ContactRecord,
   CorePersistence,
   CreateCompanyInput,
+  CreateCompanyAddressInput,
   CreateContactInput,
   CreatePartInput,
   CreateStockInput,
@@ -26,6 +31,7 @@ import type {
   RequestContext,
   StockRecord,
   UpdateCompanyInput,
+  UpdateCompanyAddressInput,
   UpdateContactInput,
   UpdatePartInput,
   UpdateStockInput
@@ -43,6 +49,9 @@ interface CompanyRow {
   name: string;
   legal_name: string | null;
   code: string | null;
+  icao_code: string | null;
+  iata_code: string | null;
+  vat_number: string | null;
   status: CompanyRecord["status"];
   email: string | null;
   phone: string | null;
@@ -55,11 +64,23 @@ interface CompanyRow {
   country: string | null;
   risk: CompanyRecord["risk"];
   notes: string | null;
+  tags: string[];
   created_at: Date;
   updated_at: Date;
   created_by: string;
   updated_by: string;
   roles: CompanyRole[] | null;
+}
+
+interface CompanyAddressRow {
+  id: string; tenant_id: string; company_id: string; label: string; address_line_1: string; address_line_2: string | null;
+  city: string | null; state: string | null; postal_code: string | null; country: string; is_primary: boolean;
+  created_at: Date; updated_at: Date; created_by: string; updated_by: string;
+}
+
+interface CompanyActivityRow {
+  id: string; tenant_id: string; company_id: string; category: CompanyActivityRecord["category"]; action: string; summary: string;
+  reference_id: string | null; occurred_at: Date; actor_id: string;
 }
 
 interface ContactRow {
@@ -163,6 +184,9 @@ function companyFromRow(row: CompanyRow): CompanyRecord {
     name: row.name,
     legalName: optional(row.legal_name),
     code: optional(row.code),
+    icaoCode: optional(row.icao_code),
+    iataCode: optional(row.iata_code),
+    vatNumber: optional(row.vat_number),
     status: row.status,
     email: optional(row.email),
     phone: optional(row.phone),
@@ -175,12 +199,25 @@ function companyFromRow(row: CompanyRow): CompanyRecord {
     country: optional(row.country),
     risk: row.risk,
     notes: optional(row.notes),
+    tags: row.tags ?? [],
     roles: row.roles ?? [],
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
     createdBy: row.created_by,
     updatedBy: row.updated_by
   };
+}
+
+function companyAddressFromRow(row: CompanyAddressRow): CompanyAddressRecord {
+  return { id: row.id, tenantId: row.tenant_id, companyId: row.company_id, label: row.label, addressLine1: row.address_line_1,
+    addressLine2: optional(row.address_line_2), city: optional(row.city), state: optional(row.state), postalCode: optional(row.postal_code),
+    country: row.country, isPrimary: row.is_primary, createdAt: row.created_at.toISOString(), updatedAt: row.updated_at.toISOString(),
+    createdBy: row.created_by, updatedBy: row.updated_by };
+}
+
+function companyActivityFromRow(row: CompanyActivityRow): CompanyActivityRecord {
+  return { id: row.id, tenantId: row.tenant_id, companyId: row.company_id, category: row.category, action: row.action,
+    summary: row.summary, referenceId: optional(row.reference_id), occurredAt: row.occurred_at.toISOString(), actorId: row.actor_id };
 }
 
 function contactFromRow(row: ContactRow): ContactRecord {
@@ -331,9 +368,9 @@ export class PostgresCorePersistence implements CorePersistence {
         const id = randomUUID();
         await client.query(
           `INSERT INTO companies (
-            id, tenant_id, legacy_id, name, legal_name, code, status, email, phone, website,
-            address_line_1, address_line_2, city, state, postal_code, country, risk, notes, created_by, updated_by
-          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$19)`,
+            id, tenant_id, legacy_id, name, legal_name, code, icao_code, iata_code, vat_number, status, email, phone, website,
+            address_line_1, address_line_2, city, state, postal_code, country, risk, notes, tags, created_by, updated_by
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$23)`,
           [
             id,
             context.tenant.tenantId,
@@ -341,6 +378,9 @@ export class PostgresCorePersistence implements CorePersistence {
             parsed.name,
             parsed.legalName,
             parsed.code,
+            parsed.icaoCode,
+            parsed.iataCode,
+            parsed.vatNumber,
             parsed.status,
             parsed.email,
             parsed.phone,
@@ -353,10 +393,12 @@ export class PostgresCorePersistence implements CorePersistence {
             parsed.country,
             parsed.risk,
             parsed.notes,
+            parsed.tags,
             context.tenant.userId
           ]
         );
         await this.replaceCompanyRoles(client, context, id, parsed.roles);
+        await this.recordCompanyActivity(client, context, id, "company", "created", `Company ${parsed.name} created.`, id);
         const created = await this.getCompanyByIdUsing(client, context, id);
         if (!created) throw new CoreDomainError("database_error", "Created company could not be reloaded.");
         return created;
@@ -376,9 +418,9 @@ export class PostgresCorePersistence implements CorePersistence {
         const merged = { ...existing, ...parsed };
         await client.query(
           `UPDATE companies SET
-            legacy_id=$3, name=$4, legal_name=$5, code=$6, status=$7, email=$8, phone=$9, website=$10,
-            address_line_1=$11, address_line_2=$12, city=$13, state=$14, postal_code=$15, country=$16,
-            risk=$17, notes=$18, updated_at=now(), updated_by=$19
+            legacy_id=$3, name=$4, legal_name=$5, code=$6, icao_code=$7, iata_code=$8, vat_number=$9,
+            status=$10, email=$11, phone=$12, website=$13, address_line_1=$14, address_line_2=$15, city=$16,
+            state=$17, postal_code=$18, country=$19, risk=$20, notes=$21, tags=$22, updated_at=now(), updated_by=$23
            WHERE tenant_id=$1 AND id=$2`,
           [
             context.tenant.tenantId,
@@ -387,6 +429,9 @@ export class PostgresCorePersistence implements CorePersistence {
             merged.name,
             merged.legalName,
             merged.code,
+            merged.icaoCode,
+            merged.iataCode,
+            merged.vatNumber,
             merged.status,
             merged.email,
             merged.phone,
@@ -399,12 +444,14 @@ export class PostgresCorePersistence implements CorePersistence {
             merged.country,
             merged.risk,
             merged.notes,
+            merged.tags,
             context.tenant.userId
           ]
         );
         if (Array.isArray(parsed.roles)) {
           await this.replaceCompanyRoles(client, context, existing.id, parsed.roles);
         }
+        await this.recordCompanyActivity(client, context, existing.id, "company", "updated", `Company ${merged.name} updated.`, existing.id);
         const updated = await this.getCompanyByIdUsing(client, context, existing.id);
         if (!updated) throw new CoreDomainError("database_error", "Updated company could not be reloaded.");
         return updated;
@@ -413,6 +460,65 @@ export class PostgresCorePersistence implements CorePersistence {
       if (error instanceof CoreDomainError) throw error;
       throw mapPgError(error);
     }
+  }
+
+  async deleteCompany(context: RequestContext, id: string): Promise<void> {
+    const existing = await this.getCompanyById(context, id);
+    if (!existing) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    try {
+      await withTransaction(this.pool, async (client) => {
+        await client.query("DELETE FROM contacts WHERE tenant_id=$1 AND company_id=$2", [context.tenant.tenantId, existing.id]);
+        await client.query("DELETE FROM company_roles WHERE tenant_id=$1 AND company_id=$2", [context.tenant.tenantId, existing.id]);
+        const result = await client.query("DELETE FROM companies WHERE tenant_id=$1 AND id=$2", [context.tenant.tenantId, existing.id]);
+        if (!result.rowCount) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+      });
+    } catch (error) { if (error instanceof CoreDomainError) throw error; throw mapPgError(error); }
+  }
+
+  async listCompanyAddresses(context: RequestContext, companyId: string): Promise<CompanyAddressRecord[]> {
+    const company = await this.getCompanyById(context, companyId);
+    if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    const result = await this.pool.query<CompanyAddressRow>("SELECT * FROM company_addresses WHERE tenant_id=$1 AND company_id=$2 ORDER BY is_primary DESC, label", [context.tenant.tenantId, company.id]);
+    return result.rows.map(companyAddressFromRow);
+  }
+
+  async createCompanyAddress(context: RequestContext, companyId: string, input: CreateCompanyAddressInput): Promise<CompanyAddressRecord> {
+    const parsed = createCompanyAddressSchema.parse(input);
+    const company = await this.getCompanyById(context, companyId);
+    if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    return withTransaction(this.pool, async (client) => {
+      if (parsed.isPrimary) await client.query("UPDATE company_addresses SET is_primary=false, updated_at=now(), updated_by=$3 WHERE tenant_id=$1 AND company_id=$2 AND is_primary", [context.tenant.tenantId, company.id, context.tenant.userId]);
+      const id = randomUUID();
+      const result = await client.query<CompanyAddressRow>(`INSERT INTO company_addresses (id,tenant_id,company_id,label,address_line_1,address_line_2,city,state,postal_code,country,is_primary,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12) RETURNING *`, [id, context.tenant.tenantId, company.id, parsed.label, parsed.addressLine1, parsed.addressLine2, parsed.city, parsed.state, parsed.postalCode, parsed.country, parsed.isPrimary, context.tenant.userId]);
+      await this.recordCompanyActivity(client, context, company.id, "company", "address-created", `${parsed.label} address created.`, id);
+      return companyAddressFromRow(result.rows[0] as CompanyAddressRow);
+    });
+  }
+
+  async updateCompanyAddress(context: RequestContext, id: string, input: UpdateCompanyAddressInput): Promise<CompanyAddressRecord> {
+    const parsed = stripUndefined(updateCompanyAddressSchema.parse(input));
+    return withTransaction(this.pool, async (client) => {
+      const current = await client.query<CompanyAddressRow>("SELECT * FROM company_addresses WHERE tenant_id=$1 AND id=$2", [context.tenant.tenantId, id]);
+      const row = current.rows[0]; if (!row) throw new CoreDomainError("not_found", "Address was not found in the current tenant.");
+      const merged = { ...companyAddressFromRow(row), ...parsed };
+      if (parsed.isPrimary) await client.query("UPDATE company_addresses SET is_primary=false, updated_at=now(), updated_by=$3 WHERE tenant_id=$1 AND company_id=$2 AND id<>$4 AND is_primary", [context.tenant.tenantId, row.company_id, context.tenant.userId, id]);
+      const result = await client.query<CompanyAddressRow>(`UPDATE company_addresses SET label=$3,address_line_1=$4,address_line_2=$5,city=$6,state=$7,postal_code=$8,country=$9,is_primary=$10,updated_at=now(),updated_by=$11 WHERE tenant_id=$1 AND id=$2 RETURNING *`, [context.tenant.tenantId, id, merged.label, merged.addressLine1, merged.addressLine2, merged.city, merged.state, merged.postalCode, merged.country, merged.isPrimary, context.tenant.userId]);
+      await this.recordCompanyActivity(client, context, row.company_id, "company", "address-updated", `${merged.label} address updated.`, id);
+      return companyAddressFromRow(result.rows[0] as CompanyAddressRow);
+    });
+  }
+
+  async deleteCompanyAddress(context: RequestContext, id: string): Promise<void> {
+    const result = await this.pool.query<CompanyAddressRow>("DELETE FROM company_addresses WHERE tenant_id=$1 AND id=$2 RETURNING *", [context.tenant.tenantId, id]);
+    const row = result.rows[0]; if (!row) throw new CoreDomainError("not_found", "Address was not found in the current tenant.");
+    await this.recordCompanyActivity(this.pool, context, row.company_id, "company", "address-deleted", `${row.label} address deleted.`, id);
+  }
+
+  async listCompanyActivity(context: RequestContext, companyId: string): Promise<CompanyActivityRecord[]> {
+    const company = await this.getCompanyById(context, companyId);
+    if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    const result = await this.pool.query<CompanyActivityRow>("SELECT * FROM company_activity WHERE tenant_id=$1 AND company_id=$2 ORDER BY occurred_at DESC", [context.tenant.tenantId, company.id]);
+    return result.rows.map(companyActivityFromRow);
   }
 
   async listContactsByCompany(context: RequestContext, companyId: string): Promise<ContactRecord[]> {
@@ -457,6 +563,7 @@ export class PostgresCorePersistence implements CorePersistence {
       );
       const row = result.rows[0];
       if (!row) throw new CoreDomainError("database_error", "Created contact could not be reloaded.");
+      await this.recordCompanyActivity(this.pool, context, company.id, "contact", "created", `Contact ${parsed.firstName} ${parsed.lastName} created.`, id);
       return contactFromRow(row);
     } catch (error) {
       if (error instanceof CoreDomainError) throw error;
@@ -495,11 +602,20 @@ export class PostgresCorePersistence implements CorePersistence {
       );
       const row = result.rows[0];
       if (!row) throw new CoreDomainError("not_found", "Contact was not found in the current tenant.");
+      await this.recordCompanyActivity(this.pool, context, existing.companyId, "contact", "updated", `Contact ${merged.firstName} ${merged.lastName} updated.`, existing.id);
       return contactFromRow(row);
     } catch (error) {
       if (error instanceof CoreDomainError) throw error;
       throw mapPgError(error);
     }
+  }
+
+  async deleteContact(context: RequestContext, id: string): Promise<void> {
+    const existing = await this.getContactById(context, id);
+    if (!existing) throw new CoreDomainError("not_found", "Contact was not found in the current tenant.");
+    const result = await this.pool.query("DELETE FROM contacts WHERE tenant_id=$1 AND id=$2", [context.tenant.tenantId, existing.id]);
+    if (!result.rowCount) throw new CoreDomainError("not_found", "Contact was not found in the current tenant.");
+    await this.recordCompanyActivity(this.pool, context, existing.companyId, "contact", "deleted", `Contact ${existing.firstName} ${existing.lastName} deleted.`, existing.id);
   }
 
   async listParts(context: RequestContext): Promise<PartRecord[]> {
@@ -720,6 +836,10 @@ export class PostgresCorePersistence implements CorePersistence {
     for (const role of roles) {
       await client.query("INSERT INTO company_roles (tenant_id, company_id, role) VALUES ($1, $2, $3)", [context.tenant.tenantId, companyId, role]);
     }
+  }
+
+  private async recordCompanyActivity(queryable: Queryable, context: RequestContext, companyId: string, category: CompanyActivityRecord["category"], action: string, summary: string, referenceId?: string): Promise<void> {
+    await queryable.query(`INSERT INTO company_activity (id,tenant_id,company_id,category,action,summary,reference_id,actor_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, [randomUUID(), context.tenant.tenantId, companyId, category, action, summary, referenceId, context.tenant.userId]);
   }
 
   private async replacePartAlternates(client: pg.PoolClient, context: RequestContext, partId: string, alternates: string[]): Promise<void> {

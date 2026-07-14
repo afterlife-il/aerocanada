@@ -37,8 +37,16 @@
       "scope": "email/password foundation, tenant context, roles, permissions, bearer sessions, protected API reads"
     },
     "company_360": {
-      "status": "foundation_completed_with_local_postgres_crud_api_not_deployed",
-      "scope": "Company list search/filter/sort, Company 360 overview, KPI cards, contacts, inventory summary, documents integration, commercial activity panels, non-persistent static workflow boundaries, and local tenant-scoped Company/Contact CRUD API foundation with memory/postgres providers"
+      "status": "local_production_module_completed_postgres_validated_not_deployed",
+      "scope": "PostgreSQL Company identity with ICAO/IATA/VAT/tags, full Company/Contact/Address CRUD, search/filter/sort/pagination, related stock inventory, Documents links, persisted activity, authenticated persistent UI/API, and explicit RFQ/quote/order boundaries",
+      "completion_status": "complete_for_local_persistent_runtime",
+      "finished_work": "source, migration, API, UI, tests, OpenAPI, and documentation",
+      "remaining_work": "visual browser automation rerun when tooling is available; document byte storage and downstream commercial modules remain independent boundaries",
+      "known_blockers": "agent-browser unavailable; Playwright Chromium unavailable; installed Edge automation timed out",
+      "next_recommended_task": "review Company 360 locally, then begin Part 360 production sprint",
+      "validation_performed": "migration 002, PostgreSQL 13/13 no skips, authenticated CRUD smoke, restart persistence, tenant isolation, typecheck, lint, build",
+      "deployment_status": "not deployed; public frontend remains sample-static",
+      "commit_reference": "Complete Company 360 production module"
     },
     "part_360": {
       "status": "workspace_completed_with_local_postgres_part_crud_api_not_deployed",
@@ -231,6 +239,6 @@
     "schema_changes": "local_postgres_migration_contract_only_not_deployed"
   },
   "current_sprint": "Persistent Data Foundation Phase 2",
-  "last_completed_task": "Verified local PostgreSQL runtime on Docker Desktop/WSL2: migration 001 applied with checksum and idempotency proof; real integration tests passed for reconnect persistence, quantity 0, independent stock company relationships, tenant isolation, rollback, and local API/repository restart. Public frontend remains static/sample-backed; nothing was pushed or deployed; Yoyamic, legacy PHP, and live databases were untouched.",
-  "next_recommended_task": "Continue Auth/Tenant persistence and audit design on the locally verified PostgreSQL foundation. Do not deploy API/database until auth, RBAC, audit persistence, backup, monitoring, and secrets management are production-ready."
+  "last_completed_task": "Completed and locally validated Company 360 production module with PostgreSQL identity, Company/Contact/Address CRUD, inventory, Documents links, activity, search, authenticated UI/API, tests, and documentation. Browser automation remains a tooling blocker. Nothing was pushed or deployed.",
+  "next_recommended_task": "Review Company 360 persistent mode locally, then begin the Part 360 production sprint. Keep API/database deployment blocked until infrastructure operations, secrets, backup, monitoring, and deployment approval are complete."
 }

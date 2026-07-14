@@ -1,10 +1,10 @@
 # Company 360
 
-Last updated: 2026-07-07
+Last updated: 2026-07-14
 
 ## Scope
 
-Company 360 is now the foundation for the future Company module in `SaaS_Aviation/`. It remains read-only and sample-data-backed, but it has moved beyond a shell into a complete tenant-scoped workspace for company identity, contacts, inventory, documents, commercial context, activity, and workflow entry points.
+Company 360 is implemented as a complete local business module backed by PostgreSQL in explicit `persistent-api` mode. The public deployment remains read-only and sample-backed; no API or database was deployed.
 
 ## Implemented Surfaces
 
@@ -39,11 +39,11 @@ The detail workspace includes:
 
 ## Workflow Boundaries
 
-Company 360 exposes entry points only. It does not fake unfinished modules and does not persist mutations.
+Company identity, address, and contact mutations persist locally. Unfinished commercial and document-storage modules remain explicit boundaries and are not faked.
 
-- Edit Company: future Company mutation workflow.
-- Create Contact: future Contact module.
-- Edit Contact: future Contact module.
+- Edit/Delete Company: implemented with stock-reference deletion protection.
+- Create/Edit/Delete Contact: implemented.
+- Create/Delete Company Address: implemented; API also supports address update and a single primary address.
 - Add Document: Documents module upload/storage workflow.
 - Create RFQ: future RFQ module.
 - View Company Inventory: Company Inventory / Inventory module.
@@ -57,11 +57,20 @@ Company 360 exposes entry points only. It does not fake unfinished modules and d
 - Qty `0` stock rows remain visible in company inventory.
 - No Yoyamic, database, deployment, or mutation workflow was touched.
 
-## Known Gaps
+## Completed Production Scope
+
+- Identity: name, legal name, code, ICAO, IATA, VAT, country, legacy address fields, multiple addresses, website, notes, roles, tags, status, risk, and audit fields.
+- Contacts: multiple contacts with position, email, phone, mobile, status, notes, and full CRUD.
+- Search: tenant-scoped fast search across identity/codes/VAT/contact fields, status/role filters, sorting, and pagination.
+- Inventory: related PostgreSQL stock through independent owner, supplier, tag-info, and traceability relationships.
+- Documents: tenant-scoped Documents-module metadata/link read model and upload boundary.
+- Activity: persisted Company/Contact/Address activity plus clean RFQ, quote, order, stock, and document categories.
+- Quick actions: Edit Company, Create Contact, Create RFQ boundary, Upload Document boundary, and Open Inventory.
+
+## Remaining Work and Boundaries
 
 - Real Yoyamic read adapter queries are still pending.
-- Contact create/edit workflows are not implemented.
-- Company edit mutations are not implemented.
+- The public static build remains read-only; persistent mode requires the local API and bearer session.
 - Document byte storage, malware scanning, retention, and persisted audit remain future Documents work.
 - RFQ, quotes, PO, and SO dedicated workflows remain future modules.
 ## Persistence Foundation Phase 2
@@ -75,4 +84,4 @@ Company 360 remains deployed as a static/sample read-model screen. Locally, the 
 
 PostgreSQL mode is local/dev only and requires explicit `DATABASE_URL` configuration. The static frontend does not connect to it unless `persistent-api` mode is selected locally.
 
-This does not make deployed Company 360 mutations operational. Create/edit company and create/edit contact are still workflow-boundary UI actions in the static frontend until the API runtime, dedicated SaaS database, production RBAC, and audit persistence are deployed.
+Validation on 2026-07-14 applied migration 002, passed the real PostgreSQL suite without skips, passed authenticated Company/Contact/Address CRUD, reconnect persistence, tenant isolation, typecheck, lint, and build. Browser automation remained blocked by missing/timing-out local browser tooling. Nothing was pushed or deployed.

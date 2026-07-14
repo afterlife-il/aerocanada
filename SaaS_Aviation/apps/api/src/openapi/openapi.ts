@@ -176,7 +176,23 @@ export const openApiDocument = {
           "404": { $ref: "#/components/responses/NotFound" },
           "409": { $ref: "#/components/responses/Conflict" }
         }
+      },
+      delete: {
+        tags: ["Companies"], operationId: "deleteCompany", summary: "Delete a tenant-scoped company when no stock relationship blocks deletion",
+        security: [{ bearerAuth: [] }], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: { "200": { description: "Company deleted." }, "403": { $ref: "#/components/responses/Forbidden" }, "404": { $ref: "#/components/responses/NotFound" }, "409": { $ref: "#/components/responses/Conflict" } }
       }
+    },
+    "/v1/companies/{companyId}/360": {
+      get: { tags: ["Companies"], operationId: "getCompany360", summary: "Get PostgreSQL Company 360 identity, contacts, addresses, inventory, Documents links, activity, and workflow boundaries", security: [{ bearerAuth: [] }], parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }], responses: { "200": { description: "Company 360 aggregate." }, "403": { $ref: "#/components/responses/Forbidden" }, "404": { $ref: "#/components/responses/NotFound" } } }
+    },
+    "/v1/companies/{companyId}/addresses": {
+      get: { tags: ["Companies"], operationId: "listCompanyAddresses", security: [{ bearerAuth: [] }], parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }], responses: { "200": { description: "Company addresses." }, "404": { $ref: "#/components/responses/NotFound" } } },
+      post: { tags: ["Companies"], operationId: "createCompanyAddress", security: [{ bearerAuth: [] }], parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }], requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } }, responses: { "201": { description: "Address created." }, "400": { $ref: "#/components/responses/ValidationError" }, "403": { $ref: "#/components/responses/Forbidden" } } }
+    },
+    "/v1/company-addresses/{id}": {
+      patch: { tags: ["Companies"], operationId: "updateCompanyAddress", security: [{ bearerAuth: [] }], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }], requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } }, responses: { "200": { description: "Address updated." }, "404": { $ref: "#/components/responses/NotFound" } } },
+      delete: { tags: ["Companies"], operationId: "deleteCompanyAddress", security: [{ bearerAuth: [] }], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }], responses: { "200": { description: "Address deleted." }, "404": { $ref: "#/components/responses/NotFound" } } }
     },
     "/v1/companies/{companyId}/contacts": {
       get: {
@@ -224,7 +240,8 @@ export const openApiDocument = {
           "403": { $ref: "#/components/responses/Forbidden" },
           "404": { $ref: "#/components/responses/NotFound" }
         }
-      }
+      },
+      delete: { tags: ["Companies"], operationId: "deleteContact", summary: "Delete one tenant-scoped contact", security: [{ bearerAuth: [] }], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }], responses: { "200": { description: "Contact deleted." }, "403": { $ref: "#/components/responses/Forbidden" }, "404": { $ref: "#/components/responses/NotFound" } } }
     },
     "/v1/parts": {
       get: {

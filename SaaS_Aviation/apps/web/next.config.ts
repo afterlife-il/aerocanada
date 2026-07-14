@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
   typedRoutes: false,
   eslint: {
     dirs: ["src"]
+  },
+  webpack(config) {
+    config.resolve.extensionAlias = {
+      ...config.resolve.extensionAlias,
+      ".js": [".ts", ".tsx", ".js"]
+    };
+    return config;
   }
 };
 

@@ -86,7 +86,7 @@ without another manual update.
 | Typecheck | passing |
 | Lint | passing |
 | Build | passing |
-| Last checked | `2026-07-13T00:00:00+03:00` |
+| Last checked | `2026-07-14T17:00:00+03:00` |
 
 The required PostgreSQL runtime command passed locally on 2026-07-14 with 13 passed, 0 failed, and 0 skipped.
 
@@ -120,7 +120,7 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 13 pas
 | Core | Operational | 85% | `141fee0` | Not formally reviewed | Static export only | Map to read-only Yoyamic adapter |
 | Authentication | Foundation | 35% | `5372dc2` | Not reviewed | Not deployed | Persistent session/audit store, MFA, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
-| Company 360 | Foundation complete + locally verified PostgreSQL provider | 75% | local pending commit | Runtime validation passed | Not deployed | Continue persistent Auth/Tenant/audit design |
+| Company 360 | Local production module complete | 95% | `Complete Company 360 production module` | PostgreSQL, CRUD, restart, tenant, typecheck, lint, build passed; browser automation blocked by tooling | Not deployed; public UI sample-static | Local review, then Part 360 production sprint |
 | Part 360 | Workspace complete + locally verified PostgreSQL provider | 75% | local pending commit | Runtime validation passed | Not deployed | Continue persistent Auth/Tenant/audit design |
 | Stock 360 | Foundation + locally verified PostgreSQL provider | 60% | local pending commit | Runtime validation passed, including quantity 0 and independent company roles | Not deployed | Continue persistent Auth/Tenant/audit design |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Use hardened read-only Yoyamic adapter plans for future mapping |
@@ -142,9 +142,9 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 13 pas
 
 ## Current Sprint
 
-Persistent Data Foundation Phase 2 adds the local PostgreSQL provider, explicit migrations, persistent-api frontend
-boundary, hardened offline read-only Yoyamic adapter preparation, and Warehouse architecture documentation. It is
-not deployed.
+Company 360 is the first complete local business-module sprint on the validated PostgreSQL foundation. It includes
+identity, Contacts, Addresses, Inventory, Documents links, activity, search, permissions, and persistent UI/API.
+Commercial modules remain explicit boundaries. It is not deployed.
 
 ## Next Recommended Sprint
 
