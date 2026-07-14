@@ -38,7 +38,7 @@ Local Docker Desktop/WSL2 validation applied migration 001, recorded and recheck
 - `sample-static`: current static export/sample data mode.
 - `persistent-api`: local/runtime API mode requiring `NEXT_PUBLIC_SAAS_API_BASE_URL`.
 
-`apps/web/src/lib/persistent-api.ts` implements a reusable client for persistent mode. It refuses to run outside explicit `persistent-api` mode and does not fall back to sample fixtures.
+`apps/web/src/lib/persistent-api.ts` implements a reusable client for persistent mode. It refuses to run outside explicit `persistent-api` mode and does not fall back to sample fixtures. Login uses the canonical `{ data: { session } }` envelope; the browser stores the local bearer token and clears it on logout. This is local-only: users and sessions remain in memory and sessions do not survive API restart.
 
 ## Yoyamic Boundary
 

@@ -79,7 +79,7 @@ export const openApiDocument = {
             description: "Session created.",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/AuthSessionResponse" }
+                schema: { $ref: "#/components/schemas/AuthSessionEnvelope" }
               }
             }
           },
@@ -100,7 +100,7 @@ export const openApiDocument = {
         operationId: "logout",
         summary: "Revoke current bearer session",
         responses: {
-          "204": {
+          "200": {
             description: "Session revoked."
           }
         }
@@ -134,7 +134,7 @@ export const openApiDocument = {
           required: true,
           content: {
             "application/json": {
-              schema: { type: "object" }
+              schema: { $ref: "#/components/schemas/CompanyCreateRequest" }
             }
           }
         },
@@ -167,7 +167,7 @@ export const openApiDocument = {
         summary: "Update one tenant-scoped company",
         security: [{ bearerAuth: [] }],
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/CompanyUpdateRequest" } } } },
         responses: {
           "200": { description: "Company updated." },
           "400": { $ref: "#/components/responses/ValidationError" },
@@ -184,14 +184,14 @@ export const openApiDocument = {
       }
     },
     "/v1/companies/{companyId}/360": {
-      get: { tags: ["Companies"], operationId: "getCompany360", summary: "Get PostgreSQL Company 360 identity, contacts, addresses, inventory, Documents links, activity, and workflow boundaries", security: [{ bearerAuth: [] }], parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }], responses: { "200": { description: "Company 360 aggregate." }, "403": { $ref: "#/components/responses/Forbidden" }, "404": { $ref: "#/components/responses/NotFound" } } }
+      get: { tags: ["Companies"], operationId: "getCompany360", summary: "Get persistent Company identity, contacts, addresses, inventory, activity, and explicit non-persistent workflow boundaries", security: [{ bearerAuth: [] }], parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }], responses: { "200": { description: "Company 360 aggregate.", content: { "application/json": { schema: { $ref: "#/components/schemas/Company360Response" } } } }, "403": { $ref: "#/components/responses/Forbidden" }, "404": { $ref: "#/components/responses/NotFound" } } }
     },
     "/v1/companies/{companyId}/addresses": {
       get: { tags: ["Companies"], operationId: "listCompanyAddresses", security: [{ bearerAuth: [] }], parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }], responses: { "200": { description: "Company addresses." }, "404": { $ref: "#/components/responses/NotFound" } } },
-      post: { tags: ["Companies"], operationId: "createCompanyAddress", security: [{ bearerAuth: [] }], parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }], requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } }, responses: { "201": { description: "Address created." }, "400": { $ref: "#/components/responses/ValidationError" }, "403": { $ref: "#/components/responses/Forbidden" } } }
+      post: { tags: ["Companies"], operationId: "createCompanyAddress", security: [{ bearerAuth: [] }], parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }], requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/CompanyAddressCreateRequest" } } } }, responses: { "201": { description: "Address created." }, "400": { $ref: "#/components/responses/ValidationError" }, "403": { $ref: "#/components/responses/Forbidden" } } }
     },
     "/v1/company-addresses/{id}": {
-      patch: { tags: ["Companies"], operationId: "updateCompanyAddress", security: [{ bearerAuth: [] }], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }], requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } }, responses: { "200": { description: "Address updated." }, "404": { $ref: "#/components/responses/NotFound" } } },
+      patch: { tags: ["Companies"], operationId: "updateCompanyAddress", security: [{ bearerAuth: [] }], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }], requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/CompanyAddressUpdateRequest" } } } }, responses: { "200": { description: "Address updated." }, "404": { $ref: "#/components/responses/NotFound" } } },
       delete: { tags: ["Companies"], operationId: "deleteCompanyAddress", security: [{ bearerAuth: [] }], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }], responses: { "200": { description: "Address deleted." }, "404": { $ref: "#/components/responses/NotFound" } } }
     },
     "/v1/companies/{companyId}/contacts": {
@@ -214,7 +214,7 @@ export const openApiDocument = {
         summary: "Create a contact for one tenant-scoped company",
         security: [{ bearerAuth: [] }],
         parameters: [{ name: "companyId", in: "path", required: true, schema: { type: "string" } }],
-        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/ContactCreateRequest" } } } },
         responses: {
           "201": { description: "Contact created." },
           "400": { $ref: "#/components/responses/ValidationError" },
@@ -232,7 +232,7 @@ export const openApiDocument = {
         summary: "Update one tenant-scoped contact",
         security: [{ bearerAuth: [] }],
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/ContactUpdateRequest" } } } },
         responses: {
           "200": { description: "Contact updated." },
           "400": { $ref: "#/components/responses/ValidationError" },
@@ -706,6 +706,9 @@ export const openApiDocument = {
           session: { $ref: "#/components/schemas/AuthSession" }
         }
       },
+      AuthSessionEnvelope: {
+        type: "object", required: ["data"], properties: { data: { $ref: "#/components/schemas/AuthSessionResponse" } }
+      },
       ErrorResponse: {
         type: "object",
         required: ["error"],
@@ -713,6 +716,23 @@ export const openApiDocument = {
           error: { type: "string" },
           permission: { type: "string" }
         }
+      },
+      CompanyCreateRequest: {
+        type: "object", required: ["name"], properties: { name: { type: "string", minLength: 1, maxLength: 240 }, legalName: { type: "string" }, code: { type: "string" }, icaoCode: { type: "string", minLength: 4, maxLength: 4 }, iataCode: { type: "string", minLength: 3, maxLength: 3 }, vatNumber: { type: "string" }, email: { type: "string", format: "email" }, phone: { type: "string" }, website: { type: "string", format: "uri" }, country: { type: "string" }, notes: { type: "string" }, tags: { type: "array", items: { type: "string" } }, roles: { type: "array", minItems: 1, items: { type: "string" } } }
+      },
+      CompanyUpdateRequest: {
+        type: "object", minProperties: 1, properties: { name: { type: "string", minLength: 1, maxLength: 240 }, legalName: { type: "string" }, code: { type: "string" }, icaoCode: { type: "string", minLength: 4, maxLength: 4 }, iataCode: { type: "string", minLength: 3, maxLength: 3 }, vatNumber: { type: "string" }, email: { type: "string", format: "email" }, phone: { type: "string" }, website: { type: "string", format: "uri" }, country: { type: "string" }, notes: { type: "string" }, tags: { type: "array", items: { type: "string" } }, roles: { type: "array", minItems: 1, items: { type: "string" } } }
+      },
+      ContactCreateRequest: {
+        type: "object", required: ["firstName", "lastName"], properties: { firstName: { type: "string", minLength: 1 }, lastName: { type: "string", minLength: 1 }, jobTitle: { type: "string" }, email: { type: "string", format: "email" }, phone: { type: "string" }, mobile: { type: "string" }, status: { type: "string", enum: ["active", "inactive"] }, notes: { type: "string" } }
+      },
+      ContactUpdateRequest: { type: "object", minProperties: 1, properties: { firstName: { type: "string", minLength: 1 }, lastName: { type: "string", minLength: 1 }, jobTitle: { type: "string" }, email: { type: "string", format: "email" }, phone: { type: "string" }, mobile: { type: "string" }, status: { type: "string", enum: ["active", "inactive"] }, notes: { type: "string" } } },
+      CompanyAddressCreateRequest: {
+        type: "object", required: ["label", "addressLine1", "country"], properties: { label: { type: "string", minLength: 1 }, addressLine1: { type: "string", minLength: 1 }, addressLine2: { type: "string" }, city: { type: "string" }, state: { type: "string" }, postalCode: { type: "string" }, country: { type: "string", minLength: 2 }, isPrimary: { type: "boolean" } }
+      },
+      CompanyAddressUpdateRequest: { type: "object", minProperties: 1, properties: { label: { type: "string", minLength: 1 }, addressLine1: { type: "string", minLength: 1 }, addressLine2: { type: "string" }, city: { type: "string" }, state: { type: "string" }, postalCode: { type: "string" }, country: { type: "string", minLength: 2 }, isPrimary: { type: "boolean" } } },
+      Company360Response: {
+        type: "object", required: ["data"], properties: { data: { type: "object", required: ["company", "contacts", "addresses", "inventory", "documents", "activity", "workflowBoundaries"], properties: { company: { type: "object" }, contacts: { type: "array", items: { type: "object" } }, addresses: { type: "array", items: { type: "object" } }, inventory: { type: "array", items: { type: "object" } }, documents: { type: "object", required: ["persistent", "source", "documents"], properties: { persistent: { type: "boolean", const: false }, source: { type: "string", const: "workflow-boundary" }, documents: { type: "array", maxItems: 0 } } }, activity: { type: "array", items: { type: "object" } }, workflowBoundaries: { type: "array", items: { type: "object", required: ["category", "status", "futureOwner", "requiredData", "contextChecks", "persistence"] } } } } }
       },
       Company: {
         type: "object",
@@ -1212,7 +1232,9 @@ export const openApiDocument = {
           intent: { oneOf: [{ $ref: "#/components/schemas/DocumentUploadIntent" }, { type: "null" }] }
         }
       },
-      CompanyListResponse: listResponse("#/components/schemas/Company"),
+      CompanyListResponse: {
+        oneOf: [listResponse("#/components/schemas/Company"), { type: "object", required: ["data"], properties: { data: { type: "object", required: ["rows", "pagination"], properties: { rows: { type: "array", items: { type: "object" } }, pagination: { type: "object", required: ["page", "pageSize", "totalRows", "totalPages"], properties: { page: { type: "integer" }, pageSize: { type: "integer" }, totalRows: { type: "integer" }, totalPages: { type: "integer" } } } } } } }]
+      },
       PartNumberListResponse: listResponse("#/components/schemas/PartNumber"),
       StockItemListResponse: listResponse("#/components/schemas/StockItem"),
       Part360Response: {

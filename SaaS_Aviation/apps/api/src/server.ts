@@ -127,7 +127,7 @@ export function createApp(dependencies: AppDependencies = {}) {
         return;
       }
 
-      res.json({ session, data: session });
+      res.json({ data: { session } });
     })
   );
 
@@ -139,7 +139,7 @@ export function createApp(dependencies: AppDependencies = {}) {
         await auth.revokeSession(token);
       }
 
-      res.status(204).send();
+      res.json({ data: { loggedOut: true } });
     })
   );
 
@@ -232,13 +232,20 @@ export function createApp(dependencies: AppDependencies = {}) {
     await handleCoreResponse(res, async () => {
       const company = await corePersistence.getCompanyById(context, companyId);
       if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
-      const [contacts, addresses, stock, documents, activity] = await Promise.all([
+      const [contacts, addresses, stock, activity] = await Promise.all([
         corePersistence.listContactsByCompany(context, company.id), corePersistence.listCompanyAddresses(context, company.id),
-        corePersistence.listStock(context), dataSource.listEntityDocuments(context, "company", company.id), corePersistence.listCompanyActivity(context, company.id)
+        corePersistence.listStock(context), corePersistence.listCompanyActivity(context, company.id)
       ]);
       const inventory = stock.filter((item) => [item.ownerCompanyId, item.supplierCompanyId, item.tagInfoCompanyId, item.traceabilityCompanyId].includes(company.id));
-      return { company, contacts, addresses, inventory, documents, activity,
-        workflowBoundaries: ["rfq", "supplier-quote", "customer-quote", "purchase-order", "sales-order"].map((category) => ({ category, status: "boundary", companyId: company.id })) };
+      const boundaryMetadata = {
+        rfq: { futureOwner: "RFQ module", requiredData: ["companyId", "tenantId", "requested parts"], contextChecks: ["company.read", "tenant match"] },
+        "supplier-quote": { futureOwner: "Supplier Quotes module", requiredData: ["companyId", "tenantId", "RFQ_ID"], contextChecks: ["company.read", "tenant match"] },
+        "customer-quote": { futureOwner: "Customer Quotes module", requiredData: ["companyId", "tenantId", "RFQ_ID"], contextChecks: ["company.read", "tenant match"] },
+        "purchase-order": { futureOwner: "Purchase Orders module", requiredData: ["companyId", "tenantId", "approved supplier quote"], contextChecks: ["company.read", "tenant match"] },
+        "sales-order": { futureOwner: "Sales Orders module", requiredData: ["companyId", "tenantId", "approved customer quote"], contextChecks: ["company.read", "tenant match"] }
+      } as const;
+      return { company, contacts, addresses, inventory, documents: { persistent: false, source: "workflow-boundary", documents: [] }, activity,
+        workflowBoundaries: Object.entries(boundaryMetadata).map(([category, metadata]) => ({ category, status: "boundary", companyId: company.id, persistence: "none", ...metadata })) };
     });
   }));
 

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { sampleRequestContext } from "@saas-aviation/shared";
+import { createCompanySchema, createContactSchema, sampleRequestContext } from "@saas-aviation/shared";
 import { currentSession, data, getCompany360ReadModel, getCompanyListReadModel, getStock } from "./data.js";
 import { getCtoStatus } from "./cto-status.js";
 import { assertPersistentApiMode, getDataSourceConfig } from "./data-source-mode.js";
@@ -9,6 +9,20 @@ import { persistentApi, PersistentApiError } from "./persistent-api.js";
 import { getDashboardData } from "./dashboard.js";
 import { getDocumentCenterReadModel, getEntityDocumentReadModel, validateDocumentUpload } from "./documents.js";
 import { getCompanyInventoryReadModel, getPart360ReadModel, getStock360ReadModel } from "./part-stock.js";
+import { normalizeFormData } from "./form-normalization.js";
+
+test("form normalization omits blank optionals, trims values, and preserves validation", () => {
+  const data = new FormData();
+  data.set("name", "  Normalized Company  "); data.set("email", "   "); data.set("website", "");
+  data.set("roles", " customer, supplier "); data.set("tags", " verified, aviation ");
+  const normalized = normalizeFormData(data, { arrayFields: ["roles", "tags"] });
+  assert.deepEqual(normalized, { name: "Normalized Company", roles: ["customer", "supplier"], tags: ["verified", "aviation"] });
+  assert.equal(createCompanySchema.parse(normalized).email, undefined);
+  assert.throws(() => createCompanySchema.parse({ ...normalized, email: "invalid" }));
+  assert.throws(() => createCompanySchema.parse({ ...normalized, website: "invalid" }));
+  assert.throws(() => createCompanySchema.parse({ ...normalized, name: "" }));
+  assert.throws(() => createContactSchema.parse({ firstName: "A", lastName: "B", email: "invalid" }));
+});
 
 test("web data keeps internal and external stock separated", () => {
   assert.equal(data.internalStock.every((stock) => stock.source === "internal"), true);
@@ -221,10 +235,10 @@ test("CTO status exposes static build and deployment metadata", () => {
   const status = getCtoStatus();
 
   assert.equal(status.buildMetadata.branch, "main");
-  assert.equal(status.buildMetadata.latestLocalCommit, "c0d901d");
-  assert.equal(status.buildMetadata.latestOriginMainCommit, "8a266ba");
+  assert.equal(status.buildMetadata.latestLocalCommit, "Harden Company 360 persistent workflows");
+  assert.equal(status.buildMetadata.latestOriginMainCommit, "5862d57");
   assert.equal(status.buildMetadata.staticExportMode, "Next.js output export");
-  assert.match(status.buildMetadata.buildTimestamp, /^2026-07-13T/);
+  assert.match(status.buildMetadata.buildTimestamp, /^2026-07-14T/);
 
   assert.equal(status.deployment.lastDeployedCommit, "bb0ba80");
   assert.equal(status.deployment.environment, "staging/public static frontend");
@@ -239,7 +253,7 @@ test("CTO status exposes check and security metadata", () => {
   assert.equal(status.checks.typecheckStatus, "passing");
   assert.equal(status.checks.lintStatus, "passing");
   assert.equal(status.checks.buildStatus, "passing");
-  assert.match(status.checks.lastCheckedAt, /^2026-07-13T/);
+  assert.match(status.checks.lastCheckedAt, /^2026-07-14T/);
 
   assert.equal(status.security.adminProtectedByBasicAuth, true);
   assert.equal(status.security.ctoRouteHiddenFromPublicSidebar, true);

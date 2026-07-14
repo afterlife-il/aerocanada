@@ -4,7 +4,7 @@ Last updated: 2026-07-14
 
 Company 360 now uses the dedicated local PostgreSQL schema described in `docs/database/company.md`. Migration 001 owns tenants, companies, roles, contacts, and stock relationships. Migration 002 adds ICAO/IATA/VAT/tags, multiple tenant-scoped addresses, and persisted Company activity.
 
-The public static frontend remains fixture-backed. Local `persistent-api` mode uses the PostgreSQL records and never falls back to fixtures.
+The public static frontend remains fixture-backed. Local `persistent-api` mode uses PostgreSQL Company records and never falls back to fixtures. Its Company aggregate intentionally returns no fixture Documents; Documents remain a separate future persistence boundary.
 
 Core rules:
 

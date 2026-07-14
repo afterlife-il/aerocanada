@@ -26,12 +26,13 @@ If `TEST_DATABASE_URL` is not set, the PostgreSQL integration test is skipped wi
 - local API Company/Contact/Part/Stock persistence across repository restart, including second-tenant denial
 - transaction rollback for multi-table part alternate updates
 - rollback for invalid cross-tenant stock relationship updates
+- Company 360 persistent aggregate with identity, Contacts, Addresses, inventory, explicit empty Documents boundary, and commercial workflow boundaries
 
 Each test run creates a temporary schema in the configured test database and drops it in cleanup.
 
 ## Current Environment Note
 
-Docker Desktop with the Linux/WSL2 engine became available on 2026-07-14. The localhost-only PostgreSQL 16 Compose service reported healthy, migration 001 applied and re-applied idempotently with its checksum recorded, and `npm run test:postgres` completed with 13 passed, 0 failed, and 0 skipped. The proof was local only: no API or database was deployed, the public frontend remains static/sample-backed, and no Yoyamic or live database was accessed.
+Docker Desktop with the Linux/WSL2 engine is available. On 2026-07-14, migrations 001/002 were current and `npm run test:postgres` completed with 15 passed, 0 failed, and 0 skipped after Company hardening. The proof was local only: no API or database was deployed, the public frontend remains static/sample-backed, and no Yoyamic or live database was accessed.
 
 ## CI
 

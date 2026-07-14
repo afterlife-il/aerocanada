@@ -1,5 +1,13 @@
 {
   "last_updated": "2026-07-14",
+  "repository_state": {
+    "current_branch": "main",
+    "local_head": "Harden Company 360 persistent workflows (git rev-parse HEAD is authoritative)",
+    "origin_main": "5862d577408acdf103fccdc372b18d65db12c184",
+    "deployment_status": "not deployed; no push",
+    "current_module": "Company 360 local persistent foundation",
+    "current_sprint": "Company 360 Production Hardening Phase 1.1"
+  },
   "documentation_policy": {
     "definition_of_done": true,
     "required_status_files": [
@@ -37,16 +45,16 @@
       "scope": "email/password foundation, tenant context, roles, permissions, bearer sessions, protected API reads"
     },
     "company_360": {
-      "status": "local_production_module_completed_postgres_validated_not_deployed",
-      "scope": "PostgreSQL Company identity with ICAO/IATA/VAT/tags, full Company/Contact/Address CRUD, search/filter/sort/pagination, related stock inventory, Documents links, persisted activity, authenticated persistent UI/API, and explicit RFQ/quote/order boundaries",
-      "completion_status": "complete_for_local_persistent_runtime",
-      "finished_work": "source, migration, API, UI, tests, OpenAPI, and documentation",
-      "remaining_work": "visual browser automation rerun when tooling is available; document byte storage and downstream commercial modules remain independent boundaries",
-      "known_blockers": "agent-browser unavailable; Playwright Chromium unavailable; installed Edge automation timed out",
-      "next_recommended_task": "review Company 360 locally, then begin Part 360 production sprint",
-      "validation_performed": "migration 002, PostgreSQL 13/13 no skips, authenticated CRUD smoke, restart persistence, tenant isolation, typecheck, lint, build",
+      "status": "local_persistent_foundation_hardened_postgres_validated_not_production_ready_not_deployed",
+      "scope": "PostgreSQL Company identity, Company/Contact/Address CRUD, search/filter/sort/pagination, related inventory, persisted activity, aligned local login contract, normalized UI forms, and explicit non-persistent Documents/commercial boundaries",
+      "completion_status": "staging_candidate_after_remaining_auth_and_operational_prerequisites",
+      "finished_work": "Phase 1.1 login contract, logout clearing, form normalization, Contact/Address editing, aggregate truthfulness, workflow boundaries, OpenAPI, tests, and documentation",
+      "remaining_work": "persistent users/sessions, production identity/password handling, MFA, rate limiting, secure session strategy, persistent Documents, commercial modules, monitoring, backup/restore, deployment validation, and visual browser review",
+      "known_blockers": "no in-app browser instance; production auth and operational prerequisites intentionally out of scope",
+      "next_recommended_task": "design persistent authentication/session and deployment prerequisites; keep module undeployed",
+      "validation_performed": "migrations 001/002 current; PostgreSQL 15/15 no skips; local HTTP login, CRUD, API restart persistence and re-login; tenant isolation; standard tests; typecheck; lint; build; diff check",
       "deployment_status": "not deployed; public frontend remains sample-static",
-      "commit_reference": "Complete Company 360 production module"
+      "commit_reference": "Harden Company 360 persistent workflows"
     },
     "part_360": {
       "status": "workspace_completed_with_local_postgres_part_crud_api_not_deployed",
@@ -238,7 +246,7 @@
     "strategy": "hardened read-only adapter first, explicit PostgreSQL migrations for SaaS development database, migration after business rule validation",
     "schema_changes": "local_postgres_migration_contract_only_not_deployed"
   },
-  "current_sprint": "Persistent Data Foundation Phase 2",
-  "last_completed_task": "Completed and locally validated Company 360 production module with PostgreSQL identity, Company/Contact/Address CRUD, inventory, Documents links, activity, search, authenticated UI/API, tests, and documentation. Browser automation remains a tooling blocker. Nothing was pushed or deployed.",
-  "next_recommended_task": "Review Company 360 persistent mode locally, then begin the Part 360 production sprint. Keep API/database deployment blocked until infrastructure operations, secrets, backup, monitoring, and deployment approval are complete."
+  "current_sprint": "Company 360 Production Hardening Phase 1.1",
+  "last_completed_task": "Hardened the local persistent Company 360 foundation: aligned login/session contract, normalized blank optional fields, completed Contact/Address editing, removed fixture Documents from the persistent aggregate, enriched commercial boundaries, and passed real PostgreSQL/runtime validation. Browser automation was unavailable. Nothing was pushed or deployed.",
+  "next_recommended_task": "Design persistent authentication/session and deployment prerequisites. Keep Company 360 labeled as a local persistent foundation and do not deploy until auth, rate limiting, secrets, backup/restore, monitoring, browser validation, and approval are complete."
 }

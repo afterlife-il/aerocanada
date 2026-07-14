@@ -427,8 +427,53 @@ test("password auth creates a tenant-scoped session", async () => {
   assert.equal(context.tenant.tenantId, "tenant-aci");
 });
 
+test("login contract returns a non-empty session token and authorizes Company reads", async () => {
+  const app = createApp({ corePersistence: new InMemoryCorePersistence() });
+  const invalid = await httpRequest(app, "POST", "/v1/auth/login", undefined, { email: "ops@aerocanada-industries.com", password: "wrong-password" });
+  assert.deepEqual(invalid, { status: 401, body: { error: "invalid_credentials" } });
+  const login = await httpRequest(app, "POST", "/v1/auth/login", undefined, { email: "ops@aerocanada-industries.com", password: "ChangeMe!ACI770!" });
+  assert.equal(login.status, 200);
+  const body = login.body as { data: { session: AuthSession } };
+  assert.ok(body.data.session.token);
+  assert.equal("password" in body.data.session.user, false);
+  assert.equal((await httpGet(app, "/v1/companies", body.data.session.token)).status, 200);
+  assert.deepEqual(await httpRequest(app, "POST", "/v1/auth/logout", body.data.session.token), { status: 200, body: { data: { loggedOut: true } } });
+  assert.equal((await httpGet(app, "/v1/companies", body.data.session.token)).status, 401);
+});
+
+test("Company hardening routes cover search, full Contact/Address updates, boundaries, and deletes", async () => {
+  const token = "company-hardening";
+  const app = createApp({ corePersistence: new InMemoryCorePersistence(), auth: new StaticAuthProvider([sessionWithPermissions(token, sampleRequestContext.tenant.permissions)]) });
+  const created = await httpPost(app, "/v1/companies", token, { name: "Hardening Company", website: "https://example.test", roles: ["customer"], tags: ["phase-1-1"] });
+  const companyId = (created.body as { data: { id: string } }).data.id;
+  const page = await httpGet(app, "/v1/companies?q=hardening&status=active&role=customer&sort=name&direction=desc&page=1&pageSize=1", token);
+  assert.equal((page.body as { data: { pagination: { totalRows: number } } }).data.pagination.totalRows, 1);
+  const contact = await httpPost(app, `/v1/companies/${companyId}/contacts`, token, { firstName: "Casey", lastName: "Morgan" });
+  const contactId = (contact.body as { data: { id: string } }).data.id;
+  const updatedContact = await httpPatch(app, `/v1/contacts/${contactId}`, token, { firstName: "Taylor", lastName: "Morgan", email: "taylor@example.test", phone: "1", mobile: "2", jobTitle: "Director", notes: "Updated", status: "inactive" });
+  assert.equal((updatedContact.body as { data: { firstName: string; status: string } }).data.firstName, "Taylor");
+  const firstAddress = await httpPost(app, `/v1/companies/${companyId}/addresses`, token, { label: "Office", addressLine1: "1 Main", country: "Canada", isPrimary: true });
+  const firstAddressId = (firstAddress.body as { data: { id: string } }).data.id;
+  const secondAddress = await httpPost(app, `/v1/companies/${companyId}/addresses`, token, { label: "Warehouse", addressLine1: "2 Main", country: "Canada", isPrimary: true });
+  const secondAddressId = (secondAddress.body as { data: { id: string } }).data.id;
+  const addresses = await httpGet(app, `/v1/companies/${companyId}/addresses`, token);
+  assert.equal((addresses.body as { data: Array<{ isPrimary: boolean }> }).data.filter((row) => row.isPrimary).length, 1);
+  assert.equal((await httpPatch(app, `/v1/company-addresses/${firstAddressId}`, token, { city: "Montreal" })).status, 200);
+  const aggregate = await httpGet(app, `/v1/companies/${companyId}/360`, token);
+  const aggregateData = (aggregate.body as { data: { documents: unknown; workflowBoundaries: Array<{ persistence: string; futureOwner: string }> } }).data;
+  assert.deepEqual(aggregateData.documents, { persistent: false, source: "workflow-boundary", documents: [] });
+  assert.equal(aggregateData.workflowBoundaries.every((item) => item.persistence === "none" && item.futureOwner.length > 0), true);
+  assert.equal((await httpRequest(app, "DELETE", `/v1/contacts/${contactId}`, token)).status, 200);
+  assert.equal((await httpRequest(app, "DELETE", `/v1/company-addresses/${secondAddressId}`, token)).status, 200);
+  assert.equal((await httpRequest(app, "DELETE", `/v1/companies/${companyId}`, token)).status, 200);
+});
+
 test("openapi document covers current read routes with component schemas", () => {
   assert.ok(openApiDocument.components.schemas.Company);
+  assert.ok(openApiDocument.components.schemas.CompanyCreateRequest);
+  assert.ok(openApiDocument.components.schemas.ContactUpdateRequest);
+  assert.ok(openApiDocument.components.schemas.CompanyAddressUpdateRequest);
+  assert.ok(openApiDocument.components.schemas.Company360Response);
   assert.ok(openApiDocument.components.schemas.PartNumber);
   assert.ok(openApiDocument.components.schemas.StockItem);
   assert.ok(openApiDocument.components.schemas.Part360ReadModel);

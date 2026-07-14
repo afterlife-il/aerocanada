@@ -4,7 +4,7 @@ Last updated: 2026-07-14
 
 ## Scope
 
-Company 360 is implemented as a complete local business module backed by PostgreSQL in explicit `persistent-api` mode. The public deployment remains read-only and sample-backed; no API or database was deployed.
+Company 360 is a hardened local persistent foundation backed by PostgreSQL in explicit `persistent-api` mode. It is not production-ready. The public deployment remains read-only and sample-backed; no API or database was deployed.
 
 ## Implemented Surfaces
 
@@ -32,7 +32,7 @@ The detail workspace includes:
 - Company information, tags, status, risk, legacy id, location, email, and last activity.
 - Contacts panel with role, email, phone, mobile, and edit entry point.
 - Inventory summary with ACI units, external units, stock value, zero-qty rows, and linked stock lines.
-- Documents panel backed by the shared Documents read model.
+- Documents workflow boundary; persistent mode does not display fixture Documents as durable Company records.
 - Commercial activity panels for RFQ, Supplier Quotes, Customer Quotes, Purchase Orders, and Sales Orders.
 - Activity panel with a proper empty state.
 - Workflow boundary panel for all mutation/workflow entry points.
@@ -57,13 +57,13 @@ Company identity, address, and contact mutations persist locally. Unfinished com
 - Qty `0` stock rows remain visible in company inventory.
 - No Yoyamic, database, deployment, or mutation workflow was touched.
 
-## Completed Production Scope
+## Verified Local Persistent Scope
 
 - Identity: name, legal name, code, ICAO, IATA, VAT, country, legacy address fields, multiple addresses, website, notes, roles, tags, status, risk, and audit fields.
 - Contacts: multiple contacts with position, email, phone, mobile, status, notes, and full CRUD.
 - Search: tenant-scoped fast search across identity/codes/VAT/contact fields, status/role filters, sorting, and pagination.
 - Inventory: related PostgreSQL stock through independent owner, supplier, tag-info, and traceability relationships.
-- Documents: tenant-scoped Documents-module metadata/link read model and upload boundary.
+- Documents: explicit non-persistent boundary only; durable Company document links/storage are not implemented.
 - Activity: persisted Company/Contact/Address activity plus clean RFQ, quote, order, stock, and document categories.
 - Quick actions: Edit Company, Create Contact, Create RFQ boundary, Upload Document boundary, and Open Inventory.
 
@@ -73,6 +73,8 @@ Company identity, address, and contact mutations persist locally. Unfinished com
 - The public static build remains read-only; persistent mode requires the local API and bearer session.
 - Document byte storage, malware scanning, retention, and persisted audit remain future Documents work.
 - RFQ, quotes, PO, and SO dedicated workflows remain future modules.
+- Authentication uses local sample users and in-memory sessions; sessions are intentionally lost on API restart.
+- Persistent users/sessions, production password/identity provider, MFA, rate limiting, secure production session strategy, monitoring, backup/restore, and deployment validation remain blockers.
 ## Persistence Foundation Phase 2
 
 Company 360 remains deployed as a static/sample read-model screen. Locally, the Express API now has tenant-scoped Company and Contact CRUD foundation routes backed by repository contracts, validation, and selectable memory/PostgreSQL providers:

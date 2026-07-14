@@ -8,7 +8,7 @@ All routes are under `/v1` and require a bearer session:
 - Part routes require `part.read`.
 - Stock routes require `stock.read`.
 
-Company write RBAC and activity persistence are implemented locally. Deployment still requires operational auth, rate limiting, secrets, monitoring, backup, and explicit approval.
+Company write RBAC and activity persistence are implemented locally. Authentication users/sessions remain in-memory and are not production-grade. Deployment still requires persistent auth, secure session handling, rate limiting, secrets, monitoring, backup/restore, and explicit approval.
 
 ## Companies
 
@@ -16,6 +16,7 @@ Company write RBAC and activity persistence are implemented locally. Deployment 
 - `GET /v1/companies/:id`
 - `POST /v1/companies`
 - `PATCH /v1/companies/:id`
+- `DELETE /v1/companies/:id`
 
 ## Contacts
 

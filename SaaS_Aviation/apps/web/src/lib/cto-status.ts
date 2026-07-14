@@ -99,9 +99,9 @@ export function getCtoStatus(): CtoDashboardData {
     },
     buildMetadata: {
       branch: "main",
-      latestLocalCommit: "c0d901d",
-      latestOriginMainCommit: "8a266ba",
-      buildTimestamp: "2026-07-13T00:00:00+03:00",
+      latestLocalCommit: "Harden Company 360 persistent workflows",
+      latestOriginMainCommit: "5862d57",
+      buildTimestamp: "2026-07-14T19:00:00+03:00",
       staticExportMode: "Next.js output export"
     },
     deployment: {
@@ -116,7 +116,7 @@ export function getCtoStatus(): CtoDashboardData {
       typecheckStatus: "passing",
       lintStatus: "passing",
       buildStatus: "passing",
-      lastCheckedAt: "2026-07-13T00:00:00+03:00"
+      lastCheckedAt: "2026-07-14T19:00:00+03:00"
     },
     security: {
       adminProtectedByBasicAuth: true,
@@ -137,7 +137,7 @@ export function getCtoStatus(): CtoDashboardData {
       { module: "Core", status: "operational", progressPct: 85, sprint: "Foundation", lastCommit: "141fee0", reviewStatus: "Not formally reviewed", deployStatus: "Static export only", nextAction: "Map to read-only Yoyamic adapter" },
       { module: "Authentication", status: "foundation", progressPct: 35, sprint: "Auth/Tenant Foundation", lastCommit: "5372dc2", reviewStatus: "Not reviewed", deployStatus: "Not deployed (API runtime never deployed)", nextAction: "Persistent session/audit store, MFA, rate limiting" },
       { module: "Dashboard", status: "foundation", progressPct: 65, sprint: "Tenant ERP Dashboard", lastCommit: "05b04d7", reviewStatus: "Not reviewed", deployStatus: "Not deployed", nextAction: "Map to legacy adapter" },
-      { module: "Company 360", status: "in-progress", progressPct: 95, sprint: "Company 360 Production Sprint", lastCommit: "Complete Company 360 production module", reviewStatus: "PostgreSQL/CRUD/restart/tenant/typecheck/lint/build passed; browser tooling blocked", deployStatus: "Not deployed; public UI sample-static", nextAction: "Local review, then Part 360 production sprint" },
+      { module: "Company 360", status: "in-progress", progressPct: 90, sprint: "Company 360 Production Hardening Phase 1.1", lastCommit: "Harden Company 360 persistent workflows", reviewStatus: "PostgreSQL 15/15 zero skips; login/CRUD/restart/tenant/tests/typecheck/lint/build passed; browser unavailable", deployStatus: "Not deployed; local persistent foundation, public UI sample-static", nextAction: "Persistent auth/session and operational prerequisites" },
       { module: "Part 360", status: "foundation", progressPct: 75, sprint: "Persistent Data Foundation Phase 2", lastCommit: "786aaa7", reviewStatus: "Not reviewed", deployStatus: "Local only; API/DB not deployed", nextAction: "Run PostgreSQL integration against isolated test DB before calling workflows operational" },
       { module: "Stock 360", status: "foundation", progressPct: 60, sprint: "Persistent Data Foundation Phase 2", lastCommit: "786aaa7", reviewStatus: "Not reviewed", deployStatus: "Local only; API/DB not deployed", nextAction: "Run PostgreSQL integration against isolated test DB before calling workflows operational" },
       { module: "Company Inventory", status: "foundation", progressPct: 50, sprint: "Part/Stock/Company Inventory read models", lastCommit: "366e375", reviewStatus: "Not reviewed", deployStatus: "Not deployed", nextAction: "Use hardened read-only Yoyamic adapter plans for future mapping" },

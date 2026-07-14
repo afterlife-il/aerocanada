@@ -1,4 +1,5 @@
 import { assertPersistentApiMode, getDataSourceConfig, type DataSourceConfig } from "./data-source-mode.js";
+import type { AuthSession } from "@saas-aviation/shared";
 
 interface ApiEnvelope<T> {
   data: T;
@@ -21,12 +22,13 @@ export interface ApiContact {
   firstName: string;
   lastName: string;
   email?: string;
-  jobTitle?: string; phone?: string; mobile?: string; status: "active" | "inactive";
+  jobTitle?: string; phone?: string; mobile?: string; preferredLanguage?: string; timezone?: string; notes?: string; status: "active" | "inactive";
 }
 
 export interface ApiCompanyAddress { id: string; companyId: string; label: string; addressLine1: string; addressLine2?: string; city?: string; state?: string; postalCode?: string; country: string; isPrimary: boolean; }
 export interface ApiCompanyActivity { id: string; category: string; action: string; summary: string; referenceId?: string; occurredAt: string; actorId: string; }
-export interface ApiCompany360 { company: ApiCompany; contacts: ApiContact[]; addresses: ApiCompanyAddress[]; inventory: ApiStock[]; documents: { documents: Array<{ id: string; title: string; documentType: string; status: string }> }; activity: ApiCompanyActivity[]; workflowBoundaries: Array<{ category: string; status: "boundary"; companyId: string }>; }
+export interface ApiWorkflowBoundary { category: string; status: "boundary"; companyId: string; futureOwner: string; requiredData: string[]; contextChecks: string[]; persistence: "none"; }
+export interface ApiCompany360 { company: ApiCompany; contacts: ApiContact[]; addresses: ApiCompanyAddress[]; inventory: ApiStock[]; documents: { persistent: false; source: "workflow-boundary"; documents: [] }; activity: ApiCompanyActivity[]; workflowBoundaries: ApiWorkflowBoundary[]; }
 export interface ApiCompanyPage { rows: ApiCompany[]; pagination: { page: number; pageSize: number; totalRows: number; totalPages: number }; }
 
 export interface ApiPart {
@@ -78,9 +80,14 @@ async function request<T>(path: string, init: RequestInit = {}, config: DataSour
 
 export const persistentApi = {
   async login(email: string, password: string, config?: DataSourceConfig) {
-    const result = await request<{ token: string }>("/v1/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }, config);
-    if (typeof window !== "undefined") window.localStorage.setItem("saas_api_token", result.token);
+    const result = await request<{ session: AuthSession }>("/v1/auth/login", { method: "POST", body: JSON.stringify({ email: email.trim(), password }) }, config);
+    if (!result.session.token) throw new PersistentApiError("Login response did not contain a session token.", 502, result);
+    if (typeof window !== "undefined") window.localStorage.setItem("saas_api_token", result.session.token);
     return result;
+  },
+  async logout(config?: DataSourceConfig) {
+    try { return await request<{ loggedOut: true }>("/v1/auth/logout", { method: "POST" }, config); }
+    finally { if (typeof window !== "undefined") window.localStorage.removeItem("saas_api_token"); }
   },
   listCompanies(config?: DataSourceConfig) {
     return request<ApiCompany[]>("/v1/companies", {}, config);

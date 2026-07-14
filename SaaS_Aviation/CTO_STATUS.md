@@ -60,9 +60,9 @@ The dashboard now includes:
 | Field | Value |
 |---|---|
 | Current branch | `main` |
-| Latest local commit | `c0d901d` |
-| Latest origin/main commit | `8a266ba` |
-| Build timestamp | `2026-07-13T00:00:00+03:00` |
+| Latest local commit | `Harden Company 360 persistent workflows` (`git rev-parse HEAD` authoritative after commit) |
+| Latest origin/main commit | `5862d57` |
+| Build timestamp | `2026-07-14T19:00:00+03:00` |
 | Static export mode | `Next.js output export` |
 
 This is a static snapshot. The commit that introduces this Phase 2 metadata cannot self-reference its own final hash
@@ -86,9 +86,9 @@ without another manual update.
 | Typecheck | passing |
 | Lint | passing |
 | Build | passing |
-| Last checked | `2026-07-14T17:00:00+03:00` |
+| Last checked | `2026-07-14T19:00:00+03:00` |
 
-The required PostgreSQL runtime command passed locally on 2026-07-14 with 13 passed, 0 failed, and 0 skipped.
+The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 passed, 0 failed, and 0 skipped. Local HTTP login/CRUD/API restart persistence also passed. Visual browser automation was unavailable and was not counted as passing.
 
 ## Security Status
 
@@ -120,7 +120,7 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 13 pas
 | Core | Operational | 85% | `141fee0` | Not formally reviewed | Static export only | Map to read-only Yoyamic adapter |
 | Authentication | Foundation | 35% | `5372dc2` | Not reviewed | Not deployed | Persistent session/audit store, MFA, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
-| Company 360 | Local production module complete | 95% | `Complete Company 360 production module` | PostgreSQL, CRUD, restart, tenant, typecheck, lint, build passed; browser automation blocked by tooling | Not deployed; public UI sample-static | Local review, then Part 360 production sprint |
+| Company 360 | Local persistent foundation hardened; not production-ready | 90% | `Harden Company 360 persistent workflows` | PostgreSQL 15/15 zero skips; login/CRUD/restart/tenant/tests/typecheck/lint/build passed; browser unavailable | Not deployed; public UI sample-static | Persistent auth/session and operational prerequisites |
 | Part 360 | Workspace complete + locally verified PostgreSQL provider | 75% | local pending commit | Runtime validation passed | Not deployed | Continue persistent Auth/Tenant/audit design |
 | Stock 360 | Foundation + locally verified PostgreSQL provider | 60% | local pending commit | Runtime validation passed, including quantity 0 and independent company roles | Not deployed | Continue persistent Auth/Tenant/audit design |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Use hardened read-only Yoyamic adapter plans for future mapping |
@@ -142,12 +142,12 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 13 pas
 
 ## Current Sprint
 
-Company 360 is the first complete local business-module sprint on the validated PostgreSQL foundation. It includes
-identity, Contacts, Addresses, Inventory, Documents links, activity, search, permissions, and persistent UI/API.
-Commercial modules remain explicit boundaries. It is not deployed.
+Company 360 is a hardened local persistent foundation on PostgreSQL. Phase 1.1 aligns local login contracts,
+normalizes forms, completes Contact/Address editing, removes fixture Documents from the persistent aggregate, and
+keeps commercial modules explicit non-persistent boundaries. Auth/sessions remain in-memory; it is not production-ready or deployed.
 
 ## Next Recommended Sprint
 
-Continue Auth/Tenant persistence and audit design on the locally verified PostgreSQL foundation, then resume only
-approved read-only legacy MySQL adapter mapping. Hold production API/database deploy until infrastructure, RBAC,
-audit, backup, monitoring, and secrets decisions are approved.
+Implement persistent Auth/Tenant sessions and operational prerequisites. Hold production API/database deployment
+until secure session handling, MFA, rate limiting, audit, backup/restore, monitoring, secrets, browser validation,
+and explicit approval are complete.

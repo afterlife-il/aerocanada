@@ -286,6 +286,8 @@ test(
       assert.equal((company360.body as { data: { contacts: Array<{ id: string }>; inventory: Array<{ id: string }>; workflowBoundaries: unknown[] } }).data.contacts[0]?.id, apiContactId);
       assert.equal((company360.body as { data: { contacts: unknown[]; inventory: Array<{ id: string }>; workflowBoundaries: unknown[] } }).data.inventory.some((item) => item.id === apiStockId), true);
       assert.equal((company360.body as { data: { workflowBoundaries: unknown[] } }).data.workflowBoundaries.length, 5);
+      assert.deepEqual((company360.body as { data: { documents: unknown } }).data.documents, { persistent: false, source: "workflow-boundary", documents: [] });
+      assert.equal((company360.body as { data: { workflowBoundaries: Array<{ persistence: string; futureOwner: string }> } }).data.workflowBoundaries.every((boundary) => boundary.persistence === "none" && boundary.futureOwner.length > 0), true);
       const restartedContacts = await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/contacts`, tokenA);
       assert.equal(restartedContacts.status, 200);
       assert.equal((restartedContacts.body as { data: Array<{ id: string }> }).data[0]?.id, apiContactId);

@@ -82,4 +82,4 @@ NEXT_PUBLIC_SAAS_DATA_SOURCE_MODE=persistent-api
 NEXT_PUBLIC_SAAS_API_BASE_URL=http://127.0.0.1:4107
 ```
 
-Do not deploy this mode to the current public static staging site until API runtime, auth, audit, and database operations are approved.
+Do not deploy this mode to the current public static staging site until persistent auth/session handling, rate limiting, audit, secrets, monitoring, backup/restore, and database operations are approved. Phase 1.1 verified that the old local in-memory session is rejected after API restart and that re-login restores access to persisted Company records.

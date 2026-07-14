@@ -23,7 +23,7 @@ and the relevant commit. The durable agent instructions are in `AGENTS.md`.
 
 ## Current Sprint
 
-Complete Company 360 as the first local production business module on the validated PostgreSQL foundation. Identity, Contacts, Addresses, related Inventory, Documents links, activity, search, and authenticated persistent UI/API are implemented locally. No deployment.
+Harden the local persistent Company 360 foundation before any staging consideration. Login contracts, optional-field normalization, Contact/Address editing, PostgreSQL-backed aggregation, and explicit Documents/commercial boundaries are stabilized locally. Authentication remains in-memory and no deployment is authorized.
 
 ## Active Tracks
 
@@ -50,7 +50,7 @@ Complete Company 360 as the first local production business module on the valida
 - Part 360 workspace completed as a read-only aggregation layer over Stock/RFQ/Quote/Order/Documents/Audit data;
   Purchase History and Sales History remain explicit placeholder panels pending real PO/SO modules.
 - Stock 360 SaaS workspace with read-only tenant-scoped action boundaries.
-- Company 360 local production module with PostgreSQL identity (ICAO/IATA/VAT/tags), full Company/Contact/Address CRUD, search/filter/sort/pagination, related inventory, Documents links, persisted activity, and explicit commercial workflow boundaries. Public mode remains sample-static.
+- Company 360 local persistent foundation with PostgreSQL identity, Company/Contact/Address CRUD, search/filter/sort/pagination, related inventory, persisted activity, aligned local login contract, and explicit non-persistent Documents/commercial boundaries. It is a staging candidate only after remaining auth and operational prerequisites; public mode remains sample-static.
 - Warehouse architecture design is documented at `docs/architecture/warehouse.md`; no Warehouse production code is implemented.
 - Legacy read adapter boundary.
 - OpenAPI route contract refinement for future generated clients and validation.
@@ -86,7 +86,7 @@ Report-based Yoyamic staging deployments exist for stock ownership and stock lis
 
 ## Current Working Tree
 
-Main is the active branch. The standing untracked local workspace files are the three `.code-workspace` files; implementation changes should be committed before deployment.
+`main` is active. This sprint started at `67e52df`; `origin/main` is `5862d57`; the focused hardening commit is described symbolically until created. The standing untracked local files are the three `.code-workspace` files. Nothing was pushed or deployed.
 
 ## Known Technical Debt
 
@@ -105,6 +105,7 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 ## Changelog
 
+- 2026-07-14: Hardened local Company 360 persistent workflows. Aligned the login response/client token contract, added logout clearing, normalized blank optional form fields, replaced temporary Contact editing, completed Address editing/primary handling, removed fixture Documents from the persistent aggregate, enriched non-persistent commercial boundaries, and strengthened OpenAPI/tests. Real PostgreSQL tests passed 15/15 with zero skips; local HTTP restart persistence, standard tests, typecheck, lint, build, and diff checks passed. In-app browser automation was unavailable. Auth remains local/in-memory; nothing was pushed or deployed and no Yoyamic, legacy PHP, live database, or Documents internals changed.
 - 2026-07-14: Completed the local Company 360 production sprint. Added migration 002, complete Company/Contact/Address CRUD, aviation identity fields, tenant-scoped activity, PostgreSQL inventory aggregation, Documents links, commercial boundaries, `company.manage` authorization, persistent login/UI, OpenAPI routes, tests, and synchronized system/module docs. PostgreSQL tests passed 13/13 with zero skips; authenticated CRUD, typecheck, lint, and build passed. Browser automation remained blocked by unavailable/timing-out tooling. Nothing was pushed or deployed; Yoyamic, legacy PHP, and live databases were untouched.
 - 2026-07-14: Verified the existing local PostgreSQL path with Docker Desktop/WSL2. Applied migration 001 with a recorded checksum, proved idempotent re-apply, and passed the real PostgreSQL integration suite with reconnect persistence for Company/Contact/Part/Stock, quantity 0, independent stock-company relationships, tenant isolation, rollback, and local API/repository restart coverage. Fixed module-relative migration discovery for npm workspaces and strengthened the runtime test. The public frontend remains static/sample-backed; no API or PostgreSQL deployment, push, Yoyamic access, legacy PHP change, live database access, or credential commit occurred.
 - 2026-07-13: Hardened the Yoyamic read-only migration adapter locally. Added SELECT/SHOW-only SQL validation, multi-statement/write/locking/file-write rejection, bounded tenant-aware read options, canonical company/contact/part/stock query plans, batch pagination planning, deterministic legacy mapping checksums, reconciliation summaries, tests, and migration docs. No live Yoyamic query, credential, write, import, database change, legacy PHP change, deployment, or push was performed.
