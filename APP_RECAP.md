@@ -92,12 +92,13 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 1. Keep project memory synchronized.
 2. Inventory deployed vs working-tree Yoyamic changes before any future deployment.
-3. Provision or use CI PostgreSQL to execute the gated migration/restart/tenant-isolation tests.
+3. Continue Auth/Tenant persistence design now that local PostgreSQL migration, reconnect, rollback, and tenant-isolation validation has passed.
 4. Use the hardened read-only Yoyamic adapter plans for future source sampling only after approved read-only credentials exist.
 5. Define auth, RBAC, tenant isolation, and audit strategy before SaaS mutations.
 
 ## Changelog
 
+- 2026-07-14: Verified the existing local PostgreSQL path with Docker Desktop/WSL2. Applied migration 001 with a recorded checksum, proved idempotent re-apply, and passed the real PostgreSQL integration suite with reconnect persistence for Company/Contact/Part/Stock, quantity 0, independent stock-company relationships, tenant isolation, rollback, and local API/repository restart coverage. Fixed module-relative migration discovery for npm workspaces and strengthened the runtime test. The public frontend remains static/sample-backed; no API or PostgreSQL deployment, push, Yoyamic access, legacy PHP change, live database access, or credential commit occurred.
 - 2026-07-13: Hardened the Yoyamic read-only migration adapter locally. Added SELECT/SHOW-only SQL validation, multi-statement/write/locking/file-write rejection, bounded tenant-aware read options, canonical company/contact/part/stock query plans, batch pagination planning, deterministic legacy mapping checksums, reconciliation summaries, tests, and migration docs. No live Yoyamic query, credential, write, import, database change, legacy PHP change, deployment, or push was performed.
 - 2026-07-10: Added Persistent Data Foundation Phase 2 locally. Implemented explicit memory/postgres provider selection, native `pg` PostgreSQL repository for Company/Contact/Part/Stock, deterministic migration status/apply runner with checksums, tenant-composite schema constraints including part alternates, persistent-api frontend client boundary with no sample fallback, and Yoyamic read-only source policy scaffold with no live queries or writes. Added PostgreSQL integration tests gated on `TEST_DATABASE_URL`/`DATABASE_URL`; this machine had no PostgreSQL runtime or database URL, so real DB apply/restart verification remains blocked until a local test DB is provisioned. No deployment, push, Yoyamic change, live DB change, legacy PHP change, or Express API deployment was performed.
 - 2026-07-10: Hardened the PostgreSQL persistence provider path with localhost-only Docker Compose dev configuration, root GitHub Actions PostgreSQL integration job, npm `db:*`/`test:postgres` scripts, migration idempotency and checksum mismatch test coverage, transaction rollback test coverage, and updated local Postgres docs. Local DB execution remains blocked on this machine because no postgres/psql/Docker/Podman/WSL/database URL is available.
@@ -152,4 +153,4 @@ Main is the active branch. The standing untracked local workspace files are the 
 
 ## Next Sprint
 
-Provision an isolated local PostgreSQL test database or run the root CI PostgreSQL job, then run migration apply/status and PostgreSQL integration tests before persistent business workflows are called operational. After that, wire a real MySQL read implementation only behind approved read-only Yoyamic credentials and the hardened adapter guardrails.
+Continue Auth/Tenant persistence and audit design using the locally verified PostgreSQL foundation. Keep the public frontend static/sample-backed and hold API/database deployment until infrastructure, RBAC, audit, backup, monitoring, and secrets decisions are approved. Any future MySQL read implementation still requires approved read-only Yoyamic credentials and the hardened adapter guardrails.

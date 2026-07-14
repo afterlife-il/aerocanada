@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import pg from "pg";
 import { getPersistenceConfig, type PostgresConfig } from "./config.js";
 
@@ -15,7 +15,7 @@ export interface MigrationStatusRow {
 }
 
 function migrationsDirectory(): string {
-  return process.env.MIGRATIONS_DIR ?? path.resolve(process.cwd(), "database", "migrations");
+  return process.env.MIGRATIONS_DIR ?? fileURLToPath(new URL("../../../../database/migrations/", import.meta.url));
 }
 
 function checksum(sql: string): string {

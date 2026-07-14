@@ -1,6 +1,6 @@
 # CTO Status Dashboard - SaaS_Aviation
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 protected static deploy report.
 
 A protected in-app mirror of this snapshot exists at `/admin/cto` in the static SaaS_Aviation frontend. The frontend
@@ -31,7 +31,7 @@ Local only, not deployed:
 - Controlled Yoyamic importer dry-run and reconciliation foundation.
 - Hardened Yoyamic read-only source policy and query planning guardrails; no live query, write method, or credential.
 
-PostgreSQL integration tests are implemented and gated on `TEST_DATABASE_URL` or `DATABASE_URL`. This machine has no local PostgreSQL runtime, `psql`, Docker runtime, installed WSL distribution, or database URL, so migration apply/restart verification against a real database remains blocked until a local test database is provisioned or CI runs the PostgreSQL job.
+Docker Desktop with the Linux/WSL2 engine is available locally. On 2026-07-14, PostgreSQL 16 started healthy on the localhost-only Compose binding; migration 001 applied with a recorded checksum and idempotent re-apply; and the real PostgreSQL suite passed with reconnect persistence, quantity 0, independent stock company relationships, tenant isolation, rollback, and local API/repository restart coverage. This was local validation only: the public frontend remains static/sample-backed, and neither the API nor PostgreSQL was deployed.
 
 Yoyamic was not touched in this sprint. No live Yoyamic database query, write, API deployment, database deployment, legacy PHP change, Plesk change, or Apache/Basic Auth change was performed.
 
@@ -81,7 +81,7 @@ without another manual update.
 | Build | passing |
 | Last checked | `2026-07-13T00:00:00+03:00` |
 
-PostgreSQL runtime tests are implemented but skipped locally until `TEST_DATABASE_URL` or `DATABASE_URL` is configured against a real isolated database.
+The required PostgreSQL runtime command passed locally on 2026-07-14 with 13 passed, 0 failed, and 0 skipped.
 
 ## Security Status
 
@@ -113,9 +113,9 @@ PostgreSQL runtime tests are implemented but skipped locally until `TEST_DATABAS
 | Core | Operational | 85% | `141fee0` | Not formally reviewed | Static export only | Map to read-only Yoyamic adapter |
 | Authentication | Foundation | 35% | `5372dc2` | Not reviewed | Not deployed | Persistent session/audit store, MFA, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
-| Company 360 | Foundation complete + local PostgreSQL provider | 75% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
-| Part 360 | Workspace complete + local PostgreSQL provider | 75% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
-| Stock 360 | Foundation + local PostgreSQL provider | 60% | local pending commit | Not reviewed | Not deployed | Run PostgreSQL integration against isolated test DB |
+| Company 360 | Foundation complete + locally verified PostgreSQL provider | 75% | local pending commit | Runtime validation passed | Not deployed | Continue persistent Auth/Tenant/audit design |
+| Part 360 | Workspace complete + locally verified PostgreSQL provider | 75% | local pending commit | Runtime validation passed | Not deployed | Continue persistent Auth/Tenant/audit design |
+| Stock 360 | Foundation + locally verified PostgreSQL provider | 60% | local pending commit | Runtime validation passed, including quantity 0 and independent company roles | Not deployed | Continue persistent Auth/Tenant/audit design |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Use hardened read-only Yoyamic adapter plans for future mapping |
 | Documents | In progress | 40% | `088e9d8` | `46f6e72`, `f14ddd4` reviewed; `088e9d8` pending | Static UI on staging; API runtime not deployed | Review `088e9d8`; hold Phase 2 for persistent audit + API deploy |
 | Warehouse | Architecture documented | 10% | local pending commit | Not reviewed | Not deployed | Review `docs/architecture/warehouse.md`; no production code implemented |
@@ -129,9 +129,9 @@ PostgreSQL runtime tests are implemented but skipped locally until `TEST_DATABAS
 | Reports | Not started | 0% | - | - | - | Not yet scoped |
 | Administration | Not started | 0% | - | - | - | Tenant admin / RBAC UI not yet scoped |
 | AI | Planned | 5% | - | - | - | No LLM provider selected; tool-layer architecture only |
-| API | Foundation | 47% | `c0d901d` | Local validation passed; PostgreSQL runtime test blocked locally | Never deployed as a running service | Run PostgreSQL integration via local DB or CI before operational persistence claims |
+| API | Foundation | 47% | local pending commit | PostgreSQL runtime and local API/repository restart validation passed | Never deployed as a running service | Continue auth, audit, and operational hardening before deployment |
 | Security | Foundation | 35% | `bb0ba80` | Basic Auth protection deployed for `/admin` | Static `/admin` protected on staging | Persistent audit storage, RBAC hardening, rate limiting, secrets manager |
-| Multi-Tenant | Foundation | 50% | `f14ddd4` | Tenant scoping reviewed per-module | Not deployed | Validate isolation with a second real tenant; add DB-level constraints once persistence exists |
+| Multi-Tenant | Foundation | 50% | local pending commit | Second-tenant PostgreSQL/API isolation passed locally | Not deployed | Continue persistent RBAC and audit design |
 
 ## Current Sprint
 
@@ -141,6 +141,6 @@ not deployed.
 
 ## Next Recommended Sprint
 
-Provision an isolated local PostgreSQL test database or run the CI PostgreSQL job, run migration apply/status and
-PostgreSQL integration tests, then resume Auth/Tenant persistence and approved read-only legacy MySQL adapter
-mapping. Hold production API/database deploy until infrastructure, RBAC, audit, and secrets decisions are approved.
+Continue Auth/Tenant persistence and audit design on the locally verified PostgreSQL foundation, then resume only
+approved read-only legacy MySQL adapter mapping. Hold production API/database deploy until infrastructure, RBAC,
+audit, backup, monitoring, and secrets decisions are approved.

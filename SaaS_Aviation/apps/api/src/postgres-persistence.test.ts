@@ -4,6 +4,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { Express } from "express";
 import pg from "pg";
 import { CoreDomainError } from "@saas-aviation/shared";
@@ -17,7 +18,7 @@ import { PostgresCorePersistence } from "./persistence/postgres-core-repository.
 
 const { Pool } = pg;
 const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
-const migrationFile = path.resolve(process.cwd(), "database", "migrations", "001_core_persistence.sql");
+const migrationFile = fileURLToPath(new URL("../../../database/migrations/001_core_persistence.sql", import.meta.url));
 
 function hasCode(code: string): (error: unknown) => boolean {
   return (error: unknown): boolean => error instanceof CoreDomainError && error.code === code;
@@ -175,6 +176,9 @@ test(
 
       const repo = new PostgresCorePersistence(isolated.config);
       const companyA = await repo.createCompany(tenantA, { name: "PG Company A", roles: ["supplier"] });
+      const supplierA = await repo.createCompany(tenantA, { name: "PG Supplier A", roles: ["supplier"] });
+      const tagInfoA = await repo.createCompany(tenantA, { name: "PG Tag Info A", roles: ["repair-station"] });
+      const traceabilityA = await repo.createCompany(tenantA, { name: "PG Traceability A", roles: ["stock-owner"] });
       const companyB = await repo.createCompany(tenantB, { name: "PG Company B", roles: ["customer"] });
       const contactA = await repo.createContact(tenantA, companyA.id, { firstName: "Alex", lastName: "Aero", email: "alex@example.test" });
       const partA = await repo.createPart(tenantA, { partNumber: "PG-123", description: "Postgres part", manufacturer: "OEM", alternates: ["PG-ALT"] });
@@ -184,9 +188,9 @@ test(
         quantity: 0,
         status: "available",
         ownerCompanyId: companyA.id,
-        supplierCompanyId: companyA.id,
-        tagInfoCompanyId: companyA.id,
-        traceabilityCompanyId: companyA.id,
+        supplierCompanyId: supplierA.id,
+        tagInfoCompanyId: tagInfoA.id,
+        traceabilityCompanyId: traceabilityA.id,
         currency: "USD"
       });
       await repo.close();
@@ -195,7 +199,12 @@ test(
       assert.equal((await restarted.getCompanyById(tenantA, companyA.id))?.name, "PG Company A");
       assert.equal((await restarted.listContactsByCompany(tenantA, companyA.id))[0]?.id, contactA.id);
       assert.equal((await restarted.getPartById(tenantA, partA.id))?.alternates[0], "PG-ALT");
-      assert.equal((await restarted.getStockById(tenantA, stockA.id))?.quantity, 0);
+      const restartedStock = await restarted.getStockById(tenantA, stockA.id);
+      assert.equal(restartedStock?.quantity, 0);
+      assert.equal(restartedStock?.ownerCompanyId, companyA.id);
+      assert.equal(restartedStock?.supplierCompanyId, supplierA.id);
+      assert.equal(restartedStock?.tagInfoCompanyId, tagInfoA.id);
+      assert.equal(restartedStock?.traceabilityCompanyId, traceabilityA.id);
 
       assert.equal((await restarted.listCompanies(tenantA)).some((company) => company.id === companyB.id), false);
       assert.equal(await restarted.getCompanyById(tenantA, companyB.id), null);
@@ -234,6 +243,12 @@ test(
       const apiCompany = await httpRequest(app, "POST", "/v1/companies", tokenA, { name: "API Restart Company", roles: ["customer"] });
       assert.equal(apiCompany.status, 201);
       const apiCompanyId = (apiCompany.body as { data: { id: string } }).data.id;
+      const apiContact = await httpRequest(app, "POST", `/v1/companies/${apiCompanyId}/contacts`, tokenA, {
+        firstName: "API",
+        lastName: "Contact"
+      });
+      assert.equal(apiContact.status, 201);
+      const apiContactId = (apiContact.body as { data: { id: string } }).data.id;
       const apiPart = await httpRequest(app, "POST", "/v1/parts", tokenA, { partNumber: "API-PG-1", description: "API part" });
       assert.equal(apiPart.status, 201);
       const apiPartId = (apiPart.body as { data: { id: string } }).data.id;
@@ -255,7 +270,16 @@ test(
         auth: new StaticAuthProvider([session(tokenA, tenantA), session("pg-api-b", tenantB)])
       });
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}`, tokenA)).status, 200);
+      const restartedContacts = await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/contacts`, tokenA);
+      assert.equal(restartedContacts.status, 200);
+      assert.equal((restartedContacts.body as { data: Array<{ id: string }> }).data[0]?.id, apiContactId);
+      assert.equal((await httpRequest(restartedApp, "GET", `/v1/parts/${apiPartId}`, tokenA)).status, 200);
+      const apiStockId = (apiStock.body as { data: { id: string } }).data.id;
+      assert.equal((await httpRequest(restartedApp, "GET", `/v1/stock/${apiStockId}`, tokenA)).status, 200);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}`, "pg-api-b")).status, 404);
+      assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/contacts`, "pg-api-b")).status, 404);
+      assert.equal((await httpRequest(restartedApp, "GET", `/v1/parts/${apiPartId}`, "pg-api-b")).status, 404);
+      assert.equal((await httpRequest(restartedApp, "GET", `/v1/stock/${apiStockId}`, "pg-api-b")).status, 404);
       await apiRestartedRepo.close();
     } finally {
       await isolated.cleanup();

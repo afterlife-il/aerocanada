@@ -1,6 +1,6 @@
 # PostgreSQL Integration Testing
 
-Status: implemented, gated on a local isolated PostgreSQL database.
+Status: implemented and passed against a local isolated PostgreSQL database on 2026-07-14.
 
 ## Test Command
 
@@ -19,10 +19,11 @@ If `TEST_DATABASE_URL` is not set, the PostgreSQL integration test is skipped wi
 - migration apply/status against an isolated PostgreSQL schema
 - idempotent migration re-apply
 - migration checksum mismatch detection
-- repository persistence across close/reopen
+- Company, Contact, Part, and Stock persistence across close/reopen
+- quantity 0 and independent owner/supplier/tag-info/traceability company persistence
 - tenant isolation for companies, contacts, parts, and stock
 - duplicate and cross-tenant constraint behavior
-- local API CRUD persistence across repository restart
+- local API Company/Contact/Part/Stock persistence across repository restart, including second-tenant denial
 - transaction rollback for multi-table part alternate updates
 - rollback for invalid cross-tenant stock relationship updates
 
@@ -30,7 +31,7 @@ Each test run creates a temporary schema in the configured test database and dro
 
 ## Current Environment Note
 
-During Phase 2 implementation on 2026-07-10, this machine had no available `postgres`, `psql`, Docker, Podman, WSL distribution, or database URL configured. The implementation, local Docker Compose config, CI service config, and gated tests are present, but actual database execution remains blocked on this machine until a local test database is provisioned.
+Docker Desktop with the Linux/WSL2 engine became available on 2026-07-14. The localhost-only PostgreSQL 16 Compose service reported healthy, migration 001 applied and re-applied idempotently with its checksum recorded, and `npm run test:postgres` completed with 13 passed, 0 failed, and 0 skipped. The proof was local only: no API or database was deployed, the public frontend remains static/sample-backed, and no Yoyamic or live database was accessed.
 
 ## CI
 

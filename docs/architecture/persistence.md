@@ -1,6 +1,6 @@
 # SaaS_Aviation Persistence Foundation
 
-Status: Phase 2 local PostgreSQL provider foundation, not deployed.
+Status: Phase 2 local PostgreSQL provider verified on 2026-07-14, not deployed.
 
 ## Current State
 
@@ -28,6 +28,8 @@ Phase 2 uses the smallest coherent PostgreSQL layer:
 - Transactional writes for multi-table company role and part alternate updates.
 
 The provider is for development/local integration only. Production deployment still requires final auth, RBAC, audit persistence, secrets management, backup/restore, monitoring, and operational database decisions.
+
+Local Docker Desktop/WSL2 validation applied migration 001, recorded and rechecked its checksum, proved idempotent re-apply, and passed real PostgreSQL tests for Company/Contact/Part/Stock reconnect persistence, quantity 0, independent stock company relationships, tenant isolation, constraint failures, and transactional rollback. The local API/repository restart proof passed. This does not change the public frontend: it remains static and sample-backed, and neither the API nor PostgreSQL has been deployed.
 
 ## Frontend Data Source Boundary
 

@@ -2,6 +2,8 @@
 
 Status: development/test only. Do not use Yoyamic or a live customer database.
 
+Local runtime status (2026-07-14): verified with Docker Desktop using the Linux/WSL2 engine. PostgreSQL 16 started healthy on the localhost-only Compose binding; migration 001 applied with checksum and idempotent re-apply; the real integration and local API/repository restart tests passed. Nothing was deployed.
+
 ## Environment
 
 Use local-only values in an uncommitted `.env` file or shell session:
@@ -69,7 +71,7 @@ With `TEST_DATABASE_URL` set:
 npm run test:postgres
 ```
 
-The GitHub Actions workflow includes a dedicated PostgreSQL service job that runs this command. On machines without Docker, PostgreSQL binaries, WSL, or a configured database URL, local runtime verification remains blocked and must be reported as blocked rather than passed.
+The GitHub Actions workflow includes a dedicated PostgreSQL service job that runs this command. The 2026-07-14 local run completed with 13 tests passed and no skips. On machines without Docker, PostgreSQL binaries, WSL, or a configured database URL, report local runtime verification as blocked rather than passed.
 
 ## Frontend Persistent Mode
 
