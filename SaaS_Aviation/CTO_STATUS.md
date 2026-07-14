@@ -8,6 +8,13 @@ is exported with `output: "export"`, so dashboard data is baked into the static 
 `apps/web/src/lib/cto-status.ts`; it is not queried live. Keep this file, `PROJECT_STATE.json`, `APP_RECAP.md`, and
 `apps/web/src/lib/cto-status.ts` in sync by hand.
 
+## Documentation Definition of Done
+
+Every completed task must review and synchronize `APP_RECAP.md`, `PROJECT_STATE.json`, this status file, and all
+affected documents under `docs/`. Module updates must state completion, finished and missing work, blockers, next
+action, validation actually performed, deployment status, and the relevant commit. Skipped, blocked, failed, or
+unexecuted checks must never be reported as passing. See the repository-wide policy in `AGENTS.md`.
+
 ## Current Global Status
 
 Pre-MVP foundation. Static, sample-data-backed SaaS ERP shell remains deployed alongside legacy Yoyamic. Local

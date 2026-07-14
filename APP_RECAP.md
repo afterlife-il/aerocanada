@@ -1,12 +1,19 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 ## Vision
 
 Yoyamic remains the legacy staging and migration-reference system. `SaaS_Aviation/` is the new multi-tenant aviation ERP product. See `VISION.md`.
 
 CTO-level status snapshot: `SaaS_Aviation/CTO_STATUS.md`.
+
+## Documentation Definition of Done
+
+Every task includes a documentation review, even when no code changes are needed. At minimum, review this recap,
+`PROJECT_STATE.json`, and `SaaS_Aviation/CTO_STATUS.md`, plus all affected documents under `docs/`. Record only
+verified results, current module completion, remaining work, blockers, next action, validation, deployment truth,
+and the relevant commit. The durable agent instructions are in `AGENTS.md`.
 
 ## Current Architecture
 

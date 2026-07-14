@@ -1,5 +1,26 @@
 {
-  "last_updated": "2026-07-13",
+  "last_updated": "2026-07-14",
+  "documentation_policy": {
+    "definition_of_done": true,
+    "required_status_files": [
+      "APP_RECAP.md",
+      "PROJECT_STATE.json",
+      "SaaS_Aviation/CTO_STATUS.md"
+    ],
+    "affected_docs_required": true,
+    "verified_claims_only": true,
+    "required_module_fields": [
+      "completion_status",
+      "finished_work",
+      "remaining_work",
+      "known_blockers",
+      "next_recommended_task",
+      "validation_performed",
+      "deployment_status",
+      "commit_reference"
+    ],
+    "agent_policy": "AGENTS.md"
+  },
   "modules": {
     "legacy_yoyamic": {
       "purpose": "staging workflow, legacy reference, migration source",
