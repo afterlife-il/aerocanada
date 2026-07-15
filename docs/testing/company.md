@@ -20,3 +20,6 @@ Executed evidence:
 Visual browser automation was not executed because no in-app browser instance was available. This must not be represented as browser success. UI behavior is covered by normalization tests, route/API tests, typecheck, lint, and production build, but a visual staging review remains required.
 
 Authentication remains in-memory and is not production-grade. On 2026-07-15 the isolated staging runtime passed authenticated Company/Contact/Address CRUD, search/filter/sort/pagination, restart persistence/re-login, tenant isolation, and forced-host proxy checks. Public DNS/TLS and browser validation remain incomplete. Yoyamic, legacy PHP, Documents internals, MariaDB, host PostgreSQL 14, and other protected systems were untouched.
+# Public persistent failure regression
+
+The Company workspace regression suite verifies that `persistent-api` mode discards pre-rendered fixture input, while explicit `sample-static` mode may retain it. API tests verify safe correlation IDs. PostgreSQL integration must run with `TEST_DATABASE_URL` or `DATABASE_URL`; a skipped PostgreSQL test is not a pass.

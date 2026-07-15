@@ -17,7 +17,7 @@ export function PersistentLoginForm() {
     setBusy(true); setError(null);
     try {
       await persistentApi.login(String(data.get("email") ?? ""), String(data.get("password") ?? ""), config);
-      window.location.assign("/companies");
+      window.location.assign("/companies/");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Sign-in failed."); setBusy(false); }
   }
 

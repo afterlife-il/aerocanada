@@ -44,6 +44,8 @@ Local Docker Desktop/WSL2 validation passed real PostgreSQL tests for Company/Co
 
 `apps/web/src/lib/persistent-api.ts` implements a reusable client for persistent mode. It refuses to run outside explicit `persistent-api` mode and does not fall back to sample fixtures. Login uses the canonical `{ data: { session } }` envelope; the browser stores the local bearer token and clears it on logout. This is local-only: users and sessions remain in memory and sessions do not survive API restart.
 
+Persistent pages must initialize with an empty record set rather than server-rendered sample records. A failed or unauthorized API request clears the visible persistent record set, presents a sign-in or retry action, and includes a safe correlation reference for non-auth failures. Sample records remain available only when the build explicitly selects `sample-static`.
+
 ## Yoyamic Boundary
 
 Yoyamic remains a read-only legacy source for future migration planning. Phase 2 adds only a `YoyamicReadonlySource` policy scaffold with safe read options and no live queries. It contains no write methods and performs no connection to Yoyamic.

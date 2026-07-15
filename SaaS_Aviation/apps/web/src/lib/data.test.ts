@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { createCompanySchema, createContactSchema, sampleRequestContext } from "@saas-aviation/shared";
 import { currentSession, data, getCompany360ReadModel, getCompanyListReadModel, getStock } from "./data.js";
 import { getCtoStatus } from "./cto-status.js";
-import { assertPersistentApiMode, getDataSourceConfig } from "./data-source-mode.js";
+import { assertPersistentApiMode, getDataSourceConfig, initialRecordsForMode } from "./data-source-mode.js";
 import { persistentApi, PersistentApiError } from "./persistent-api.js";
 import { getDashboardData } from "./dashboard.js";
 import { getDocumentCenterReadModel, getEntityDocumentReadModel, validateDocumentUpload } from "./documents.js";
@@ -59,6 +59,8 @@ test("web data source mode defaults to explicit sample static mode", () => {
 });
 
 test("persistent API client requires explicit API mode and never falls back to sample data", async () => {
+  assert.deepEqual(initialRecordsForMode({ mode: "persistent-api", apiBaseUrl: "/api", staticExport: true }, [{ id: "fixture" }]), []);
+  assert.deepEqual(initialRecordsForMode({ mode: "sample-static", apiBaseUrl: null, staticExport: true }, [{ id: "fixture" }]), [{ id: "fixture" }]);
   await assert.rejects(
     persistentApi.listCompanies({
       mode: "sample-static",
@@ -77,7 +79,7 @@ test("persistent API client calls configured API and surfaces validation errors"
     if (String(input).endsWith("/v1/companies")) {
       return new Response(JSON.stringify({ data: [{ id: "company-db-1", tenantId: "tenant-db", name: "DB Company", roles: ["customer"] }] }), {
         status: 200,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json", "X-Correlation-ID": "api-company-test" }
       });
     }
     return new Response(JSON.stringify({ error: "validation_error" }), {

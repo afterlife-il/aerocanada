@@ -26,3 +26,7 @@ export function assertPersistentApiMode(config = getDataSourceConfig()): asserts
     throw new Error("Persistent API mode is not enabled. The static frontend must not silently fall back to sample data.");
   }
 }
+
+export function initialRecordsForMode<T>(config: DataSourceConfig, sampleRecords: T[]): T[] {
+  return config.mode === "persistent-api" ? [] : sampleRecords;
+}

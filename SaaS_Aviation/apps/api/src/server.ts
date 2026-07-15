@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import cors from "cors";
 import express, { type ErrorRequestHandler, type RequestHandler } from "express";
@@ -45,7 +46,7 @@ const errorHandler: ErrorRequestHandler = (_error, _req, res, _next) => {
     return;
   }
 
-  res.status(500).json({ error: "internal_server_error" });
+  res.status(500).json({ error: "internal_server_error", correlationId: res.getHeader("X-Correlation-ID") });
 };
 
 function domainErrorStatus(error: CoreDomainError): number {
@@ -100,6 +101,12 @@ export function createApp(dependencies: AppDependencies = {}) {
   const audit = new AuditService(dataSource);
 
   app.use(createHelmetMiddleware());
+  app.use((req, res, next) => {
+    const supplied = req.header("X-Correlation-ID");
+    const correlationId = supplied && /^[a-zA-Z0-9._:-]{1,100}$/.test(supplied) ? supplied : randomUUID();
+    res.setHeader("X-Correlation-ID", correlationId);
+    next();
+  });
   app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:3007"] }));
   app.use(express.json());
 

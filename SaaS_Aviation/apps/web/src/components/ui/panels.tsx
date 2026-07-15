@@ -43,11 +43,12 @@ export function EmptyState({ title, detail }: { title: string; detail: string })
   );
 }
 
-export function ErrorState({ title, detail }: { title: string; detail: string }) {
+export function ErrorState({ title, detail, actions }: { title: string; detail: string; actions?: ReactNode }) {
   return (
     <div className="rounded-lg border border-[oklch(0.74_0.17_25)] bg-[oklch(0.97_0.02_25)] p-6">
       <div className="text-sm font-semibold text-[oklch(0.4_0.15_25)]">{title}</div>
       <div className="mt-1 text-sm text-[oklch(0.4_0.15_25)]">{detail}</div>
+      {actions ? <div className="mt-3 flex gap-2">{actions}</div> : null}
     </div>
   );
 }

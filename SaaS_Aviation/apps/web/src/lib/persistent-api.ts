@@ -53,7 +53,8 @@ export class PersistentApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
-    readonly body: unknown
+    readonly body: unknown,
+    readonly correlationId: string
   ) {
     super(message);
     this.name = "PersistentApiError";
@@ -62,18 +63,25 @@ export class PersistentApiError extends Error {
 
 async function request<T>(path: string, init: RequestInit = {}, config: DataSourceConfig = getDataSourceConfig()): Promise<T> {
   assertPersistentApiMode(config);
+  const correlationId = globalThis.crypto?.randomUUID?.() ?? `web-${Date.now()}`;
   const response = await fetch(`${config.apiBaseUrl}${path}`, {
     ...init,
     headers: {
       Accept: "application/json",
+      "X-Correlation-ID": correlationId,
       ...(init.body ? { "Content-Type": "application/json" } : {}),
       ...(typeof window !== "undefined" && window.localStorage.getItem("saas_api_token") ? { Authorization: `Bearer ${window.localStorage.getItem("saas_api_token")}` } : {}),
       ...init.headers
     }
   });
-  const body = (await response.json()) as unknown;
+  const body = await response.json().catch(() => ({ error: "invalid_api_response" })) as unknown;
   if (!response.ok) {
-    throw new PersistentApiError("Persistent API request failed.", response.status, body);
+    const responseCorrelationId = response.headers.get("X-Correlation-ID") ?? correlationId;
+    if (response.status === 401 && typeof window !== "undefined") window.localStorage.removeItem("saas_api_token");
+    const message = response.status === 401
+      ? "Your session is missing or expired. Sign in and try again."
+      : `The persistent service could not complete this request. Reference: ${responseCorrelationId}`;
+    throw new PersistentApiError(message, response.status, body, responseCorrelationId);
   }
   return (body as ApiEnvelope<T>).data;
 }
@@ -81,7 +89,7 @@ async function request<T>(path: string, init: RequestInit = {}, config: DataSour
 export const persistentApi = {
   async login(email: string, password: string, config?: DataSourceConfig) {
     const result = await request<{ session: AuthSession }>("/v1/auth/login", { method: "POST", body: JSON.stringify({ email: email.trim(), password }) }, config);
-    if (!result.session.token) throw new PersistentApiError("Login response did not contain a session token.", 502, result);
+    if (!result.session.token) throw new PersistentApiError("Login response did not contain a session token.", 502, result, "login-response");
     if (typeof window !== "undefined") window.localStorage.setItem("saas_api_token", result.session.token);
     return result;
   },

@@ -4,9 +4,9 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DetailPanel, EmptyState, ErrorState, LoadingState } from "@/components/ui/panels";
-import { getDataSourceConfig } from "@/lib/data-source-mode";
+import { getDataSourceConfig, initialRecordsForMode } from "@/lib/data-source-mode";
 import { normalizeFormData } from "@/lib/form-normalization";
-import { persistentApi, type ApiCompany, type ApiCompany360, type ApiCompanyAddress, type ApiContact } from "@/lib/persistent-api";
+import { persistentApi, PersistentApiError, type ApiCompany, type ApiCompany360, type ApiCompanyAddress, type ApiContact } from "@/lib/persistent-api";
 
 const fieldClass = "h-9 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-accent";
 const areaClass = "min-h-20 rounded-md border border-border bg-background p-3 text-sm md:col-span-2";
@@ -18,7 +18,7 @@ function formValues(form: HTMLFormElement, arrays: string[] = [], booleans: stri
 export function CompanyProductionWorkspace({ initialCompanies }: { initialCompanies: ApiCompany[] }) {
   const config = useMemo(() => getDataSourceConfig(), []);
   const persistent = config.mode === "persistent-api";
-  const [companies, setCompanies] = useState(initialCompanies);
+  const [companies, setCompanies] = useState<ApiCompany[]>(initialRecordsForMode(config, initialCompanies));
   const [selected, setSelected] = useState<ApiCompany360 | null>(null);
   const [editingContact, setEditingContact] = useState<ApiContact | null>(null);
   const [editingAddress, setEditingAddress] = useState<ApiCompanyAddress | null>(null);
@@ -31,6 +31,7 @@ export function CompanyProductionWorkspace({ initialCompanies }: { initialCompan
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
 
   const fail = (cause: unknown, fallback: string) => setError(cause instanceof Error ? cause.message : fallback);
   const loadCompanies = useCallback(async () => {
@@ -39,8 +40,12 @@ export function CompanyProductionWorkspace({ initialCompanies }: { initialCompan
     try {
       const params = new URLSearchParams({ q: query, status, sort, page: String(page), pageSize: "10" });
       const result = await persistentApi.searchCompanies(params, config);
-      setCompanies(result.rows); setTotalPages(result.pagination.totalPages);
-    } catch (cause) { fail(cause, "Unable to load companies."); }
+      setCompanies(result.rows); setTotalPages(result.pagination.totalPages); setNeedsSignIn(false);
+    } catch (cause) {
+      setCompanies([]); setSelected(null);
+      setNeedsSignIn(cause instanceof PersistentApiError && cause.status === 401);
+      fail(cause, "Unable to load companies.");
+    }
     finally { setLoading(false); }
   }, [config, page, persistent, query, sort, status]);
 
@@ -70,7 +75,7 @@ export function CompanyProductionWorkspace({ initialCompanies }: { initialCompan
   }
 
   return <div className="space-y-4">
-    {error ? <ErrorState title="Company module error" detail={error} /> : null}
+    {error ? <ErrorState title={needsSignIn ? "Sign-in required" : "Company module error"} detail={error} actions={<><Button onClick={() => void loadCompanies()}>Retry</Button>{needsSignIn ? <Link className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white" href="/login/">Sign in</Link> : null}</>} /> : null}
     {notice ? <div role="status" className="rounded-md border border-border bg-panel-muted px-3 py-2 text-sm">{notice}</div> : null}
     <div className="grid gap-2 lg:grid-cols-[1fr_150px_150px_auto]">
       <input className={fieldClass} value={query} onChange={(event) => { setPage(1); setQuery(event.target.value); }} placeholder="Fast search: name, codes, VAT, email, phone, tag" />
@@ -78,7 +83,7 @@ export function CompanyProductionWorkspace({ initialCompanies }: { initialCompan
       <select className={fieldClass} value={sort} onChange={(event) => setSort(event.target.value)}><option value="name">Name</option><option value="code">Code</option><option value="updatedAt">Last activity</option></select>
       <Button onClick={() => void loadCompanies()} variant="primary">Refresh</Button>
     </div>
-    {loading ? <LoadingState /> : <div className="grid gap-2">{companies.map((company) => <button className="flex items-center justify-between rounded-md border border-border bg-panel p-3 text-left hover:bg-panel-muted" key={company.id} onClick={() => void openCompany(company.id)}><span className="font-semibold">{company.name}</span><span className="text-xs text-muted">{company.icaoCode ?? company.iataCode ?? company.code ?? company.status}</span></button>)}</div>}
+    {loading ? <LoadingState /> : companies.length ? <div className="grid gap-2">{companies.map((company) => <button className="flex items-center justify-between rounded-md border border-border bg-panel p-3 text-left hover:bg-panel-muted" key={company.id} onClick={() => void openCompany(company.id)}><span className="font-semibold">{company.name}</span><span className="text-xs text-muted">{company.icaoCode ?? company.iataCode ?? company.code ?? company.status}</span></button>)}</div> : !error ? <EmptyState title="No companies found" detail="No PostgreSQL company matches the current filters." /> : null}
     <div className="flex items-center justify-between text-sm"><Button disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>Previous</Button><span>Page {page} of {totalPages}</span><Button disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)}>Next</Button></div>
     <DetailPanel title="Create Company"><CompanyForm submitLabel="Create Company" busy={saving} onSubmit={async (event) => { if (!await submit(event, (input) => persistentApi.createCompany(input, config), "Company created.", ["roles", "tags"])) return; event.currentTarget.reset(); await loadCompanies(); }} /></DetailPanel>
     {selected ? <div className="space-y-4">

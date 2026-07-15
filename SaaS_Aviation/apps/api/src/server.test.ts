@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { once } from "node:events";
 import type { AddressInfo } from "node:net";
 import type { Express } from "express";
 import type { AuthSession, DocumentCenterReadModel, DocumentOwnerModule, DocumentReadModel, EntityDocumentReadModel, Permission, RequestContext } from "@saas-aviation/shared";
@@ -241,10 +242,10 @@ test("document read endpoints return controlled errors for malformed primary lin
   ];
 
   for (const route of documentRoutes) {
-    assert.deepEqual(await httpGet(app, route, allowedToken), {
-      status: 500,
-      body: { error: "internal_server_error" }
-    });
+    const response = await httpGet(app, route, allowedToken);
+    assert.equal(response.status, 500);
+    assert.equal((response.body as { error: string }).error, "internal_server_error");
+    assert.match((response.body as { correlationId: string }).correlationId, /^[a-f0-9-]{36}$/);
   }
 });
 
@@ -508,4 +509,18 @@ test("openapi document covers current read routes with component schemas", () =>
   );
   assert.equal(openApiDocument.paths["/v1/documents/upload-intent"].post.operationId, "validateDocumentUpload");
   assert.equal(openApiDocument.paths["/v1/entities/{ownerModule}/{ownerRecordId}/documents"].get.operationId, "listEntityDocuments");
+});
+
+test("API returns a safe correlation ID and preserves valid client IDs", async () => {
+  const app = createApp({ corePersistence: new InMemoryCorePersistence() });
+  const generated = await httpRequest(app, "GET", "/health");
+  assert.equal(generated.status, 200);
+  const server = app.listen(0);
+  try {
+    await once(server, "listening");
+    const address = server.address();
+    assert.ok(address && typeof address !== "string");
+    const response = await fetch(`http://127.0.0.1:${address.port}/health`, { headers: { "X-Correlation-ID": "web-safe-123" } });
+    assert.equal(response.headers.get("X-Correlation-ID"), "web-safe-123");
+  } finally { server.close(); }
 });

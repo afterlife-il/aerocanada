@@ -5,8 +5,8 @@
     "local_head": "72f2a8e before this documentation commit",
     "origin_main": "72f2a8e before this documentation commit",
     "deployment_status": "persistent staging publicly available over verified HTTPS; interactive browser acceptance blocked by tooling",
-    "current_module": "Yoyamic Company Contact Part controlled migration",
-    "current_sprint": "Read-only audit, sample import, idempotency and reconciliation"
+    "current_module": "Public persistent API and session UX correction",
+    "current_sprint": "Remove persistent fixture ambiguity and add actionable errors"
   },
   "documentation_policy": {
     "definition_of_done": true,
@@ -263,7 +263,7 @@
     "full_import_gate": "blocked_by_missing_names_normalized_duplicates_orphans_and_duplicate_company_emails",
     "reports": "/opt/ready2go/saas-aviation/migration-reports/20260715T135622Z-dry-run; 20260715T140926Z-sample; 20260715T140954Z-sample-idempotency"
   },
-  "current_sprint": "Yoyamic Company Contact Part controlled migration sample",
-  "last_completed_task": "Completed read-only live audit, pre-import backup, migration 004, deterministic sample, zero-insert idempotency rerun, tenant and public API reconciliation, and disposable CRUD acceptance. Full import was correctly stopped.",
-  "next_recommended_task": "Approve and execute a duplicate/orphan disposition workflow, then repeat the read-only dry-run; do not authorize full import until all seven blocking codes are cleared."
+  "current_sprint": "Public persistent API integration correction",
+  "last_completed_task": "Reproduced the public unauthenticated Company request and corrected retained persistent-mode fixtures, generic errors, missing retry/sign-in actions, trailing-slash login redirect, and correlation IDs. Deployment validation is pending.",
+  "next_recommended_task": "Deploy the focused web/API correction, validate public login and PostgreSQL Company reads, then implement persistent authentication/session storage."
 }
