@@ -1,6 +1,6 @@
 # Authentication
 
-Status: persistent staging foundation implemented locally; deployment pending.
+Status: persistent staging foundation deployed and publicly validated at `aviation.ready2go.aero`; not production-complete.
 
 ## Password and user storage
 
@@ -15,3 +15,7 @@ The browser receives `saas_session` as `HttpOnly`, `Secure`, `SameSite=Strict` a
 ## Remaining work
 
 TOTP, recovery codes, phone OTP, password change/reset, administrator user management, OAuth/OIDC and production secret management remain separate gated work. Persistent staging is not production authentication.
+
+## Staging validation
+
+On 2026-07-15 migration 005 was applied to the dedicated staging PostgreSQL database after a root-only backup. Public acceptance proved password login, cookie-authenticated session lookup, CSRF rejection and acceptance, disposable Company create/delete, session continuity after an API container restart, persisted logout, and unauthorized access after logout. The WAF requires an explicit zero-length body for empty POST requests; the browser client supplies this through `fetch`. No credential value was printed or committed.

@@ -23,8 +23,8 @@ unexecuted checks must never be reported as passing. See the repository-wide pol
 
 Pre-MVP persistent staging foundation. The dedicated PostgreSQL database, Express API, Redis, MinIO, and web
 runtime are deployed alongside, but isolated from, legacy systems. Company, Contact, Address, Part, and Stock
-CRUD are persistent. The prior static SaaS frontend and protected admin route remain separate. Public DNS/TLS,
-production authentication, persistent audit, and operational hardening are incomplete.
+CRUD are persistent. PostgreSQL users, salted credentials, tenant-bound sessions, lockout, CSRF and authentication
+audit are deployed to staging. MFA, production identity administration and broader operational hardening are incomplete.
 
 ## Persistent Data Foundation Phase 2
 
@@ -41,7 +41,7 @@ Implemented and deployed to isolated staging:
 - Controlled Yoyamic importer dry-run and reconciliation foundation.
 - Hardened Yoyamic read-only source policy and query planning guardrails; no live query, write method, or credential.
 
-The local PostgreSQL suite passed 15/15 with zero skips. On 2026-07-15 the server applied migrations 001-003 idempotently, seeded tenant `aci770` twice, and passed authenticated CRUD, quantity 0, independent stock company relationships, tenant isolation, API-restart persistence/re-login, backup/independent restore, and forced-host HTTP validation. Browser automation did not initialize and public DNS remains unavailable, so visual/public validation is not claimed.
+The PostgreSQL suite passed 21/21 with zero skips. On 2026-07-15 the server applied migrations 001-005, seeded tenant `aci770`, and passed authenticated CRUD, quantity 0, independent stock company relationships, tenant isolation, API-restart persistence, backup/restore, public HTTPS, and persistent-auth acceptance. Browser automation did not initialize, so visual browser validation is not claimed.
 
 Yoyamic, legacy AeroCanada, MariaDB, host PostgreSQL 14, Odoo, and the old Ready2Go stack were not modified and remained operational. Plesk received only the new `aviation.ready2go.aero` subdomain and domain-specific reverse-proxy configuration.
 
@@ -75,12 +75,12 @@ without another manual update.
 
 | Field | Value |
 |---|---|
-| Last deployed commit | `c667f284101272b7b987abe91501d4f79dd487dd` |
+| Last deployed commit | `47fd95c257b5db61e0f2963bf9f5e6f4e264c9f5` |
 | Last deployment date | `2026-07-15` |
 | Environment | isolated persistent staging; public HTTPS active |
 | Public certificate | `Lets Encrypt aviation.ready2go.aero`, valid through 2026-10-13 |
-| Backup paths | `/opt/ready2go/saas-aviation/backups/predeploy-20260715T105420Z`, `proxy-prechange-20260715T114203Z`, `staging-20260715T114501Z` |
-| Runtime path | `/opt/ready2go/saas-aviation/releases/c667f284101272b7b987abe91501d4f79dd487dd` |
+| Backup paths | `/opt/ready2go/saas-aviation/backups/predeploy-20260715T105420Z`, `proxy-prechange-20260715T114203Z`, `staging-20260715T114501Z`, `pre-auth-20260715T145902Z` |
+| Runtime path | `/opt/ready2go/saas-aviation/releases/47fd95c257b5db61e0f2963bf9f5e6f4e264c9f5` |
 
 ## Checks Snapshot
 
@@ -122,7 +122,7 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 | Module | Status | Progress | Last Commit | Review Status | Deploy Status | Next Action |
 |---|---|---|---|---|---|---|
 | Core | Operational | 85% | `141fee0` | Not formally reviewed | Static export only | Map to read-only Yoyamic adapter |
-| Authentication | Foundation | 35% | `5372dc2` | Not reviewed | Not deployed | Persistent session/audit store, MFA, rate limiting |
+| Authentication | Persistent staging foundation | 60% | `47fd95c` | PostgreSQL tests and public restart/logout acceptance passed | Deployed to persistent staging | TOTP/recovery codes, phone OTP, identity administration, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
 | Company 360 | Persistent staging foundation; not production-ready | 90% | `c667f284` | PostgreSQL 15/15; CRUD/restart/tenant/restore/public HTTPS/login/read passed; browser unavailable | Public persistent staging active | Persistent auth/session and operational prerequisites |
 | Part 360 | Workspace + persistent Part create/read/update foundation | 75% | `c667f284` | Public create/read/update passed; DELETE API missing | Persistent staging deployed | Implement authorized DELETE with dependency rules |
@@ -141,7 +141,7 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 | Administration | Not started | 0% | - | - | - | Tenant admin / RBAC UI not yet scoped |
 | AI | Planned | 5% | - | - | - | No LLM provider selected; tool-layer architecture only |
 | API | Persistent staging foundation | 55% | `c667f284` | Health/OpenAPI/auth/CRUD/restart/proxy passed | Isolated staging deployed | Continue auth, audit, and operational hardening before production |
-| Security | Foundation | 35% | `bb0ba80` | Basic Auth protection deployed for `/admin` | Static `/admin` protected on staging | Persistent audit storage, RBAC hardening, rate limiting, secrets manager |
+| Security | Persistent auth foundation | 50% | `47fd95c` | CSRF, secure cookies, lockout and auth audit validated | Persistent staging auth deployed; static `/admin` protected | MFA, RBAC administration, rate limiting, secrets manager |
 | Multi-Tenant | Foundation | 55% | `c667f284` | Second-tenant API isolation and composite FK rejection passed on staging | Isolated staging deployed | Continue persistent RBAC, RLS and audit design |
 
 ## Current Sprint
@@ -150,7 +150,7 @@ Company 360 is a deployed persistent staging foundation on PostgreSQL. Phase 1.1
 normalizes forms, completes Contact/Address editing, removes fixture Documents from the persistent aggregate, and
 keeps commercial modules explicit non-persistent boundaries. Auth/sessions remain in-memory; it is not production-ready.
 
-Persistent authentication is implemented locally through migration 005: tenant-bound users, salted scrypt credentials, lockout state, session digests and authentication audit events. Browser cookies are HttpOnly/Secure/SameSite and mutations require CSRF validation. Logout and revoke-all are persisted. PostgreSQL integration passed with zero skips. Staging still runs the prior in-memory auth revision until this focused change is deployed; OTP, TOTP, OAuth, password reset and user administration remain incomplete.
+Persistent authentication is deployed through migration 005: tenant-bound users, salted scrypt credentials, lockout state, session digests and authentication audit events. Browser cookies are HttpOnly/Secure/SameSite and mutations require CSRF validation. Public acceptance proved CSRF rejection/acceptance, disposable CRUD, session continuity through API restart, logout revocation and post-logout denial. OTP, TOTP, OAuth, password reset and user administration remain incomplete.
 
 The public Company failure was traced to an unauthenticated 401 combined with retained pre-rendered fixtures. The deployed correction removes fixture initialization and serialization from persistent mode, clears rows after failure, provides sign-in/retry actions and safe correlation references, and keeps explicit sample mode separate. Public login, PostgreSQL Company reads, unauthorized handling and no-fixture HTML passed. Web is `98a9076`; API is `3994fb2`.
 

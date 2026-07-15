@@ -2,9 +2,9 @@
   "last_updated": "2026-07-15",
   "repository_state": {
     "current_branch": "main",
-    "local_head": "72f2a8e before this documentation commit",
-    "origin_main": "72f2a8e before this documentation commit",
-    "deployment_status": "persistent staging publicly available; focused no-fixture Company web/API correction deployed and HTTP validated; interactive browser acceptance blocked by tooling",
+    "local_head": "47fd95c before this documentation commit",
+    "origin_main": "47fd95c before this documentation commit",
+    "deployment_status": "persistent staging publicly available; migration 005 and persistent cookie authentication deployed and publicly validated; interactive browser acceptance blocked by tooling",
     "current_module": "Persistent authentication foundation",
     "current_sprint": "PostgreSQL users credentials sessions CSRF lockout and audit"
   },
@@ -49,10 +49,10 @@
       "scope": "PostgreSQL Company identity, Company/Contact/Address CRUD, search/filter/sort/pagination, related inventory, persisted activity, aligned local login contract, normalized UI forms, and explicit non-persistent Documents/commercial boundaries",
       "completion_status": "staging_candidate_after_remaining_auth_and_operational_prerequisites",
       "finished_work": "Phase 1.1 login contract, logout clearing, form normalization, Contact/Address editing, aggregate truthfulness, workflow boundaries, OpenAPI, tests, and documentation",
-      "remaining_work": "visual browser review, Part/Stock DELETE API routes, persistent users/sessions, production identity/password handling, MFA, rate limiting, secure session strategy, persistent Documents, commercial modules, monitoring, and secret management",
-      "known_blockers": "interactive browser control unavailable; production auth and operational prerequisites intentionally out of scope",
-      "next_recommended_task": "complete interactive browser acceptance when tooling is available, then design persistent authentication/session prerequisites",
-      "validation_performed": "migrations 001-003 idempotent; PostgreSQL 15/15 no skips; public DNS/TLS/routes; login; Company/Contact/Address create-read-update-delete; Part/Stock create-read-update and quantity zero; targeted cleanup with zero residue; protected systems health",
+      "remaining_work": "visual browser review, Part/Stock DELETE API routes, MFA, password reset/user administration, rate limiting, persistent Documents, commercial modules, monitoring, and secret management",
+      "known_blockers": "interactive browser control unavailable; MFA and remaining operational prerequisites are not implemented",
+      "next_recommended_task": "implement TOTP/recovery codes and provider-abstracted phone OTP, then add identity administration",
+      "validation_performed": "migrations 001-005; PostgreSQL 21/21 no skips; public DNS/TLS/routes; secure cookie login; CSRF rejection/acceptance; Company CRUD; session persistence across API restart; logout revocation; protected systems health",
       "deployment_status": "isolated persistent staging publicly available over verified HTTPS",
       "commit_reference": "Harden Company 360 persistent workflows"
     },
@@ -228,11 +228,11 @@
   ],
   "security_status": {
     "hardcoded_secrets": "none_added_in_saas_foundation",
-    "auth": "email_password_foundation_with_in_memory_sessions",
+    "auth": "postgres_users_scrypt_credentials_tenant_sessions_csrf_lockout_and_audit_deployed_to_staging",
     "mfa": "not_implemented",
     "rbac": "role_and_permission_foundation",
     "tenant_isolation": "repository_queries_and_composite_constraints_verified_on_staging",
-    "audit_logs": "abstraction_only",
+    "audit_logs": "authentication_events_persistent_in_staging_postgres; broader_business_audit_incomplete",
     "rate_limiting": "not_implemented"
   },
   "ui_status": {
@@ -256,7 +256,7 @@
     "source": "Yoyamic",
     "target": "SaaS_Aviation",
     "strategy": "live read-only source audit, deterministic sample, idempotency and reconciliation before any full import",
-    "schema_changes": "migrations_001_004_deployed_to_dedicated_staging_postgres_only",
+    "schema_changes": "migrations_001_005_deployed_to_dedicated_staging_postgres_only",
     "source_counts": "companies=5884; company_details=6389; contacts=17502; parts=93410",
     "sample_result": "companies=7; addresses=9; contacts=13; parts=7; stock=0; quarantine=0",
     "idempotency_result": "second run inserted 0 and reconciled 36 unchanged",
@@ -264,6 +264,6 @@
     "reports": "/opt/ready2go/saas-aviation/migration-reports/20260715T135622Z-dry-run; 20260715T140926Z-sample; 20260715T140954Z-sample-idempotency"
   },
   "current_sprint": "Persistent staging authentication",
-  "last_completed_task": "Implemented migration 005, salted scrypt credentials, tenant-bound persistent sessions, failed-attempt lockout, secure cookie and CSRF handling, logout/revoke-all and authentication audit tests. Deployment is pending.",
-  "next_recommended_task": "Back up staging PostgreSQL, apply migration 005, deploy affected API/web services and prove cookie session persistence across API restart."
+  "last_completed_task": "Deployed migration 005 and commit 47fd95c after a root-only backup; public acceptance proved secure cookie login, CSRF enforcement, persistent CRUD, session continuity across API restart, logout revocation and post-logout denial.",
+  "next_recommended_task": "Implement TOTP/recovery codes and provider-abstracted phone OTP, then password reset and administrator user management."
 }
