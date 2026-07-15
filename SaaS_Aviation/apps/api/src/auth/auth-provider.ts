@@ -14,8 +14,24 @@ export interface AuthenticatedUser {
   mfaVerified: boolean;
 }
 
+export type PasswordAuthenticationResult = AuthSession | { mfaRequired: true; challengeId: string; methods: Array<"totp" | "recovery">; expiresAt: string };
+
+export interface TotpEnrollment {
+  secret: string;
+  otpauthUri: string;
+}
+
+export interface PhoneOtpRequestResult { challengeId: string; expiresAt: string; resendAvailableAt: string; delivery: "staging-spool"; }
+
 export interface AuthProvider {
   authenticateWithPassword(email: string, password: string): Promise<AuthSession | null>;
+  beginPasswordAuthentication?(email: string, password: string): Promise<PasswordAuthenticationResult | null>;
+  completeMfaChallenge?(challengeId: string, code: string): Promise<AuthSession | null>;
+  beginTotpEnrollment?(userId: string, tenantId: string): Promise<TotpEnrollment>;
+  confirmTotpEnrollment?(userId: string, tenantId: string, code: string): Promise<string[] | null>;
+  disableTotp?(userId: string, tenantId: string, code: string): Promise<boolean>;
+  requestPhoneEnrollment?(userId: string, tenantId: string, phone: string): Promise<PhoneOtpRequestResult | null>;
+  verifyPhoneEnrollment?(userId: string, tenantId: string, challengeId: string, code: string): Promise<boolean>;
   getCurrentSession(token?: string): Promise<AuthSession | null>;
   revokeSession(token: string): Promise<void>;
   revokeAllSessions?(userId: string, tenantId: string): Promise<void>;

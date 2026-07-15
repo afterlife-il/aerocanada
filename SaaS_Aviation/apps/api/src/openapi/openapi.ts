@@ -147,6 +147,24 @@ export const openApiDocument = {
         }
       }
     },
+    "/v1/auth/mfa/challenge": {
+      post: { tags: ["Session"], operationId: "completeMfaChallenge", summary: "Complete a pending TOTP or recovery-code login challenge", responses: { "200": { description: "Session created." }, "401": { $ref: "#/components/responses/Unauthorized" } } }
+    },
+    "/v1/auth/mfa/totp/enroll": {
+      post: { tags: ["Session"], operationId: "beginTotpEnrollment", summary: "Create a tenant-user TOTP enrollment secret", security: [{ bearerAuth: [] }], responses: { "200": { description: "Enrollment secret and otpauth URI." }, "401": { $ref: "#/components/responses/Unauthorized" } } }
+    },
+    "/v1/auth/mfa/totp/confirm": {
+      post: { tags: ["Session"], operationId: "confirmTotpEnrollment", summary: "Verify TOTP and issue one-use recovery codes", security: [{ bearerAuth: [] }], responses: { "200": { description: "TOTP enabled; recovery codes returned once." }, "401": { $ref: "#/components/responses/Unauthorized" } } }
+    },
+    "/v1/auth/mfa/totp/disable": {
+      post: { tags: ["Session"], operationId: "disableTotp", summary: "Disable TOTP after a current-code check", security: [{ bearerAuth: [] }], responses: { "200": { description: "TOTP disabled." }, "401": { $ref: "#/components/responses/Unauthorized" } } }
+    },
+    "/v1/auth/phone/enroll/request": {
+      post: { tags: ["Session"], operationId: "requestPhoneEnrollmentOtp", summary: "Request a rate-limited E.164 phone enrollment OTP", security: [{ bearerAuth: [] }], responses: { "202": { description: "OTP delivered by the configured provider; code is never returned." }, "429": { description: "Provider unavailable or resend cooldown active." } } }
+    },
+    "/v1/auth/phone/enroll/verify": {
+      post: { tags: ["Session"], operationId: "verifyPhoneEnrollmentOtp", summary: "Verify a phone enrollment OTP", security: [{ bearerAuth: [] }], responses: { "200": { description: "Phone factor verified." }, "401": { $ref: "#/components/responses/Unauthorized" } } }
+    },
     "/v1/auth/revoke-all": {
       post: {
         tags: ["Session"],

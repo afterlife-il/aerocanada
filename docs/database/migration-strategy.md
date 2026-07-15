@@ -37,9 +37,11 @@ The local PostgreSQL provider is selected only when `PERSISTENCE_PROVIDER=postgr
 
 `apps/api/src/importers/yoyamic-live-audit.ts` adds the controlled live audit path. It requires environment-only connection/report configuration, forces MariaDB `tx_read_only=1`, reads only hard-coded SELECT projections, emits aggregate findings without raw contact data, and blocks full import on manual-review or rejected findings.
 
-Migration 004 adds `import_batches`, `imported_records`, and `import_quarantine`, plus tenant-scoped legacy-ID uniqueness for Companies, Contacts, and Parts. It was applied locally with checksum `3ffbc9b0cbe43ff47fdab39b990278ce65c50068546e444e6da5c2a84850e0f4`; PostgreSQL tests passed with zero skips. It has not yet been applied to persistent staging.
+Migration 004 adds `import_batches`, `imported_records`, and `import_quarantine`, plus tenant-scoped legacy-ID uniqueness for Companies, Contacts, and Parts. It is applied locally and to dedicated persistent staging PostgreSQL.
 
-Migration 005 adds persistent authentication users, scrypt credentials, sessions and authentication audit events. Its local checksum is `80ff5c77057b0a98be65d278fa31f899c24811cc92742baba55629d1130946f2`; staging application is pending a fresh backup and disk gate.
+Migration 005 adds persistent authentication users, scrypt credentials, sessions and authentication audit events. Its checksum is `80ff5c77057b0a98be65d278fa31f899c24811cc92742baba55629d1130946f2`; it was applied to staging after the `pre-auth-20260715T145902Z` backup.
+
+Migration 006 adds tenant-bound encrypted TOTP factors, hashed one-use recovery codes, verified E.164 phone factors, expiring bounded-attempt OTP challenges and the related audit categories. Its local checksum is `5bddbca138bf5b260b39d84e1c8ec12a9b21dfe3b7b7ed92404cd3a1449333c1`. It is locally implemented and PostgreSQL-tested with zero skips; staging deployment remains pending until its focused rollout gate.
 
 ## Reconciliation Checks
 

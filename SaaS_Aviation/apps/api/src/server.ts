@@ -139,17 +139,75 @@ export function createApp(dependencies: AppDependencies = {}) {
         return;
       }
 
-      const session = await auth.authenticateWithPassword(email, password);
-      if (!session) {
+      const result = auth.beginPasswordAuthentication ? await auth.beginPasswordAuthentication(email, password) : await auth.authenticateWithPassword(email, password);
+      if (!result) {
         res.status(401).json({ error: "invalid_credentials" });
         return;
       }
+
+      if ("mfaRequired" in result) { res.status(202).json({ data: result }); return; }
+
+      const session = result;
 
       res.cookie("saas_session", session.token, { httpOnly: true, secure: true, sameSite: "strict", path: "/", expires: new Date(session.expiresAt) });
       if (session.csrfToken) res.cookie("saas_csrf", session.csrfToken, { httpOnly: false, secure: true, sameSite: "strict", path: "/", expires: new Date(session.expiresAt) });
       res.json({ data: { session } });
     })
   );
+
+  app.post(
+    "/v1/auth/mfa/challenge",
+    asyncHandler(async (req, res) => {
+      const { challengeId, code } = req.body as { challengeId?: string; code?: string };
+      if (!challengeId || !code || !auth.completeMfaChallenge) { res.status(400).json({ error: "mfa_challenge_required" }); return; }
+      const session = await auth.completeMfaChallenge(challengeId, code);
+      if (!session) { res.status(401).json({ error: "invalid_or_expired_mfa_challenge" }); return; }
+      res.cookie("saas_session", session.token, { httpOnly: true, secure: true, sameSite: "strict", path: "/", expires: new Date(session.expiresAt) });
+      if (session.csrfToken) res.cookie("saas_csrf", session.csrfToken, { httpOnly: false, secure: true, sameSite: "strict", path: "/", expires: new Date(session.expiresAt) });
+      res.json({ data: { session } });
+    })
+  );
+
+  app.post("/v1/auth/mfa/totp/enroll", asyncHandler(async (req, res) => {
+    const session = await auth.getCurrentSession(sessionCredential(req));
+    if (!session) { res.status(401).json({ error: "unauthorized" }); return; }
+    if (!auth.beginTotpEnrollment) { res.status(501).json({ error: "totp_unavailable" }); return; }
+    res.json({ data: await auth.beginTotpEnrollment(session.user.id, session.tenant.id) });
+  }));
+
+  app.post("/v1/auth/mfa/totp/confirm", asyncHandler(async (req, res) => {
+    const session = await auth.getCurrentSession(sessionCredential(req)); const { code } = req.body as { code?: string };
+    if (!session) { res.status(401).json({ error: "unauthorized" }); return; }
+    if (!code || !auth.confirmTotpEnrollment) { res.status(400).json({ error: "totp_code_required" }); return; }
+    const recoveryCodes = await auth.confirmTotpEnrollment(session.user.id, session.tenant.id, code);
+    if (!recoveryCodes) { res.status(401).json({ error: "invalid_totp_code" }); return; }
+    res.json({ data: { enabled: true, recoveryCodes } });
+  }));
+
+  app.post("/v1/auth/mfa/totp/disable", asyncHandler(async (req, res) => {
+    const session = await auth.getCurrentSession(sessionCredential(req)); const { code } = req.body as { code?: string };
+    if (!session) { res.status(401).json({ error: "unauthorized" }); return; }
+    if (!code || !auth.disableTotp) { res.status(400).json({ error: "totp_code_required" }); return; }
+    if (!await auth.disableTotp(session.user.id, session.tenant.id, code)) { res.status(401).json({ error: "invalid_totp_code" }); return; }
+    res.json({ data: { enabled: false } });
+  }));
+
+  app.post("/v1/auth/phone/enroll/request", asyncHandler(async (req, res) => {
+    const session = await auth.getCurrentSession(sessionCredential(req)); const { phone } = req.body as { phone?: string };
+    if (!session) { res.status(401).json({ error: "unauthorized" }); return; }
+    if (!phone || !auth.requestPhoneEnrollment) { res.status(400).json({ error: "valid_e164_phone_required" }); return; }
+    const challenge = await auth.requestPhoneEnrollment(session.user.id, session.tenant.id, phone);
+    if (!challenge) { res.status(429).json({ error: "phone_otp_unavailable_or_cooldown_active" }); return; }
+    res.status(202).json({ data: challenge });
+  }));
+
+  app.post("/v1/auth/phone/enroll/verify", asyncHandler(async (req, res) => {
+    const session = await auth.getCurrentSession(sessionCredential(req)); const { challengeId, code } = req.body as { challengeId?: string; code?: string };
+    if (!session) { res.status(401).json({ error: "unauthorized" }); return; }
+    if (!challengeId || !code || !auth.verifyPhoneEnrollment) { res.status(400).json({ error: "phone_otp_challenge_required" }); return; }
+    if (!await auth.verifyPhoneEnrollment(session.user.id, session.tenant.id, challengeId, code)) { res.status(401).json({ error: "invalid_or_expired_phone_otp" }); return; }
+    res.json({ data: { verified: true } });
+  }));
 
   app.post(
     "/v1/auth/logout",

@@ -14,7 +14,13 @@ The browser receives `saas_session` as `HttpOnly`, `Secure`, `SameSite=Strict` a
 
 ## Remaining work
 
-TOTP, recovery codes, phone OTP, password change/reset, administrator user management, OAuth/OIDC and production secret management remain separate gated work. Persistent staging is not production authentication.
+Password change/reset, administrator user management, OAuth/OIDC, a production SMS provider and production secret management remain separate gated work. Persistent staging is not production authentication.
+
+## MFA and phone enrollment
+
+Migration 006 adds encrypted TOTP factors, hashed one-use recovery codes, E.164 phone factors and bounded OTP challenges. TOTP secrets use AES-256-GCM under `AUTH_ENCRYPTION_KEY`, never a committed key. Login returns a short-lived challenge instead of a session when TOTP is enabled; a valid current TOTP or unused recovery code is required before secure session cookies are issued. Recovery codes are returned once at enrollment and stored only as SHA-256 digests.
+
+Phone enrollment normalizes E.164 numbers, expires OTPs after ten minutes, limits attempts to five and enforces a one-minute resend cooldown even after successful consumption. The only implemented delivery adapter is `staging-spool`: it writes individual codes to a server-only mode-0600 spool configured by `PHONE_OTP_STAGING_SPOOL`. Codes are never returned by the public API and never written to application logs. Production must configure and test a real SMS adapter before phone authentication can be advertised as operational.
 
 ## Staging validation
 

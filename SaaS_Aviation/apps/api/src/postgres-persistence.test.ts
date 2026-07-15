@@ -12,6 +12,7 @@ import type { AuthSession, Permission, RequestContext } from "@saas-aviation/sha
 import { sampleRequestContext, sampleTenants, sampleUsers } from "@saas-aviation/shared";
 import type { AuthProvider } from "./auth/auth-provider.js";
 import { PostgresAuthProvider } from "./auth/postgres-auth-provider.js";
+import { decryptSecret, encryptSecret, normalizeE164, totp, verifyTotp } from "./auth/mfa-crypto.js";
 import { createApp } from "./server.js";
 import { applyMigrations, getMigrationStatus } from "./persistence/migrations.js";
 import type { PostgresConfig } from "./persistence/config.js";
@@ -369,5 +370,34 @@ test(
       assert.equal(Number((await pool.query("SELECT count(*) FROM auth_audit_events")).rows[0]?.count) >= 7, true);
       await restarted.close();
     } finally { await pool.end(); await isolated.cleanup(); }
+  }
+);
+
+test(
+  "PostgreSQL MFA supports encrypted TOTP, one-use recovery codes and rate-limited staging phone enrollment",
+  { skip: databaseUrl ? false : "Set TEST_DATABASE_URL or DATABASE_URL to run PostgreSQL integration tests." },
+  async () => {
+    assert.ok(databaseUrl); const isolated = await createIsolatedSchema(databaseUrl); const pool = new Pool({ connectionString: isolated.config.connectionString });
+    const spool = path.join(tmpdir(), `saas-otp-${Date.now()}.jsonl`);
+    const env = { ...process.env, STAGING_ADMIN_EMAIL: "mfa-auth@example.test", STAGING_ADMIN_PASSWORD: "Persistent-MFA-Password-2026!", AUTH_ENCRYPTION_KEY: "test-only-encryption-key-with-at-least-32-characters", PHONE_OTP_PROVIDER: "staging-spool", PHONE_OTP_STAGING_SPOOL: spool };
+    try {
+      await applyMigrations({ provider: "postgres", postgres: isolated.config });
+      await pool.query("INSERT INTO tenants (id,name,slug,status,code) VALUES ('tenant-aci','AeroCanada','AeroCanada','active','aci770')");
+      const auth = new PostgresAuthProvider(isolated.config, env); const first = await auth.authenticateWithPassword(env.STAGING_ADMIN_EMAIL, env.STAGING_ADMIN_PASSWORD); assert.ok(first);
+      const enrollment = await auth.beginTotpEnrollment(first.user.id, first.tenant.id); assert.equal(verifyTotp(enrollment.secret, totp(enrollment.secret)), true);
+      const cipher = encryptSecret(enrollment.secret, env.AUTH_ENCRYPTION_KEY); assert.equal(decryptSecret(cipher, env.AUTH_ENCRYPTION_KEY), enrollment.secret);
+      const recovery = await auth.confirmTotpEnrollment(first.user.id, first.tenant.id, totp(enrollment.secret)); assert.equal(recovery?.length, 10);
+      const pending = await auth.beginPasswordAuthentication(env.STAGING_ADMIN_EMAIL, env.STAGING_ADMIN_PASSWORD); assert.ok(pending && "mfaRequired" in pending);
+      const mfaSession = pending && "mfaRequired" in pending ? await auth.completeMfaChallenge(pending.challengeId, totp(enrollment.secret)) : null; assert.ok(mfaSession?.token);
+      const pendingRecovery = await auth.beginPasswordAuthentication(env.STAGING_ADMIN_EMAIL, env.STAGING_ADMIN_PASSWORD); assert.ok(pendingRecovery && "mfaRequired" in pendingRecovery);
+      assert.ok(recovery?.[0]); assert.ok(pendingRecovery && "mfaRequired" in pendingRecovery && await auth.completeMfaChallenge(pendingRecovery.challengeId, recovery[0]));
+      const pendingReuse = await auth.beginPasswordAuthentication(env.STAGING_ADMIN_EMAIL, env.STAGING_ADMIN_PASSWORD); assert.ok(pendingReuse && "mfaRequired" in pendingReuse);
+      assert.equal(pendingReuse && "mfaRequired" in pendingReuse ? await auth.completeMfaChallenge(pendingReuse.challengeId, recovery[0]) : null, null);
+      const phone = await auth.requestPhoneEnrollment(first.user.id, first.tenant.id, "+1 (514) 555-0199"); assert.equal(phone?.delivery, "staging-spool"); assert.equal(normalizeE164("+1 (514) 555-0199"), "+15145550199");
+      const delivery = JSON.parse((await readFile(spool, "utf8")).trim().split("\n").at(-1)!) as { code: string };
+      assert.ok(phone && await auth.verifyPhoneEnrollment(first.user.id, first.tenant.id, phone.challengeId, delivery.code));
+      assert.equal(await auth.requestPhoneEnrollment(first.user.id, first.tenant.id, "+15145550199"), null);
+      assert.equal(await auth.disableTotp(first.user.id, first.tenant.id, totp(enrollment.secret)), true); await auth.close();
+    } finally { await rm(spool, { force: true }); await pool.end(); await isolated.cleanup(); }
   }
 );
