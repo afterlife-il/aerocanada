@@ -168,6 +168,12 @@ Full migration is **blocked**. The dry-run found unresolved missing names, norma
 
 ## Next Recommended Sprint
 
+## Runtime revalidation gate - 2026-07-15
+
+No rebuild was required: the affected deployed images already carry API revision `2e8b1d0e488266c0db579ac19b13a19b4090742a` and web revision `3c9480dbd5415fa0abdd1ad7f95ca504794c07a9`. Login, logout, secure cookie attributes, session persistence through an API restart, disposable Company CRUD and cleanup, stable Part/Stock identifier sets, PostgreSQL counts, public routes/assets, and five-container health passed. The API returned 13 Companies, 8 Parts, and 1 Stock record with no fixture-form IDs.
+
+Promotion remains blocked because the exported `/companies/` HTML still embeds `company-5263`, `company-1527`, and `company-4188`. This contradicts the earlier no-fixture HTML claim and means the frontend artifact cannot yet be certified as having no fixture fallback. Part and Stock HTML did not contain fixture-form IDs. Free disk was `15,003,709,440` bytes, only narrowly above the standing gate, so no rebuild was attempted. Connected Mailboxes remains unstarted pending manual staging validation and a corrected Company artifact.
+
 Resolve the seven migration data-quality gates through an approved duplicate/orphan review workflow, then repeat
 the read-only audit and reconciliation. Full import remains prohibited until every stop condition passes. Continue
 persistent Auth/Tenant sessions, secure session handling, MFA, rate limiting, audit, monitoring, and secret

@@ -38,3 +38,13 @@ No entry contains a credential value. Operator: Codex through the owner-authoriz
 ## Remaining acceptance action
 
 Public DNS and HTTPS activation are complete. Interactive visual acceptance remains pending because the in-app browser control failed to initialize twice. Do not represent the HTTP/API validation as a visual-browser pass.
+# 2026-07-15 - Authentication and persistent API staging revalidation
+
+- Runtime deployment: no rebuild or replacement; affected images were already current.
+- API revision/image: `2e8b1d0e488266c0db579ac19b13a19b4090742a` / `sha256:d5c31dcfedca4cd8f9e90ed710a2f6be064ceef5f28c905fc5115f68121de5a3`.
+- Web revision/image: `3c9480dbd5415fa0abdd1ad7f95ca504794c07a9` / `sha256:47422ddbfdd1441757ee8491fe5dcf9431612ba703fb8ad92a9fcaebbeccba66`.
+- Passed: enumerated public routes, public assets, unauthenticated 401 enforcement, login, secure cookies, Company create/read/update/delete with zero residue, API restart, persistent session, stable Part/Stock reads, logout and post-logout 401, five-container health.
+- PostgreSQL evidence: 13 Companies, 8 Parts, 1 Stock item after cleanup; API fixture-form ID counts were zero.
+- Blocker: `/companies/` exported HTML still serializes three sample Company records. No-fixture certification failed; no rebuild was attempted because free space was only `15,003,709,440` bytes.
+- Protected systems: Yoyamic 200; neo Ready2Go retained 303. No legacy PHP, MariaDB, Odoo, host PostgreSQL 14, or old Ready2Go changes.
+- Connected Mailboxes: not started; waiting for manual staging validation.

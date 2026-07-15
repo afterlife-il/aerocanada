@@ -175,4 +175,10 @@ Report-based Yoyamic staging deployments exist for stock ownership and stock lis
 
 ## Next Sprint
 
+## Staging authentication and persistence revalidation - 2026-07-15
+
+The affected runtime services were already current, so no image was rebuilt and no unrelated container was recreated. The API remains `2e8b1d0e488266c0db579ac19b13a19b4090742a` and the web remains `3c9480dbd5415fa0abdd1ad7f95ca504794c07a9`. Public route checks, login, secure cookies, Company CRUD with cleanup, session continuity through an API restart, stable Part/Stock PostgreSQL reads, logout revocation, assets, and five-container health passed. The acceptance record was deleted and PostgreSQL contains 13 Companies, 8 Parts, and 1 Stock row.
+
+The release gate is **blocked** for further promotion: the server had only `15,003,709,440` free bytes after validation, and the exported `/companies/` HTML still serialized three sample Companies (`company-5263`, `company-1527`, `company-4188`). The authenticated API returned zero fixture-form IDs, and Part/Stock HTML returned zero fixture-form IDs, but the requirement that no fixture fallback remain is not met. Connected Mailboxes was not started. Yoyamic returned 200 and `neo.ready2go.aero` retained its existing 303 response; no legacy PHP, MariaDB, Odoo, host PostgreSQL 14, or old Ready2Go service was changed.
+
 Resolve the seven Yoyamic full-import blockers with an approved, documented duplicate/orphan disposition process, then repeat dry-run and reconciliation before requesting full import approval. Do not run the full import while any gate remains. Production readiness still requires persistent authentication/session storage, MFA, rate limiting, secure cookies/CSRF, persistent audit, monitoring, and secret management.
