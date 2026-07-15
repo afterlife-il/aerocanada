@@ -150,9 +150,15 @@ Company 360 is a deployed persistent staging foundation on PostgreSQL. Phase 1.1
 normalizes forms, completes Contact/Address editing, removes fixture Documents from the persistent aggregate, and
 keeps commercial modules explicit non-persistent boundaries. Auth/sessions remain in-memory; it is not production-ready.
 
+## Yoyamic migration gate — 2026-07-15
+
+Migration 004 and the controlled Company/Contact/Part sample are active only in dedicated staging PostgreSQL. The sample contains 7 Companies, 9 addresses, 13 Contacts, 7 Parts, and no Stock. A second run inserted zero records and reconciled all 36 as unchanged. Public imported reads and temporary Company/Contact/Address CRUD passed. Runtime images remain `c667f284`; no application runtime was rebuilt or redeployed.
+
+Full migration is **blocked**. The dry-run found unresolved missing names, normalized Company and Part/manufacturer collisions, orphan Company details/Contacts/manufacturers, and duplicate emails within Companies. These require approved business disposition rules and a clean repeat dry-run. Yoyamic was read-only and remained operational; legacy PHP, original MariaDB data, Odoo, host PostgreSQL 14, and the old Ready2Go stack were untouched.
+
 ## Next Recommended Sprint
 
-Complete interactive browser validation when tooling is available. Then implement persistent Auth/Tenant sessions,
-secure session handling, MFA, rate limiting, audit, monitoring, and secret management. Continue progressive naming
-toward Ready2Go Aviation SaaS without renaming the repository or disrupting deployment history. Hold production
-promotion until these controls and explicit approval are complete.
+Resolve the seven migration data-quality gates through an approved duplicate/orphan review workflow, then repeat
+the read-only audit and reconciliation. Full import remains prohibited until every stop condition passes. Continue
+persistent Auth/Tenant sessions, secure session handling, MFA, rate limiting, audit, monitoring, and secret
+management before production promotion.
