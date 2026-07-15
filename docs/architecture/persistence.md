@@ -1,5 +1,9 @@
 # SaaS_Aviation Persistence Foundation
 
+## Persistent staging topology
+
+The staging provider is explicitly `postgres`; persistent mode never falls back to the memory repository or sample data. PostgreSQL 16 uses the dedicated `saas_aviation_postgres_data` volume and is reachable only on the staging Docker network. Migration 003 adds canonical tenant code and a tenant-safe primary-company relationship. Redis and MinIO have separate volumes, but current durable business CRUD is PostgreSQL-backed; Documents object persistence is not yet implemented.
+
 Status: Phase 2 local PostgreSQL provider verified on 2026-07-14, not deployed.
 
 ## Current State

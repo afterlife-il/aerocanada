@@ -11,7 +11,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test --loader ts-node/esm src/server.test.ts src/postgres-persistence.test.ts",
     "migrate:status": "tsx src/persistence/migrations.ts status",
-    "migrate:apply": "tsx src/persistence/migrations.ts apply"
+    "migrate:apply": "tsx src/persistence/migrations.ts apply",
+    "seed:staging": "tsx src/persistence/seed-staging.ts"
   },
   "dependencies": {
     "@saas-aviation/shared": "0.1.0",

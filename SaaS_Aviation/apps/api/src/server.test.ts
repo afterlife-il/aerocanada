@@ -419,7 +419,7 @@ test("password auth creates a tenant-scoped session", async () => {
   const session = await auth.authenticateWithPassword("ops@aerocanada-industries.com", "ChangeMe!ACI770!");
 
   assert.ok(session);
-  assert.equal(session?.tenant.code, "ACI770");
+  assert.equal(session?.tenant.code, "aci770");
   assert.equal(session?.user.roles.includes("owner_admin"), true);
   assert.equal(session?.user.permissions.includes("stock.read"), true);
 

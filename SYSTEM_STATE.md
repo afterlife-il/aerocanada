@@ -1,6 +1,12 @@
 # System State
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
+
+- Staging preparation: isolated `saas-aviation-staging` topology and tenant seed locally verified; server deployment pending
+- Product identity: Ready2Go / SaaS_Aviation; initial tenant `aci770`, slug `/AeroCanada`
+- Local staging proof: five healthy containers, migrations 001-003, repeat seed, login, OpenAPI, Company 360, and PostgreSQL persistence after API restart
+- Server disk gate: passed after owner-approved cache/log cleanup; 16 GB free, protected backups and application data untouched
+- Authentication limitation: staging administrator and bearer sessions remain in memory; re-login is required after API restart
 
 - Current branch: `main`
 - Current HEAD: the current `Harden Company 360 persistent workflows` commit (`git rev-parse HEAD` is authoritative)

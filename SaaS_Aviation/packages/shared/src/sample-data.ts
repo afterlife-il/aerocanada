@@ -22,7 +22,7 @@ import type {
 export const sampleTenant: Tenant = {
   id: "tenant-aci",
   name: "AEROCANADA INDUSTRIES 770 INC.",
-  code: "ACI770",
+  code: "aci770",
   verifiedDomains: ["aerocanada-industries.com"],
   status: "active",
   primaryCompanyId: "company-5263"

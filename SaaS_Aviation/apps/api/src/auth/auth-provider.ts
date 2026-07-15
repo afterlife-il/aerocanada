@@ -116,3 +116,14 @@ export class InMemoryAuthProvider implements AuthProvider {
     return;
   }
 }
+
+export function createDefaultAuthProvider(env: NodeJS.ProcessEnv = process.env): InMemoryAuthProvider {
+  if (env.NODE_ENV !== "production") return new InMemoryAuthProvider();
+  const password = env.STAGING_ADMIN_PASSWORD;
+  if (!password || password.length < 16) {
+    throw new Error("STAGING_ADMIN_PASSWORD with at least 16 characters is required in production staging.");
+  }
+  const email = env.STAGING_ADMIN_EMAIL?.trim().toLowerCase() || sampleUsers[0]?.email;
+  if (!email || !sampleUsers[0]) throw new Error("Staging admin identity is unavailable.");
+  return new InMemoryAuthProvider([{ ...sampleUsers[0], email, passwordHash: sha256(password) }], sampleTenants);
+}

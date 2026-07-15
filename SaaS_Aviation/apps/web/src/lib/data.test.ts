@@ -35,7 +35,7 @@ test("web data does not hide Qty 0 stock", () => {
 });
 
 test("web session is tied to the seeded tenant", () => {
-  assert.equal(currentSession.tenant.code, "ACI770");
+  assert.equal(currentSession.tenant.code, "aci770");
   assert.equal(currentSession.user.tenantId, currentSession.tenant.id);
   assert.equal(data.companies.every((company) => company.tenantId === currentSession.tenant.id), true);
 });

@@ -1,7 +1,11 @@
 # CTO Status Dashboard - SaaS_Aviation
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 protected static deploy report.
+
+## Persistent staging preparation
+
+The Ready2Go SaaS_Aviation staging topology is implemented and locally validated but not yet publicly deployed. It uses five isolated containers, internal-only PostgreSQL/Redis/MinIO/API networking, loopback web publishing, health checks, resource limits, log rotation, migration checksums, and an idempotent tenant seed for `aci770`/`AeroCanada`. Local validation proved login and Company 360 PostgreSQL persistence across an API restart. Users and sessions remain staging-grade and in memory; Documents storage and commercial workflows remain explicit boundaries.
 
 A protected in-app mirror of this snapshot exists at `/admin/cto` in the static SaaS_Aviation frontend. The frontend
 is exported with `output: "export"`, so dashboard data is baked into the static build from

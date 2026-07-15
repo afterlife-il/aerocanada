@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-07-14",
+  "last_updated": "2026-07-15",
   "repository_state": {
     "current_branch": "main",
     "local_head": "Harden Company 360 persistent workflows (git rev-parse HEAD is authoritative)",
     "origin_main": "5862d577408acdf103fccdc372b18d65db12c184",
-    "deployment_status": "not deployed; no push",
-    "current_module": "Company 360 local persistent foundation",
-    "current_sprint": "Company 360 Production Hardening Phase 1.1"
+    "deployment_status": "persistent staging topology locally validated; server deployment pending",
+    "current_module": "Ready2Go persistent SaaS_Aviation staging preparation",
+    "current_sprint": "Persistent staging deployment"
   },
   "documentation_policy": {
     "definition_of_done": true,
@@ -37,7 +37,7 @@
     },
     "saas_aviation": {
       "purpose": "next-generation aviation ERP",
-      "status": "persistent_data_foundation_phase_2_local_not_deployed",
+      "status": "persistent_staging_topology_locally_validated_server_deployment_pending",
       "path": "SaaS_Aviation"
     },
     "auth_tenant_foundation": {
@@ -123,6 +123,14 @@
     "legacy_yoyamic_staging": "report_based_partial_deployments",
     "saas_aviation": "static_frontend_deployed_to_staging_with_protected_admin_cto",
     "production": "not_requested",
+    "persistent_staging": "topology_locally_validated_not_yet_deployed",
+    "persistent_staging_domain": "https://aviation.ready2go.aero/",
+    "persistent_staging_tenant_url": "https://aviation.ready2go.aero/AeroCanada",
+    "persistent_staging_project": "saas-aviation-staging",
+    "persistent_staging_database": "saas_aviation_staging",
+    "persistent_staging_migrations": "001-003 locally applied with checksum ledger and idempotency",
+    "persistent_staging_seed": "aci770/AeroCanada locally applied twice idempotently",
+    "persistent_staging_auth_limit": "users and bearer sessions remain in memory; API restart requires re-login",
     "saas_aviation_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "saas_aviation_target": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation/",
     "saas_aviation_backup": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation_backup_20260707_155253",

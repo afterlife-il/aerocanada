@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "/SaaS_Aviation";
+
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: "/SaaS_Aviation",
+  ...(basePath ? { basePath } : {}),
   trailingSlash: true,
   images: {
     unoptimized: true

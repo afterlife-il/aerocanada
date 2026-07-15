@@ -21,6 +21,7 @@
     "db:dev:reset": "docker compose -f docker-compose.dev.yml down -v && docker compose -f docker-compose.dev.yml up -d postgres",
     "db:migrate:status": "npm run migrate:status",
     "db:migrate:apply": "npm run migrate:apply",
+    "db:seed:staging": "npm run seed:staging -w @saas-aviation/api",
     "test:postgres": "npm run build -w @saas-aviation/shared && npm run test -w @saas-aviation/api",
     "format": "prettier --check ."
   },

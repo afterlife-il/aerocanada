@@ -1,6 +1,10 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
+
+## Persistent staging preparation
+
+Ready2Go is the platform, SaaS_Aviation is the product, and AeroCanada is tenant 1 (`aci770`, public slug `AeroCanada`). A separate production-like Compose topology has been implemented and validated locally with dedicated PostgreSQL 16, Redis, MinIO, API, and web containers. Migrations 001-003, the idempotent tenant seed, login, Company 360 creation/read, and persistence after API restart passed locally. Server deployment is pending; no public route, legacy application, Yoyamic data, MariaDB, host PostgreSQL 14, or Odoo was modified by this preparation commit.
 
 ## Vision
 

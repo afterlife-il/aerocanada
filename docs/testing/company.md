@@ -1,5 +1,9 @@
 # Company 360 Testing
 
+## Persistent staging acceptance scope
+
+Acceptance covers login; Company create/read/update/delete; optional blank fields; Contact and Address create/update/delete; primary-address behavior; reload persistence; API-restart persistence with re-login; tenant isolation; and explicit Documents/commercial workflow boundaries. Local pre-deployment proof on 2026-07-15 completed login, Company create/read, Company 360 aggregation, and API-restart persistence. Full browser CRUD acceptance remains pending public deployment.
+
 Last validated: 2026-07-14, Company 360 Production Hardening Phase 1.1.
 
 Executed evidence:

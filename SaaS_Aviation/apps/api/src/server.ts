@@ -7,7 +7,7 @@ import { CoreDomainError } from "@saas-aviation/shared";
 import type { AviationErpDataSource, CorePersistence, DocumentOwnerModule } from "@saas-aviation/shared";
 import { getLegacyDataSource } from "./adapters/legacy-mysql-adapter.js";
 import { AuditService } from "./audit/audit-service.js";
-import { InMemoryAuthProvider, type AuthProvider } from "./auth/auth-provider.js";
+import { createDefaultAuthProvider, type AuthProvider } from "./auth/auth-provider.js";
 import { requirePermission, requireSession } from "./auth/route-guard.js";
 import { openApiDocument } from "./openapi/openapi.js";
 import { createCorePersistenceProvider } from "./persistence/provider.js";
@@ -96,7 +96,7 @@ export function createApp(dependencies: AppDependencies = {}) {
   const app = express();
   const dataSource = dependencies.dataSource ?? getLegacyDataSource();
   const corePersistence = dependencies.corePersistence ?? createCorePersistenceProvider().repository;
-  const auth = dependencies.auth ?? new InMemoryAuthProvider();
+  const auth = dependencies.auth ?? createDefaultAuthProvider();
   const audit = new AuditService(dataSource);
 
   app.use(createHelmetMiddleware());
