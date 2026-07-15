@@ -4,7 +4,7 @@
     "current_branch": "main",
     "local_head": "47fd95c before this documentation commit",
     "origin_main": "47fd95c before this documentation commit",
-    "deployment_status": "persistent staging publicly available; migrations 001-006 and API/web 2e8b1d0 deployed; password, MFA/phone boundaries and truthful disabled OAuth providers publicly validated; interactive browser acceptance blocked by tooling",
+    "deployment_status": "persistent staging publicly available; migrations 001-006, API 2e8b1d0 and web 3c9480d deployed; PostgreSQL-only Part/Stock workspaces publicly validated; interactive browser acceptance blocked by tooling",
     "current_module": "Operational persistent Part and Stock workspaces",
     "current_sprint": "PostgreSQL-only lists details filters sorting pagination URL state and truthful boundaries"
   },
@@ -264,6 +264,6 @@
     "reports": "/opt/ready2go/saas-aviation/migration-reports/20260715T135622Z-dry-run; 20260715T140926Z-sample; 20260715T140954Z-sample-idempotency"
   },
   "current_sprint": "Persistent staging authentication",
-  "last_completed_task": "Implemented PostgreSQL-only Part and Stock lists/query details with URL-state search, filtering, sorting, pagination, truthful source/migration labels and no public fixture adapter. Deployment is pending.",
-  "next_recommended_task": "Run all gates, deploy only web, validate imported Part and Stock reads publicly, then implement authorized archive/restore with dependency checks and audit."
+  "last_completed_task": "Deployed web 3c9480d and publicly verified 8 persistent Parts, 1 persistent Stock row, unauthorized 401, no Part/Stock fixture IDs, URL-state workspace chunks and protected-system health.",
+  "next_recommended_task": "Implement authorized archive/restore for Part and Stock with reasons, dependency conflicts, imported-record policy and persistent audit."
 }

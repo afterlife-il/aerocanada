@@ -75,12 +75,12 @@ without another manual update.
 
 | Field | Value |
 |---|---|
-| Last deployed commit | `2e8b1d0e488266c0db579ac19b13a19b4090742a` |
+| Last deployed commit | web `3c9480dbd5415fa0abdd1ad7f95ca504794c07a9`; API `2e8b1d0e488266c0db579ac19b13a19b4090742a` |
 | Last deployment date | `2026-07-15` |
 | Environment | isolated persistent staging; public HTTPS active |
 | Public certificate | `Lets Encrypt aviation.ready2go.aero`, valid through 2026-10-13 |
 | Backup paths | `/opt/ready2go/saas-aviation/backups/predeploy-20260715T105420Z`, `proxy-prechange-20260715T114203Z`, `staging-20260715T114501Z`, `pre-auth-20260715T145902Z`, `pre-mfa-20260715T151639Z` |
-| Runtime path | `/opt/ready2go/saas-aviation/releases/2e8b1d0e488266c0db579ac19b13a19b4090742a` |
+| Runtime path | `/opt/ready2go/saas-aviation/releases/3c9480dbd5415fa0abdd1ad7f95ca504794c07a9` |
 
 ## Checks Snapshot
 
@@ -156,7 +156,7 @@ Migration 006 and API `ae5a2c9` are deployed for encrypted TOTP enrollment, shor
 
 OAuth/OIDC configuration status and state/nonce/PKCE-S256 request primitives are deployed for Google, Microsoft, Apple and LinkedIn. Public acceptance returned four providers, zero configured and four exact disabled messages; password login remained 200. Callback/token exchange, account linking and provider-subject persistence are not activated because external credentials are unavailable. No LinkedIn scraping or unofficial invitation automation exists.
 
-The public Part and Stock pages are locally replaced with PostgreSQL-only operational workspaces: query-addressable details, URL-state search/filter/sort/reset/pagination, loading/error/empty states, source labels and explicit legacy-Stock/workflow boundaries. Persistent mode no longer renders fixture Part/Stock details or consumes sample `/360` adapters. Focused web deployment is pending.
+The public Part and Stock pages are deployed as PostgreSQL-only operational workspaces: query-addressable details, URL-state search/filter/sort/reset/pagination, loading/error/empty states, source labels and explicit legacy-Stock/workflow boundaries. Public acceptance returned 8 Parts and 1 Stock row, unauthorized 401, no fixture IDs and healthy routes. Persistent mode no longer renders fixture Part/Stock details or consumes sample `/360` adapters.
 
 The public Company failure was traced to an unauthenticated 401 combined with retained pre-rendered fixtures. The deployed correction removes fixture initialization and serialization from persistent mode, clears rows after failure, provides sign-in/retry actions and safe correlation references, and keeps explicit sample mode separate. Public login, PostgreSQL Company reads, unauthorized handling and no-fixture HTML passed. Web is `98a9076`; API is `3994fb2`.
 
