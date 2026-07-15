@@ -2,7 +2,7 @@
 
 ## Persistent staging acceptance scope
 
-Acceptance covers login; Company create/read/update/delete; optional blank fields; Contact and Address create/update/delete; primary-address behavior; reload persistence; API-restart persistence with re-login; tenant isolation; and explicit Documents/commercial workflow boundaries. Local pre-deployment proof on 2026-07-15 completed login, Company create/read, Company 360 aggregation, and API-restart persistence. Full browser CRUD acceptance remains pending public deployment.
+Server acceptance on 2026-07-15 covered valid/invalid login; Company create/read/update, optional blank fields, search/filter/sort/pagination; Contact and Address CRUD with single-primary behavior; Part and Stock create/read/update; quantity 0; four independent Company relationships; API-restart persistence with re-login; tenant isolation; and explicit Documents/commercial boundaries. Forced-host Plesk validation passed. Public browser validation remains blocked by missing DNS and certificate.
 
 Last validated: 2026-07-14, Company 360 Production Hardening Phase 1.1.
 
@@ -19,4 +19,4 @@ Executed evidence:
 
 Visual browser automation was not executed because no in-app browser instance was available. This must not be represented as browser success. UI behavior is covered by normalization tests, route/API tests, typecheck, lint, and production build, but a visual staging review remains required.
 
-Authentication remains local/in-memory and is not production-grade. The public frontend remains sample-static. Nothing was pushed or deployed; Yoyamic, legacy PHP, Documents internals, and live databases were untouched.
+Authentication remains in-memory and is not production-grade. On 2026-07-15 the isolated staging runtime passed authenticated Company/Contact/Address CRUD, search/filter/sort/pagination, restart persistence/re-login, tenant isolation, and forced-host proxy checks. Public DNS/TLS and browser validation remain incomplete. Yoyamic, legacy PHP, Documents internals, MariaDB, host PostgreSQL 14, and other protected systems were untouched.

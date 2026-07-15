@@ -2,7 +2,7 @@
 
 ## 2026-07-15 staging proof
 
-The explicit PostgreSQL suite executed 15 tests with zero failures and zero skips. A clean isolated staging Compose run then applied migrations 001-003, ran the `aci770` seed twice, created a Company through the same-origin API, restarted only the API container, re-authenticated, and read the same Company 360 record from PostgreSQL. This is local deployment proof; public staging validation is recorded separately after deployment.
+The explicit local PostgreSQL suite executed 15 tests with zero failures and zero skips. On the server, a dedicated PostgreSQL 16 database applied migrations 001-003, re-applied them idempotently, ran the seed twice, persisted Company/Contact/Address/Part/Stock across API restarts, enforced tenant relations, and passed a separate temporary-database restore rehearsal. Checksums and backup paths are in the deployment journal.
 
 Status: implemented and passed against a local isolated PostgreSQL database on 2026-07-14.
 
@@ -36,7 +36,7 @@ Each test run creates a temporary schema in the configured test database and dro
 
 ## Current Environment Note
 
-Docker Desktop with the Linux/WSL2 engine is available. On 2026-07-14, migrations 001/002 were current and `npm run test:postgres` completed with 15 passed, 0 failed, and 0 skipped after Company hardening. The proof was local only: no API or database was deployed, the public frontend remains static/sample-backed, and no Yoyamic or live database was accessed.
+Docker Desktop with the Linux/WSL2 engine is available. On 2026-07-14, migrations 001/002 were current and `npm run test:postgres` completed with 15 passed, 0 failed, and 0 skipped after Company hardening. On 2026-07-15, migrations 001-003 were applied idempotently to the dedicated staging PostgreSQL 16 database; authenticated CRUD, restart persistence/re-login, tenant isolation, backup, and an independent restore rehearsal passed. No Yoyamic, MariaDB, host PostgreSQL 14, or legacy database was accessed or changed.
 
 ## CI
 

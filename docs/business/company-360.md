@@ -86,4 +86,4 @@ Company 360 remains deployed as a static/sample read-model screen. Locally, the 
 
 PostgreSQL mode is local/dev only and requires explicit `DATABASE_URL` configuration. The static frontend does not connect to it unless `persistent-api` mode is selected locally.
 
-Validation on 2026-07-14 applied migration 002, passed the real PostgreSQL suite without skips, passed authenticated Company/Contact/Address CRUD, reconnect persistence, tenant isolation, typecheck, lint, and build. Browser automation remained blocked by missing/timing-out local browser tooling. Nothing was pushed or deployed.
+Validation on 2026-07-14 applied migration 002 and passed the real PostgreSQL suite without skips. On 2026-07-15 the isolated staging runtime passed authenticated Company/Contact/Address CRUD, reconnect persistence/re-login, tenant isolation, backup/restore, and forced-host proxy validation. Browser automation and public validation remain blocked by tooling plus missing DNS/TLS.

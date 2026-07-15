@@ -1,6 +1,6 @@
 # Company 360 API
 
-Status: local persistent Company foundation hardened; not production-ready and not deployed.
+Status: persistent Company foundation deployed and validated on isolated staging; not production-ready.
 
 Reads require `company.read`; mutations require `company.manage`.
 

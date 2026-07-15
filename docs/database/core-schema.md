@@ -1,6 +1,6 @@
 # Core SaaS_Aviation Schema
 
-Status: PostgreSQL migration and local provider foundation, not deployed.
+Status: migrations 001-003 and PostgreSQL provider deployed to the dedicated isolated staging database; not promoted to production.
 
 Migration: `SaaS_Aviation/database/migrations/001_core_persistence.sql`.
 

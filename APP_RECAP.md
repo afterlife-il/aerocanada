@@ -4,7 +4,7 @@ Last updated: 2026-07-15
 
 ## Persistent staging preparation
 
-Ready2Go is the platform, SaaS_Aviation is the product, and AeroCanada is tenant 1 (`aci770`, public slug `AeroCanada`). A separate production-like Compose topology has been implemented and validated locally with dedicated PostgreSQL 16, Redis, MinIO, API, and web containers. Migrations 001-003, the idempotent tenant seed, login, Company 360 creation/read, and persistence after API restart passed locally. Server deployment is pending; no public route, legacy application, Yoyamic data, MariaDB, host PostgreSQL 14, or Odoo was modified by this preparation commit.
+Ready2Go is the platform, SaaS_Aviation is the product, and AeroCanada is tenant 1 (`aci770`, public slug `AeroCanada`). The separate `saas-aviation-staging` Compose topology is deployed side-by-side with dedicated PostgreSQL 16, Redis, MinIO, API, and web containers. Migrations 001-003, repeat tenant seed, authenticated persistent CRUD, API-restart persistence, tenant isolation, backup/restore rehearsal, and forced-host proxy validation passed. `aviation.ready2go.aero` remains NXDOMAIN and needs its A record plus a valid certificate before public validation. No legacy application, Yoyamic data, MariaDB, host PostgreSQL 14, Odoo, or old Ready2Go service was modified.
 
 ## Vision
 
@@ -27,7 +27,7 @@ and the relevant commit. The durable agent instructions are in `AGENTS.md`.
 
 ## Current Sprint
 
-Harden the local persistent Company 360 foundation before any staging consideration. Login contracts, optional-field normalization, Contact/Address editing, PostgreSQL-backed aggregation, and explicit Documents/commercial boundaries are stabilized locally. Authentication remains in-memory and no deployment is authorized.
+Operate and validate the isolated persistent staging foundation without treating it as production-ready. Company/Contact/Address/Part/Stock persistence is deployed; authentication remains in-memory, Documents and commercial workflows remain boundaries, and public DNS/TLS plus production security controls remain incomplete.
 
 ## Active Tracks
 
@@ -82,7 +82,7 @@ Foundation only. No production auth, MFA, tenant isolation enforcement, persiste
 
 ## SaaS Readiness
 
-Early foundation. The app builds, has sample read screens, and the static frontend is deployed to staging for visual inspection with the admin path protected by Basic Auth. Local persistent CRUD foundations now exist for Company, Contact, Part, and Stock with memory and PostgreSQL providers, but the API runtime and database are not deployed. Real legacy data integration, production auth/RBAC, audit persistence, and server-side deployment design remain.
+Persistent staging foundation. Company, Contact, Address, Part, and Stock CRUD now run against the dedicated staging PostgreSQL database. This is not production-ready: users/sessions are in-memory, Documents/commercial modules are non-persistent boundaries, public DNS/TLS is pending, and production auth/RBAC, audit persistence, rate limiting, monitoring, and secret-management work remains.
 
 ## Current Deployments
 
@@ -90,7 +90,7 @@ Report-based Yoyamic staging deployments exist for stock ownership and stock lis
 
 ## Current Working Tree
 
-`main` is active. This sprint started at `67e52df`; `origin/main` is `5862d57`; the focused hardening commit is described symbolically until created. The standing untracked local files are the three `.code-workspace` files. Nothing was pushed or deployed.
+`main` is active. The deployed topology/image revision is `c667f284101272b7b987abe91501d4f79dd487dd`; local HEAD and `origin/main` matched that revision before this documentation-only commit. The standing untracked local files are the three `.code-workspace` files.
 
 ## Known Technical Debt
 
@@ -109,6 +109,7 @@ Report-based Yoyamic staging deployments exist for stock ownership and stock lis
 
 ## Changelog
 
+- 2026-07-15: Deployed the isolated `saas-aviation-staging` runtime side-by-side on Ready2Go from `c667f284`. Applied migrations 001-003 and the idempotent `aci770` seed; proved authenticated Company/Contact/Address/Part/Stock persistence, quantity zero, independent company relationships, API-restart persistence/re-login, tenant isolation, backup and independent restore, resource limits, and forced-host proxy routing. DNS/TLS and browser validation remain blocked. Protected legacy AeroCanada, Yoyamic, MariaDB, host PostgreSQL 14, Odoo, and the old Ready2Go stack remained operational and unchanged.
 - 2026-07-14: Hardened local Company 360 persistent workflows. Aligned the login response/client token contract, added logout clearing, normalized blank optional form fields, replaced temporary Contact editing, completed Address editing/primary handling, removed fixture Documents from the persistent aggregate, enriched non-persistent commercial boundaries, and strengthened OpenAPI/tests. Real PostgreSQL tests passed 15/15 with zero skips; local HTTP restart persistence, standard tests, typecheck, lint, build, and diff checks passed. In-app browser automation was unavailable. Auth remains local/in-memory; nothing was pushed or deployed and no Yoyamic, legacy PHP, live database, or Documents internals changed.
 - 2026-07-14: Completed the local Company 360 production sprint. Added migration 002, complete Company/Contact/Address CRUD, aviation identity fields, tenant-scoped activity, PostgreSQL inventory aggregation, Documents links, commercial boundaries, `company.manage` authorization, persistent login/UI, OpenAPI routes, tests, and synchronized system/module docs. PostgreSQL tests passed 13/13 with zero skips; authenticated CRUD, typecheck, lint, and build passed. Browser automation remained blocked by unavailable/timing-out tooling. Nothing was pushed or deployed; Yoyamic, legacy PHP, and live databases were untouched.
 - 2026-07-14: Verified the existing local PostgreSQL path with Docker Desktop/WSL2. Applied migration 001 with a recorded checksum, proved idempotent re-apply, and passed the real PostgreSQL integration suite with reconnect persistence for Company/Contact/Part/Stock, quantity 0, independent stock-company relationships, tenant isolation, rollback, and local API/repository restart coverage. Fixed module-relative migration discovery for npm workspaces and strengthened the runtime test. The public frontend remains static/sample-backed; no API or PostgreSQL deployment, push, Yoyamic access, legacy PHP change, live database access, or credential commit occurred.
@@ -166,4 +167,4 @@ Report-based Yoyamic staging deployments exist for stock ownership and stock lis
 
 ## Next Sprint
 
-Continue Auth/Tenant persistence and audit design using the locally verified PostgreSQL foundation. Keep the public frontend static/sample-backed and hold API/database deployment until infrastructure, RBAC, audit, backup, monitoring, and secrets decisions are approved. Any future MySQL read implementation still requires approved read-only Yoyamic credentials and the hardened adapter guardrails.
+Create the `aviation.ready2go.aero` A record, issue and assign a valid TLS certificate, then complete public visual validation. Phase 2 should replace in-memory users/sessions, add production identity/password lifecycle, MFA, rate limiting, secure cookies/CSRF, persistent audit, monitoring, and secret management before production consideration. Any future MySQL read implementation still requires approved read-only Yoyamic credentials and the hardened adapter guardrails.

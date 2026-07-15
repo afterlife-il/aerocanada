@@ -4,11 +4,11 @@
 
 The staging provider is explicitly `postgres`; persistent mode never falls back to the memory repository or sample data. PostgreSQL 16 uses the dedicated `saas_aviation_postgres_data` volume and is reachable only on the staging Docker network. Migration 003 adds canonical tenant code and a tenant-safe primary-company relationship. Redis and MinIO have separate volumes, but current durable business CRUD is PostgreSQL-backed; Documents object persistence is not yet implemented.
 
-Status: Phase 2 local PostgreSQL provider verified on 2026-07-14, not deployed.
+Status: dedicated PostgreSQL 16 persistent staging provider deployed and verified on 2026-07-15; production deployment is not approved.
 
 ## Current State
 
-The deployed SaaS_Aviation staging frontend is still a static Next.js export backed by sample read models. The Express API runtime is not deployed, and no public frontend is connected to a development API or database.
+The Ready2Go staging frontend is a static Next.js export served by the isolated web container, with same-origin `/api/` proxying to the deployed Express API in explicit PostgreSQL mode. Persistent API mode refuses memory/sample fallback. Some read-only UI areas still intentionally use sample read models and must not be described as durable business data.
 
 Phase 2 keeps `sample-static` as the deployed UI mode and adds an explicit local PostgreSQL persistence provider for Company, Contact, Part Number, and Stock Item development.
 

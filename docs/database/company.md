@@ -1,6 +1,6 @@
 # Company 360 Database
 
-Status: locally implemented and PostgreSQL-validated on 2026-07-14; not deployed.
+Status: implemented, locally validated on 2026-07-14, and deployed to dedicated staging PostgreSQL on 2026-07-15.
 
 Migration `002_company_360_production.sql` adds ICAO, IATA, VAT, and tags to `companies`; tenant-scoped `company_addresses`; and the Company activity timeline. Existing `companies`, `company_roles`, `contacts`, and `stock_items` remain authoritative. Activity is not an immutable audit ledger because safe Company deletion cascades its rows.
 

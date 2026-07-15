@@ -1,6 +1,6 @@
 # Company / Contact / Part / Stock API
 
-Status: local Express API foundation with memory and PostgreSQL providers, not deployed.
+Status: Express API foundation deployed to isolated persistent staging with PostgreSQL; not production-ready.
 
 All routes are under `/v1` and require a bearer session:
 

@@ -3,8 +3,8 @@
   "repository_state": {
     "current_branch": "main",
     "local_head": "Harden Company 360 persistent workflows (git rev-parse HEAD is authoritative)",
-    "origin_main": "5862d577408acdf103fccdc372b18d65db12c184",
-    "deployment_status": "persistent staging topology locally validated; server deployment pending",
+    "origin_main": "c667f284101272b7b987abe91501d4f79dd487dd before this documentation commit",
+    "deployment_status": "persistent staging deployed and forced-host validated; public DNS and TLS pending",
     "current_module": "Ready2Go persistent SaaS_Aviation staging preparation",
     "current_sprint": "Persistent staging deployment"
   },
@@ -37,23 +37,23 @@
     },
     "saas_aviation": {
       "purpose": "next-generation aviation ERP",
-      "status": "persistent_staging_topology_locally_validated_server_deployment_pending",
+      "status": "persistent_staging_deployed_dns_tls_pending",
       "path": "SaaS_Aviation"
     },
     "auth_tenant_foundation": {
-      "status": "foundation_implemented_pending_deploy",
+      "status": "foundation_deployed_to_isolated_staging",
       "scope": "email/password foundation, tenant context, roles, permissions, bearer sessions, protected API reads"
     },
     "company_360": {
-      "status": "local_persistent_foundation_hardened_postgres_validated_not_production_ready_not_deployed",
+      "status": "persistent_foundation_deployed_to_staging_not_production_ready",
       "scope": "PostgreSQL Company identity, Company/Contact/Address CRUD, search/filter/sort/pagination, related inventory, persisted activity, aligned local login contract, normalized UI forms, and explicit non-persistent Documents/commercial boundaries",
       "completion_status": "staging_candidate_after_remaining_auth_and_operational_prerequisites",
       "finished_work": "Phase 1.1 login contract, logout clearing, form normalization, Contact/Address editing, aggregate truthfulness, workflow boundaries, OpenAPI, tests, and documentation",
-      "remaining_work": "persistent users/sessions, production identity/password handling, MFA, rate limiting, secure session strategy, persistent Documents, commercial modules, monitoring, backup/restore, deployment validation, and visual browser review",
-      "known_blockers": "no in-app browser instance; production auth and operational prerequisites intentionally out of scope",
-      "next_recommended_task": "design persistent authentication/session and deployment prerequisites; keep module undeployed",
-      "validation_performed": "migrations 001/002 current; PostgreSQL 15/15 no skips; local HTTP login, CRUD, API restart persistence and re-login; tenant isolation; standard tests; typecheck; lint; build; diff check",
-      "deployment_status": "not deployed; public frontend remains sample-static",
+      "remaining_work": "public DNS/TLS, visual browser review, persistent users/sessions, production identity/password handling, MFA, rate limiting, secure session strategy, persistent Documents, commercial modules, monitoring, and secret management",
+      "known_blockers": "aviation.ready2go.aero is NXDOMAIN; TLS is not issued; browser automation unavailable; production auth and operational prerequisites intentionally out of scope",
+      "next_recommended_task": "publish DNS, issue TLS, complete public browser validation, then design persistent authentication/session prerequisites",
+      "validation_performed": "migrations 001-003 idempotent; PostgreSQL 15/15 no skips; staging login and CRUD; API restart persistence/re-login; tenant isolation; backup/independent restore; forced-host proxy and assets; protected systems health",
+      "deployment_status": "isolated persistent staging deployed; public DNS/TLS pending",
       "commit_reference": "Harden Company 360 persistent workflows"
     },
     "part_360": {
@@ -123,13 +123,16 @@
     "legacy_yoyamic_staging": "report_based_partial_deployments",
     "saas_aviation": "static_frontend_deployed_to_staging_with_protected_admin_cto",
     "production": "not_requested",
-    "persistent_staging": "topology_locally_validated_not_yet_deployed",
+    "persistent_staging": "deployed_healthy_forced_host_validated_dns_tls_pending",
     "persistent_staging_domain": "https://aviation.ready2go.aero/",
     "persistent_staging_tenant_url": "https://aviation.ready2go.aero/AeroCanada",
     "persistent_staging_project": "saas-aviation-staging",
     "persistent_staging_database": "saas_aviation_staging",
-    "persistent_staging_migrations": "001-003 locally applied with checksum ledger and idempotency",
-    "persistent_staging_seed": "aci770/AeroCanada locally applied twice idempotently",
+    "persistent_staging_migrations": "001-003 applied on staging with checksum ledger and idempotency",
+    "persistent_staging_seed": "aci770/AeroCanada applied twice idempotently on staging",
+    "persistent_staging_release": "/opt/ready2go/saas-aviation/releases/c667f284101272b7b987abe91501d4f79dd487dd",
+    "persistent_staging_backups": "predeploy-20260715T105420Z; proxy-prechange-20260715T114203Z; staging-20260715T114501Z",
+    "persistent_staging_public_blocker": "DNS NXDOMAIN and valid TLS certificate not yet issued",
     "persistent_staging_auth_limit": "users and bearer sessions remain in memory; API restart requires re-login",
     "saas_aviation_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "saas_aviation_target": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation/",
@@ -213,7 +216,7 @@
     "frontend": "Next.js App Router",
     "api": "Express REST API shell plus web route handlers with OpenAPI component schemas and bearer-protected business reads",
     "shared_contracts": "TypeScript package",
-    "data_source": "tenant-scoped sample adapter for deployed static frontend; local memory/postgres API providers for development; hardened offline read-only legacy adapter guardrails"
+    "data_source": "tenant-scoped sample adapter for legacy static frontend; PostgreSQL provider for isolated persistent staging; hardened offline read-only legacy adapter guardrails"
   },
   "business_rules": [
     "RFQ_ID remains the canonical business workflow key.",
@@ -227,7 +230,7 @@
     "auth": "email_password_foundation_with_in_memory_sessions",
     "mfa": "not_implemented",
     "rbac": "role_and_permission_foundation",
-    "tenant_isolation": "repository_contract_and_sample_adapter_enforced",
+    "tenant_isolation": "repository_queries_and_composite_constraints_verified_on_staging",
     "audit_logs": "abstraction_only",
     "rate_limiting": "not_implemented"
   },
@@ -240,21 +243,21 @@
     "foundation": "implemented",
     "legacy_read_integration": "pending",
     "mutations": "blocked_until_persistent_auth_tenant_audit",
-    "part_stock_inventory": "read-model foundation implemented locally with protected API contracts, static fixture-backed UI, and local memory/postgres CRUD provider boundary; no deployment",
+    "part_stock_inventory": "read-model foundation plus protected persistent Part/Stock CRUD deployed to isolated staging",
     "documents": "phase 1 metadata, link, reusable UI, and upload-intent validation foundation implemented and static frontend deployed; no byte storage, OCR, or AI analysis yet",
-    "deployment": "static frontend deployed to staging with /admin protected by Basic Auth; API runtime still not deployed",
+    "deployment": "legacy static frontend remains deployed; separate persistent API/web/PostgreSQL staging runtime deployed with DNS/TLS pending",
     "openapi_contracts": "current_read_routes_have_component_schemas_and_auth_session_routes",
     "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "static_export": "enabled_for_frontend_visual_inspection",
-    "dashboard": "tenant-aware ACI770 dashboard implemented locally with sample adapter fixtures; not deployed"
+    "dashboard": "tenant-aware ACI770 dashboard is present in the persistent staging web image; several workflows remain sample-backed"
   },
   "migration_status": {
     "source": "Yoyamic",
     "target": "SaaS_Aviation",
     "strategy": "hardened read-only adapter first, explicit PostgreSQL migrations for SaaS development database, migration after business rule validation",
-    "schema_changes": "local_postgres_migration_contract_only_not_deployed"
+    "schema_changes": "migrations_001_003_deployed_to_dedicated_staging_postgres_only"
   },
   "current_sprint": "Company 360 Production Hardening Phase 1.1",
-  "last_completed_task": "Hardened the local persistent Company 360 foundation: aligned login/session contract, normalized blank optional fields, completed Contact/Address editing, removed fixture Documents from the persistent aggregate, enriched commercial boundaries, and passed real PostgreSQL/runtime validation. Browser automation was unavailable. Nothing was pushed or deployed.",
-  "next_recommended_task": "Design persistent authentication/session and deployment prerequisites. Keep Company 360 labeled as a local persistent foundation and do not deploy until auth, rate limiting, secrets, backup/restore, monitoring, browser validation, and approval are complete."
+  "last_completed_task": "Deployed isolated persistent staging from c667f284; applied migrations/seed; passed CRUD, restart persistence, tenant isolation, backup/restore and forced-host proxy validation. Public DNS/TLS and browser validation remain incomplete; protected legacy systems were unchanged.",
+  "next_recommended_task": "Publish aviation.ready2go.aero DNS, issue TLS, complete public browser validation, then implement persistent authentication/session and production security prerequisites."
 }

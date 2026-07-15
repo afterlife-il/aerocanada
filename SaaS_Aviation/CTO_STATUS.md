@@ -5,7 +5,7 @@ Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 prot
 
 ## Persistent staging preparation
 
-The Ready2Go SaaS_Aviation staging topology is implemented and locally validated but not yet publicly deployed. It uses five isolated containers, internal-only PostgreSQL/Redis/MinIO/API networking, loopback web publishing, health checks, resource limits, log rotation, migration checksums, and an idempotent tenant seed for `aci770`/`AeroCanada`. Local validation proved login and Company 360 PostgreSQL persistence across an API restart. Users and sessions remain staging-grade and in memory; Documents storage and commercial workflows remain explicit boundaries.
+The Ready2Go SaaS_Aviation staging topology is deployed side-by-side and healthy. It uses five isolated containers, internal-only PostgreSQL/Redis/MinIO/API networking, loopback web publishing, health checks, resource limits, log rotation, migration checksums, and an idempotent tenant seed for `aci770`/`AeroCanada`. Runtime validation proved authenticated CRUD, PostgreSQL persistence across an API restart, tenant isolation, backup/restore, and forced-host proxy routing. Public activation is blocked because `aviation.ready2go.aero` is NXDOMAIN and has no valid certificate. Users and sessions remain staging-grade and in memory; Documents storage and commercial workflows remain explicit boundaries.
 
 A protected in-app mirror of this snapshot exists at `/admin/cto` in the static SaaS_Aviation frontend. The frontend
 is exported with `output: "export"`, so dashboard data is baked into the static build from
@@ -21,15 +21,14 @@ unexecuted checks must never be reported as passing. See the repository-wide pol
 
 ## Current Global Status
 
-Pre-MVP foundation. Static, sample-data-backed SaaS ERP shell remains deployed alongside legacy Yoyamic. Local
-Persistent Data Foundation Phase 2 now exists for Company, Contact, Part, and Stock with memory and PostgreSQL
-providers, plus hardened offline Yoyamic read-only migration adapter guardrails. No SaaS database or Express API
-runtime has been deployed. The static frontend is deployed to staging and the admin path is protected by Apache
-Basic Auth.
+Pre-MVP persistent staging foundation. The dedicated PostgreSQL database, Express API, Redis, MinIO, and web
+runtime are deployed alongside, but isolated from, legacy systems. Company, Contact, Address, Part, and Stock
+CRUD are persistent. The prior static SaaS frontend and protected admin route remain separate. Public DNS/TLS,
+production authentication, persistent audit, and operational hardening are incomplete.
 
 ## Persistent Data Foundation Phase 2
 
-Local only, not deployed:
+Implemented and deployed to isolated staging:
 
 - PostgreSQL-compatible core schema migration for tenants, companies, company roles, contacts, part numbers, part alternates, stock items, and legacy mappings.
 - Shared tenant-scoped repository contracts, validation schemas, and domain errors.
@@ -42,9 +41,9 @@ Local only, not deployed:
 - Controlled Yoyamic importer dry-run and reconciliation foundation.
 - Hardened Yoyamic read-only source policy and query planning guardrails; no live query, write method, or credential.
 
-Docker Desktop with the Linux/WSL2 engine is available locally. On 2026-07-14, PostgreSQL 16 started healthy on the localhost-only Compose binding; migration 001 applied with a recorded checksum and idempotent re-apply; and the real PostgreSQL suite passed with reconnect persistence, quantity 0, independent stock company relationships, tenant isolation, rollback, and local API/repository restart coverage. This was local validation only: the public frontend remains static/sample-backed, and neither the API nor PostgreSQL was deployed.
+The local PostgreSQL suite passed 15/15 with zero skips. On 2026-07-15 the server applied migrations 001-003 idempotently, seeded tenant `aci770` twice, and passed authenticated CRUD, quantity 0, independent stock company relationships, tenant isolation, API-restart persistence/re-login, backup/independent restore, and forced-host HTTP validation. Browser automation did not initialize and public DNS remains unavailable, so visual/public validation is not claimed.
 
-Yoyamic was not touched in this sprint. No live Yoyamic database query, write, API deployment, database deployment, legacy PHP change, Plesk change, or Apache/Basic Auth change was performed.
+Yoyamic, legacy AeroCanada, MariaDB, host PostgreSQL 14, Odoo, and the old Ready2Go stack were not modified and remained operational. Plesk received only the new `aviation.ready2go.aero` subdomain and domain-specific reverse-proxy configuration.
 
 ## CTO Dashboard Phase 2
 
@@ -64,9 +63,9 @@ The dashboard now includes:
 | Field | Value |
 |---|---|
 | Current branch | `main` |
-| Latest local commit | `Harden Company 360 persistent workflows` (`git rev-parse HEAD` authoritative after commit) |
-| Latest origin/main commit | `5862d57` |
-| Build timestamp | `2026-07-14T19:00:00+03:00` |
+| Latest local commit | `c667f284` before this documentation commit |
+| Latest origin/main commit | `c667f284` before this documentation commit |
+| Build timestamp | OCI images created `2026-07-15T10:56:12Z` |
 | Static export mode | `Next.js output export` |
 
 This is a static snapshot. The commit that introduces this Phase 2 metadata cannot self-reference its own final hash
@@ -76,11 +75,11 @@ without another manual update.
 
 | Field | Value |
 |---|---|
-| Last deployed commit | `bb0ba80` |
-| Last deployment date | `2026-07-07T15:52:53Z` |
-| Environment | staging/public static frontend |
-| Backup path | `/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation_backup_20260707_155253` |
-| Protected admin status | `/SaaS_Aviation/admin/` protected by Apache Basic Auth |
+| Last deployed commit | `c667f284101272b7b987abe91501d4f79dd487dd` |
+| Last deployment date | `2026-07-15` |
+| Environment | isolated persistent staging; public DNS/TLS pending |
+| Backup paths | `/opt/ready2go/saas-aviation/backups/predeploy-20260715T105420Z`, `proxy-prechange-20260715T114203Z`, `staging-20260715T114501Z` |
+| Runtime path | `/opt/ready2go/saas-aviation/releases/c667f284101272b7b987abe91501d4f79dd487dd` |
 
 ## Checks Snapshot
 
@@ -98,8 +97,8 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 
 - `/SaaS_Aviation/admin/` is protected by Apache Basic Auth on staging.
 - The CTO route is hidden from the public sidebar.
-- No Express API runtime was deployed.
-- No database, Yoyamic, or legacy PHP changes were made.
+- The Express API and dedicated PostgreSQL 16 database are deployed only in the isolated staging stack.
+- No Yoyamic, legacy PHP, MariaDB, host PostgreSQL 14, or Odoo changes were made.
 - Credentials remain server-side only and are not committed.
 
 ## Last 10 Commits
@@ -124,9 +123,9 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 | Core | Operational | 85% | `141fee0` | Not formally reviewed | Static export only | Map to read-only Yoyamic adapter |
 | Authentication | Foundation | 35% | `5372dc2` | Not reviewed | Not deployed | Persistent session/audit store, MFA, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
-| Company 360 | Local persistent foundation hardened; not production-ready | 90% | `Harden Company 360 persistent workflows` | PostgreSQL 15/15 zero skips; login/CRUD/restart/tenant/tests/typecheck/lint/build passed; browser unavailable | Not deployed; public UI sample-static | Persistent auth/session and operational prerequisites |
-| Part 360 | Workspace complete + locally verified PostgreSQL provider | 75% | local pending commit | Runtime validation passed | Not deployed | Continue persistent Auth/Tenant/audit design |
-| Stock 360 | Foundation + locally verified PostgreSQL provider | 60% | local pending commit | Runtime validation passed, including quantity 0 and independent company roles | Not deployed | Continue persistent Auth/Tenant/audit design |
+| Company 360 | Persistent staging foundation; not production-ready | 90% | `c667f284` | PostgreSQL 15/15; server CRUD/restart/tenant/restore/proxy passed; browser unavailable | Persistent staging deployed; DNS/TLS pending | Persistent auth/session and operational prerequisites |
+| Part 360 | Workspace + persistent Part CRUD foundation | 75% | `c667f284` | Server create/read/update passed | Persistent staging deployed | Continue persistent Auth/Tenant/audit design |
+| Stock 360 | Persistent Stock CRUD foundation | 60% | `c667f284` | Server create/read/update, quantity 0 and independent company roles passed | Persistent staging deployed | Continue persistent Auth/Tenant/audit design |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Use hardened read-only Yoyamic adapter plans for future mapping |
 | Documents | In progress | 40% | `088e9d8` | `46f6e72`, `f14ddd4` reviewed; `088e9d8` pending | Static UI on staging; API runtime not deployed | Review `088e9d8`; hold Phase 2 for persistent audit + API deploy |
 | Warehouse | Architecture documented | 10% | local pending commit | Not reviewed | Not deployed | Review `docs/architecture/warehouse.md`; no production code implemented |
@@ -140,18 +139,18 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 | Reports | Not started | 0% | - | - | - | Not yet scoped |
 | Administration | Not started | 0% | - | - | - | Tenant admin / RBAC UI not yet scoped |
 | AI | Planned | 5% | - | - | - | No LLM provider selected; tool-layer architecture only |
-| API | Foundation | 47% | local pending commit | PostgreSQL runtime and local API/repository restart validation passed | Never deployed as a running service | Continue auth, audit, and operational hardening before deployment |
+| API | Persistent staging foundation | 55% | `c667f284` | Health/OpenAPI/auth/CRUD/restart/proxy passed | Isolated staging deployed | Continue auth, audit, and operational hardening before production |
 | Security | Foundation | 35% | `bb0ba80` | Basic Auth protection deployed for `/admin` | Static `/admin` protected on staging | Persistent audit storage, RBAC hardening, rate limiting, secrets manager |
-| Multi-Tenant | Foundation | 50% | local pending commit | Second-tenant PostgreSQL/API isolation passed locally | Not deployed | Continue persistent RBAC and audit design |
+| Multi-Tenant | Foundation | 55% | `c667f284` | Second-tenant API isolation and composite FK rejection passed on staging | Isolated staging deployed | Continue persistent RBAC, RLS and audit design |
 
 ## Current Sprint
 
-Company 360 is a hardened local persistent foundation on PostgreSQL. Phase 1.1 aligns local login contracts,
+Company 360 is a deployed persistent staging foundation on PostgreSQL. Phase 1.1 aligns login contracts,
 normalizes forms, completes Contact/Address editing, removes fixture Documents from the persistent aggregate, and
-keeps commercial modules explicit non-persistent boundaries. Auth/sessions remain in-memory; it is not production-ready or deployed.
+keeps commercial modules explicit non-persistent boundaries. Auth/sessions remain in-memory; it is not production-ready.
 
 ## Next Recommended Sprint
 
-Implement persistent Auth/Tenant sessions and operational prerequisites. Hold production API/database deployment
-until secure session handling, MFA, rate limiting, audit, backup/restore, monitoring, secrets, browser validation,
-and explicit approval are complete.
+First publish DNS, issue TLS, and complete public browser validation. Then implement persistent Auth/Tenant sessions,
+secure session handling, MFA, rate limiting, audit, monitoring, and secret management. Hold production promotion
+until these controls and explicit approval are complete.
