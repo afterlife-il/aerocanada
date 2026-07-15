@@ -1,6 +1,6 @@
 # Multi-tenant identity
 
-Ready2Go is the platform and SaaS_Aviation is the product. Tenants are data, not product branding. The initial tenant is `AEROCANADA INDUSTRIES 770 INC.` with canonical code `aci770` and public slug `AeroCanada`.
+Ready2Go Aviation SaaS is the platform. Tenants are data, not product branding. The initial tenant is `AEROCANADA INDUSTRIES 770 INC.` with canonical code `aci770` and public slug `AeroCanada`; future tenant routes follow `https://aviation.ready2go.aero/<TenantSlug>`. Existing repository and runtime names are retained until a later approved, non-disruptive migration.
 
 Migration 003 adds a case-insensitive unique tenant code and an optional primary-company relationship constrained to the same tenant. The public route is `/<tenant-slug>`. Repository and API operations require an authenticated tenant context and PostgreSQL queries scope records by `tenant_id`.
 

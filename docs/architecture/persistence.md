@@ -1,4 +1,4 @@
-# SaaS_Aviation Persistence Foundation
+# Ready2Go Aviation SaaS Persistence Foundation
 
 ## Persistent staging topology
 
@@ -8,7 +8,7 @@ Status: dedicated PostgreSQL 16 persistent staging provider deployed and verifie
 
 ## Current State
 
-The Ready2Go staging frontend is a static Next.js export served by the isolated web container, with same-origin `/api/` proxying to the deployed Express API in explicit PostgreSQL mode. Persistent API mode refuses memory/sample fallback. Some read-only UI areas still intentionally use sample read models and must not be described as durable business data.
+The Ready2Go Aviation SaaS staging frontend is a static Next.js export served by the isolated web container at `https://aviation.ready2go.aero`, with same-origin `/api/` proxying to the deployed Express API in explicit PostgreSQL mode. Persistent API mode refuses memory/sample fallback. AeroCanada is tenant data under `/AeroCanada`, not the platform identity. Some read-only UI areas still intentionally use sample read models and must not be described as durable business data.
 
 Phase 2 keeps `sample-static` as the deployed UI mode and adds an explicit local PostgreSQL persistence provider for Company, Contact, Part Number, and Stock Item development.
 
@@ -31,9 +31,9 @@ Phase 2 uses the smallest coherent PostgreSQL layer:
 - Tenant-scoped repository methods using parameterized queries.
 - Transactional writes for multi-table company role and part alternate updates.
 
-The provider is for development/local integration only. Production deployment still requires final auth, RBAC, audit persistence, secrets management, backup/restore, monitoring, and operational database decisions.
+The provider is deployed to persistent staging only. Production promotion still requires final auth, RBAC, audit persistence, secrets management, monitoring, and operational approval.
 
-Local Docker Desktop/WSL2 validation applied migration 001, recorded and rechecked its checksum, proved idempotent re-apply, and passed real PostgreSQL tests for Company/Contact/Part/Stock reconnect persistence, quantity 0, independent stock company relationships, tenant isolation, constraint failures, and transactional rollback. The local API/repository restart proof passed. This does not change the public frontend: it remains static and sample-backed, and neither the API nor PostgreSQL has been deployed.
+Local Docker Desktop/WSL2 validation passed real PostgreSQL tests for Company/Contact/Part/Stock reconnect persistence, quantity 0, independent stock company relationships, tenant isolation, constraint failures, and transactional rollback. The dedicated staging PostgreSQL 16 database now has migrations 001-003, and public authenticated reads proved earlier Company/Part/Stock records remained persistent after DNS/TLS activation. This does not make sample-backed workflow panels durable or authorize production promotion.
 
 ## Frontend Data Source Boundary
 

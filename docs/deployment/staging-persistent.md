@@ -1,8 +1,8 @@
 # Persistent SaaS_Aviation staging
 
-Status: persistent staging runtime deployed side-by-side on 2026-07-15 at commit `c667f284101272b7b987abe91501d4f79dd487dd`. Public DNS and a hostname-valid certificate remain pending.
+Status: persistent staging runtime deployed side-by-side on 2026-07-15 at commit `c667f284101272b7b987abe91501d4f79dd487dd` and publicly available over hostname-valid Let's Encrypt HTTPS.
 
-Ready2Go is the platform, SaaS_Aviation is the product, and AeroCanada is the first tenant. The intended public endpoints are `https://aviation.ready2go.aero/`, tenant route `/AeroCanada`, and same-origin API route `/api/`.
+Ready2Go Aviation SaaS is the platform and AeroCanada is the first tenant. The public endpoints are `https://aviation.ready2go.aero/`, tenant route `/AeroCanada`, and same-origin API route `/api/`. Repository and existing technical resource names remain unchanged during progressive consolidation.
 
 The staging Compose project is `saas-aviation-staging` under `/opt/ready2go/saas-aviation`. It uses containers `saas-aviation-web`, `saas-aviation-api`, `saas-aviation-postgres`, `saas-aviation-redis`, and `saas-aviation-minio`; network `saas_aviation_staging`; and three new dedicated volumes. Only the web listener is published, on `127.0.0.1:8180`. PostgreSQL, Redis, MinIO, and the raw API remain internal.
 

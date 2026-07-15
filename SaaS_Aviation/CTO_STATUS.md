@@ -5,7 +5,7 @@ Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 prot
 
 ## Persistent staging preparation
 
-The Ready2Go SaaS_Aviation staging topology is deployed side-by-side and healthy. It uses five isolated containers, internal-only PostgreSQL/Redis/MinIO/API networking, loopback web publishing, health checks, resource limits, log rotation, migration checksums, and an idempotent tenant seed for `aci770`/`AeroCanada`. Runtime validation proved authenticated CRUD, PostgreSQL persistence across an API restart, tenant isolation, backup/restore, and forced-host proxy routing. Public activation is blocked because `aviation.ready2go.aero` is NXDOMAIN and has no valid certificate. Users and sessions remain staging-grade and in memory; Documents storage and commercial workflows remain explicit boundaries.
+The Ready2Go Aviation SaaS staging topology is deployed side-by-side, healthy, and publicly available over verified HTTPS. It uses five isolated containers, internal-only PostgreSQL/Redis/MinIO/API networking, loopback web publishing, health checks, resource limits, log rotation, migration checksums, and an idempotent tenant seed for `aci770`/`AeroCanada`. Runtime validation proved authenticated CRUD, PostgreSQL persistence, tenant isolation, backup/restore, public DNS, TLS, routing, API/OpenAPI, and persisted reads. Users and sessions remain staging-grade and in memory; Documents storage and commercial workflows remain explicit boundaries.
 
 A protected in-app mirror of this snapshot exists at `/admin/cto` in the static SaaS_Aviation frontend. The frontend
 is exported with `output: "export"`, so dashboard data is baked into the static build from
@@ -77,7 +77,8 @@ without another manual update.
 |---|---|
 | Last deployed commit | `c667f284101272b7b987abe91501d4f79dd487dd` |
 | Last deployment date | `2026-07-15` |
-| Environment | isolated persistent staging; public DNS/TLS pending |
+| Environment | isolated persistent staging; public HTTPS active |
+| Public certificate | `Lets Encrypt aviation.ready2go.aero`, valid through 2026-10-13 |
 | Backup paths | `/opt/ready2go/saas-aviation/backups/predeploy-20260715T105420Z`, `proxy-prechange-20260715T114203Z`, `staging-20260715T114501Z` |
 | Runtime path | `/opt/ready2go/saas-aviation/releases/c667f284101272b7b987abe91501d4f79dd487dd` |
 
@@ -91,7 +92,7 @@ without another manual update.
 | Build | passing |
 | Last checked | `2026-07-14T19:00:00+03:00` |
 
-The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 passed, 0 failed, and 0 skipped. Local HTTP login/CRUD/API restart persistence also passed. Visual browser automation was unavailable and was not counted as passing.
+The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 passed, 0 failed, and 0 skipped. Public HTTPS routes, API/OpenAPI/assets, login, and persisted Company/Part/Stock reads passed on 2026-07-15. Visual browser automation was unavailable and was not counted as passing.
 
 ## Security Status
 
@@ -123,7 +124,7 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 | Core | Operational | 85% | `141fee0` | Not formally reviewed | Static export only | Map to read-only Yoyamic adapter |
 | Authentication | Foundation | 35% | `5372dc2` | Not reviewed | Not deployed | Persistent session/audit store, MFA, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
-| Company 360 | Persistent staging foundation; not production-ready | 90% | `c667f284` | PostgreSQL 15/15; server CRUD/restart/tenant/restore/proxy passed; browser unavailable | Persistent staging deployed; DNS/TLS pending | Persistent auth/session and operational prerequisites |
+| Company 360 | Persistent staging foundation; not production-ready | 90% | `c667f284` | PostgreSQL 15/15; CRUD/restart/tenant/restore/public HTTPS/login/read passed; browser unavailable | Public persistent staging active | Persistent auth/session and operational prerequisites |
 | Part 360 | Workspace + persistent Part CRUD foundation | 75% | `c667f284` | Server create/read/update passed | Persistent staging deployed | Continue persistent Auth/Tenant/audit design |
 | Stock 360 | Persistent Stock CRUD foundation | 60% | `c667f284` | Server create/read/update, quantity 0 and independent company roles passed | Persistent staging deployed | Continue persistent Auth/Tenant/audit design |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Use hardened read-only Yoyamic adapter plans for future mapping |
@@ -151,6 +152,7 @@ keeps commercial modules explicit non-persistent boundaries. Auth/sessions remai
 
 ## Next Recommended Sprint
 
-First publish DNS, issue TLS, and complete public browser validation. Then implement persistent Auth/Tenant sessions,
-secure session handling, MFA, rate limiting, audit, monitoring, and secret management. Hold production promotion
-until these controls and explicit approval are complete.
+Complete interactive browser validation when tooling is available. Then implement persistent Auth/Tenant sessions,
+secure session handling, MFA, rate limiting, audit, monitoring, and secret management. Continue progressive naming
+toward Ready2Go Aviation SaaS without renaming the repository or disrupting deployment history. Hold production
+promotion until these controls and explicit approval are complete.

@@ -3,8 +3,8 @@
   "repository_state": {
     "current_branch": "main",
     "local_head": "Harden Company 360 persistent workflows (git rev-parse HEAD is authoritative)",
-    "origin_main": "c667f284101272b7b987abe91501d4f79dd487dd before this documentation commit",
-    "deployment_status": "persistent staging deployed and forced-host validated; public DNS and TLS pending",
+    "origin_main": "442810768a94216135609529ff0d7192b152b70f before this documentation commit",
+    "deployment_status": "persistent staging publicly available over verified HTTPS; interactive browser acceptance blocked by tooling",
     "current_module": "Ready2Go persistent SaaS_Aviation staging preparation",
     "current_sprint": "Persistent staging deployment"
   },
@@ -37,7 +37,7 @@
     },
     "saas_aviation": {
       "purpose": "next-generation aviation ERP",
-      "status": "persistent_staging_deployed_dns_tls_pending",
+      "status": "persistent_staging_public_https_active",
       "path": "SaaS_Aviation"
     },
     "auth_tenant_foundation": {
@@ -50,10 +50,10 @@
       "completion_status": "staging_candidate_after_remaining_auth_and_operational_prerequisites",
       "finished_work": "Phase 1.1 login contract, logout clearing, form normalization, Contact/Address editing, aggregate truthfulness, workflow boundaries, OpenAPI, tests, and documentation",
       "remaining_work": "public DNS/TLS, visual browser review, persistent users/sessions, production identity/password handling, MFA, rate limiting, secure session strategy, persistent Documents, commercial modules, monitoring, and secret management",
-      "known_blockers": "aviation.ready2go.aero is NXDOMAIN; TLS is not issued; browser automation unavailable; production auth and operational prerequisites intentionally out of scope",
-      "next_recommended_task": "publish DNS, issue TLS, complete public browser validation, then design persistent authentication/session prerequisites",
-      "validation_performed": "migrations 001-003 idempotent; PostgreSQL 15/15 no skips; staging login and CRUD; API restart persistence/re-login; tenant isolation; backup/independent restore; forced-host proxy and assets; protected systems health",
-      "deployment_status": "isolated persistent staging deployed; public DNS/TLS pending",
+      "known_blockers": "interactive browser control unavailable; production auth and operational prerequisites intentionally out of scope",
+      "next_recommended_task": "complete interactive browser acceptance when tooling is available, then design persistent authentication/session prerequisites",
+      "validation_performed": "migrations 001-003 idempotent; PostgreSQL 15/15 no skips; staging login and CRUD; restart persistence; tenant isolation; restore; public DNS/TLS; pages/API/OpenAPI/assets; authenticated persisted Company/Part/Stock reads; protected systems health",
+      "deployment_status": "isolated persistent staging publicly available over verified HTTPS",
       "commit_reference": "Harden Company 360 persistent workflows"
     },
     "part_360": {
@@ -123,7 +123,7 @@
     "legacy_yoyamic_staging": "report_based_partial_deployments",
     "saas_aviation": "static_frontend_deployed_to_staging_with_protected_admin_cto",
     "production": "not_requested",
-    "persistent_staging": "deployed_healthy_forced_host_validated_dns_tls_pending",
+    "persistent_staging": "deployed_healthy_public_https_active",
     "persistent_staging_domain": "https://aviation.ready2go.aero/",
     "persistent_staging_tenant_url": "https://aviation.ready2go.aero/AeroCanada",
     "persistent_staging_project": "saas-aviation-staging",
@@ -132,7 +132,8 @@
     "persistent_staging_seed": "aci770/AeroCanada applied twice idempotently on staging",
     "persistent_staging_release": "/opt/ready2go/saas-aviation/releases/c667f284101272b7b987abe91501d4f79dd487dd",
     "persistent_staging_backups": "predeploy-20260715T105420Z; proxy-prechange-20260715T114203Z; staging-20260715T114501Z",
-    "persistent_staging_public_blocker": "DNS NXDOMAIN and valid TLS certificate not yet issued",
+    "persistent_staging_certificate": "Lets Encrypt aviation.ready2go.aero; valid 2026-07-15 through 2026-10-13",
+    "persistent_staging_public_blocker": "interactive visual browser acceptance unavailable; HTTP/API verification passed",
     "persistent_staging_auth_limit": "users and bearer sessions remain in memory; API restart requires re-login",
     "saas_aviation_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "saas_aviation_target": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation/",
@@ -245,7 +246,7 @@
     "mutations": "blocked_until_persistent_auth_tenant_audit",
     "part_stock_inventory": "read-model foundation plus protected persistent Part/Stock CRUD deployed to isolated staging",
     "documents": "phase 1 metadata, link, reusable UI, and upload-intent validation foundation implemented and static frontend deployed; no byte storage, OCR, or AI analysis yet",
-    "deployment": "legacy static frontend remains deployed; separate persistent API/web/PostgreSQL staging runtime deployed with DNS/TLS pending",
+    "deployment": "legacy static frontend remains deployed; separate persistent API/web/PostgreSQL staging runtime publicly available over HTTPS",
     "openapi_contracts": "current_read_routes_have_component_schemas_and_auth_session_routes",
     "staging_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "static_export": "enabled_for_frontend_visual_inspection",
@@ -258,6 +259,6 @@
     "schema_changes": "migrations_001_003_deployed_to_dedicated_staging_postgres_only"
   },
   "current_sprint": "Company 360 Production Hardening Phase 1.1",
-  "last_completed_task": "Deployed isolated persistent staging from c667f284; applied migrations/seed; passed CRUD, restart persistence, tenant isolation, backup/restore and forced-host proxy validation. Public DNS/TLS and browser validation remain incomplete; protected legacy systems were unchanged.",
-  "next_recommended_task": "Publish aviation.ready2go.aero DNS, issue TLS, complete public browser validation, then implement persistent authentication/session and production security prerequisites."
+  "last_completed_task": "Activated public DNS and Let's Encrypt HTTPS for aviation.ready2go.aero; verified public routes, API/OpenAPI/assets, login and persisted Company/Part/Stock reads. Browser control remained unavailable; protected systems including neo.ready2go.aero were unchanged.",
+  "next_recommended_task": "Complete interactive browser acceptance when tooling is available, then implement persistent authentication/session and production security prerequisites."
 }
