@@ -252,7 +252,7 @@
     "static_export": "enabled_for_frontend_visual_inspection",
     "dashboard": "tenant-aware ACI770 dashboard is present in the persistent staging web image; several workflows remain sample-backed",
     "runtime_revalidation": "auth_session_company_part_stock_postgres_passed_on_2026_07_15",
-    "fixture_fallback_gate": "local_fix_validated_zero_runtime_artifact_matches_public_web_deployment_pending"
+    "fixture_fallback_gate": "passed_public_html_and_api_zero_matches_web_2ff9534_visual_browser_unavailable"
   },
   "migration_status": {
     "source": "Yoyamic",
@@ -266,6 +266,6 @@
     "reports": "/opt/ready2go/saas-aviation/migration-reports/20260715T135622Z-dry-run; 20260715T140926Z-sample; 20260715T140954Z-sample-idempotency"
   },
   "current_sprint": "Persistent staging authentication",
-  "last_completed_task": "Removed persistent Company fixture serialization and historical asset prefix locally; full tests, PostgreSQL 23/23 zero skips, typecheck, lint, build and zero-match runtime artifact scans passed.",
-  "next_recommended_task": "Deploy only the corrected web image, complete public UI and persistence acceptance, then wait for manual approval before Connected Mailboxes."
+  "last_completed_task": "Deployed web 2ff9534 only and passed public zero-fixture, CSS/JS, routes, login/logout, Company CRUD, API-restart persistence, Part/Stock and five-container health checks; visual browser evidence remains unavailable.",
+  "next_recommended_task": "Complete manual visual and browser-console acceptance, then wait for explicit approval before Connected Mailboxes."
 }
