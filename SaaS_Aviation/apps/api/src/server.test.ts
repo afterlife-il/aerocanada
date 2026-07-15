@@ -320,16 +320,16 @@ test("persistent CRUD endpoints support parts and stock with tenant isolation", 
     quantity: 0,
     condition: "AR",
     status: "available",
-    ownerCompanyId: "company-5263",
-    supplierCompanyId: "company-1527",
-    tagInfoCompanyId: "company-1527",
-    traceabilityCompanyId: "company-4188",
+    ownerCompanyId: "demo-co-5263",
+    supplierCompanyId: "demo-co-1527",
+    tagInfoCompanyId: "demo-co-1527",
+    traceabilityCompanyId: "demo-co-4188",
     currency: "USD"
   });
   assert.equal(stock.status, 201);
   const stockBody = stock.body as { data: { id: string; quantity: number; tagInfoCompanyId: string } };
   assert.equal(stockBody.data.quantity, 0);
-  assert.equal(stockBody.data.tagInfoCompanyId, "company-1527");
+  assert.equal(stockBody.data.tagInfoCompanyId, "demo-co-1527");
 
   assert.equal((await httpGet(app, `/v1/stock/${stockBody.data.id}`, allowedToken)).status, 200);
   assert.equal((await httpGet(app, `/v1/stock/${stockBody.data.id}`, otherTenantToken)).status, 404);

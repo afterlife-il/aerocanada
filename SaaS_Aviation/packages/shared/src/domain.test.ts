@@ -263,7 +263,7 @@ test("DocumentLink primary relation is the canonical document owner", () => {
     versions: sampleDocumentVersions,
     links: sampleDocumentLinks.map((link) =>
       link.documentId === "doc-cert-stock-1" && link.relation === "primary"
-        ? { ...link, ownerModule: "company", ownerRecordId: "company-5263" }
+        ? { ...link, ownerModule: "company", ownerRecordId: "demo-co-5263" }
         : link
     ),
     auditEvents: sampleAuditEvents
@@ -271,7 +271,7 @@ test("DocumentLink primary relation is the canonical document owner", () => {
 
   const document = documents.documents.find((item) => item.id === "doc-cert-stock-1");
   assert.equal(document?.ownerModule, "company");
-  assert.equal(document?.ownerRecordId, "company-5263");
+  assert.equal(document?.ownerRecordId, "demo-co-5263");
 });
 
 test("Documents read model rejects documents without exactly one primary link", () => {

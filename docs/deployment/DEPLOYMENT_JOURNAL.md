@@ -48,3 +48,11 @@ Public DNS and HTTPS activation are complete. Interactive visual acceptance rema
 - Blocker: `/companies/` exported HTML still serializes three sample Company records. No-fixture certification failed; no rebuild was attempted because free space was only `15,003,709,440` bytes.
 - Protected systems: Yoyamic 200; neo Ready2Go retained 303. No legacy PHP, MariaDB, Odoo, host PostgreSQL 14, or old Ready2Go changes.
 - Connected Mailboxes: not started; waiting for manual staging validation.
+
+# 2026-07-15 - Company fixture and root-asset correction prepared
+
+- Root cause: the Companies server page still imported the sample Company read model, persistent Company detail export retained sample static parameters, and a historical default base path generated `/SaaS_Aviation` CSS/JS URLs on the root-domain runtime.
+- Local correction: persistent Company export starts empty, generates only a non-sample placeholder detail shell, retained demo fixtures use `demo-co-*`, and root-relative assets are the default unless a legacy export explicitly requests a base path.
+- Validation: full tests passed; PostgreSQL 23/23 with zero skips; typecheck, lint, build and `git diff --check` passed; the complete exported HTML/JS tree contains zero matches for the three former Company IDs.
+- Cleanup: only BuildKit cache, npm cache, and unused pnpm-store packages were pruned. Free space rose to `15,546,359,808` bytes. No image, container, volume, release, backup or business data was deleted.
+- Deployment truth: web-only rebuild and public validation are pending for the focused runtime commit; API remains unchanged. Connected Mailboxes was not started.

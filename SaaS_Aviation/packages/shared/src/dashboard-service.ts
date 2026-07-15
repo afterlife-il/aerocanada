@@ -105,7 +105,7 @@ export function buildTenantDashboard(context: RequestContext, source: DashboardS
     { label: "Create quote", href: "/dashboard#quotes", priority: "primary" },
     { label: "Check supplier quotes", href: "/dashboard#supplier-quotes", priority: "secondary" },
     { label: "Open ACI stock", href: "/stock/internal", priority: "secondary" },
-    { label: "Company inventory", href: "/companies/company-5263", priority: "secondary" },
+    { label: "Company inventory", href: "/companies/demo-co-5263", priority: "secondary" },
     { label: "Document review", href: "/dashboard#documents", priority: "secondary" }
   ];
 

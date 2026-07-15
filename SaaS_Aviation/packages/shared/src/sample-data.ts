@@ -25,7 +25,7 @@ export const sampleTenant: Tenant = {
   code: "aci770",
   verifiedDomains: ["aerocanada-industries.com"],
   status: "active",
-  primaryCompanyId: "company-5263"
+  primaryCompanyId: "demo-co-5263"
 };
 
 export const sampleUsers: AuthUserRecord[] = [
@@ -74,7 +74,7 @@ export const sampleRequestContext = {
 
 export const sampleCompanies: Company[] = [
   {
-    id: "company-5263",
+    id: "demo-co-5263",
     legacyId: 5263,
     tenantId: sampleTenant.id,
     name: "AeroCanada Industries 770",
@@ -87,7 +87,7 @@ export const sampleCompanies: Company[] = [
     lastActivityAt: "2026-06-24"
   },
   {
-    id: "company-1527",
+    id: "demo-co-1527",
     legacyId: 1527,
     tenantId: sampleTenant.id,
     name: "Better Aviation Products",
@@ -99,7 +99,7 @@ export const sampleCompanies: Company[] = [
     lastActivityAt: "2026-06-20"
   },
   {
-    id: "company-4188",
+    id: "demo-co-4188",
     legacyId: 4188,
     tenantId: sampleTenant.id,
     name: "Regional Airline MRO",
@@ -117,7 +117,7 @@ export const sampleContacts: Contact[] = [
     id: "contact-1",
     legacyId: 101,
     tenantId: sampleTenant.id,
-    companyId: "company-1527",
+    companyId: "demo-co-1527",
     name: "Maria Alvarez",
     title: "Sales Manager",
     email: "maria@example.test",
@@ -127,7 +127,7 @@ export const sampleContacts: Contact[] = [
     id: "contact-2",
     legacyId: 102,
     tenantId: sampleTenant.id,
-    companyId: "company-4188",
+    companyId: "demo-co-4188",
     name: "Thomas Weber",
     title: "Repair Coordinator",
     email: "thomas@example.test",
@@ -688,7 +688,7 @@ export const sampleDocumentLinks: DocumentLinkRecord[] = [
     tenantId: sampleTenant.id,
     documentId: "doc-company-contract-1527",
     ownerModule: "company",
-    ownerRecordId: "company-1527",
+    ownerRecordId: "demo-co-1527",
     relation: "primary",
     linkedAt: "2026-06-20T09:00:00Z",
     linkedBy: sampleAdminUser.id

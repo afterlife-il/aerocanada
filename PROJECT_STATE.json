@@ -252,7 +252,7 @@
     "static_export": "enabled_for_frontend_visual_inspection",
     "dashboard": "tenant-aware ACI770 dashboard is present in the persistent staging web image; several workflows remain sample-backed",
     "runtime_revalidation": "auth_session_company_part_stock_postgres_passed_on_2026_07_15",
-    "fixture_fallback_gate": "blocked_company_export_contains_company_5263_company_1527_company_4188"
+    "fixture_fallback_gate": "local_fix_validated_zero_runtime_artifact_matches_public_web_deployment_pending"
   },
   "migration_status": {
     "source": "Yoyamic",
@@ -266,6 +266,6 @@
     "reports": "/opt/ready2go/saas-aviation/migration-reports/20260715T135622Z-dry-run; 20260715T140926Z-sample; 20260715T140954Z-sample-idempotency"
   },
   "current_sprint": "Persistent staging authentication",
-  "last_completed_task": "Revalidated deployed API 2e8b1d0 and web 3c9480d: public routes, login/logout, secure persistent sessions, Company CRUD cleanup, Part/Stock PostgreSQL stability and container health passed; Company exported HTML fixture gate failed.",
-  "next_recommended_task": "Correct and redeploy only the Company web artifact after restoring safe disk headroom, then repeat no-fixture and manual staging acceptance before Connected Mailboxes."
+  "last_completed_task": "Removed persistent Company fixture serialization and historical asset prefix locally; full tests, PostgreSQL 23/23 zero skips, typecheck, lint, build and zero-match runtime artifact scans passed.",
+  "next_recommended_task": "Deploy only the corrected web image, complete public UI and persistence acceptance, then wait for manual approval before Connected Mailboxes."
 }

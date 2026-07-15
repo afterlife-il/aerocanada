@@ -11,15 +11,20 @@ import { EntityTimeline } from "@/components/ui/entity-timeline";
 import { SummaryCard } from "@/components/ui/summary-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { data, getCompany360ReadModel } from "@/lib/data";
+import { getDataSourceConfig } from "@/lib/data-source-mode";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
+  if (getDataSourceConfig().mode === "persistent-api") return [{ id: "persistent" }];
   return data.companies.map((company) => ({ id: company.id }));
 }
 
 export default async function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (getDataSourceConfig().mode === "persistent-api") {
+    return <AppShell><PageHeader eyebrow="Company 360" title="Persistent Company" description="Company details are loaded from PostgreSQL in the operational workspace." /><DetailPanel title="Persistent Company workspace"><p className="text-sm text-muted">Legacy static Company detail routes are disabled in persistent staging.</p><ButtonLink href={`/companies/?id=${encodeURIComponent(id)}`} variant="primary">Open Companies</ButtonLink></DetailPanel></AppShell>;
+  }
   const company360 = getCompany360ReadModel(id);
   const { company } = company360;
   const editCompanyAction = company360.boundaryActions.find((action) => action.id === "edit-company");

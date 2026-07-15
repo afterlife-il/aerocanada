@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "/SaaS_Aviation";
+// The containerized product is served at the domain root. Legacy static exports
+// must opt in explicitly with NEXT_PUBLIC_BASE_PATH=/SaaS_Aviation.
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const nextConfig: NextConfig = {
   output: "export",

@@ -133,7 +133,7 @@ test("web Company list read model exposes empty state for unmatched searches", (
 });
 
 test("web Company 360 read model aggregates contacts inventory documents activity and workflow boundaries", () => {
-  const company360 = getCompany360ReadModel("company-1527");
+  const company360 = getCompany360ReadModel("demo-co-1527");
 
   assert.equal(company360.company.name, "Better Aviation Products");
   assert.equal(company360.contacts.length, 1);
@@ -302,4 +302,20 @@ test("public Part and Stock workspaces use persistent APIs without fixture adapt
   assert.match(partWorkspace, /persistentApi\.listParts/); assert.match(partWorkspace, /persistentApi\.listStock/);
   assert.match(stockWorkspace, /persistentApi\.listStock/); assert.match(stockWorkspace, /Legacy stock migration not yet completed/);
   assert.equal(partWorkspace.includes("getPart360ReadModel"), false); assert.equal(stockWorkspace.includes("getStock360ReadModel"), false);
+});
+
+test("public Company workspace never imports or serializes sample Company records", () => {
+  const companyPage = readFileSync(new URL("../app/companies/page.tsx", import.meta.url), "utf8");
+  const companyDetailPage = readFileSync(new URL("../app/companies/[id]/page.tsx", import.meta.url), "utf8");
+  const companyWorkspace = readFileSync(new URL("../components/modules/company-production-workspace.tsx", import.meta.url), "utf8");
+
+  assert.equal(companyPage.includes("@/lib/data"), false);
+  assert.equal(companyPage.includes("getCompanyListReadModel"), false);
+  assert.match(companyPage, /initialCompanies=\{\[\]\}/);
+  assert.match(companyDetailPage, /mode === "persistent-api"\) return \[\{ id: "persistent" \}\]/);
+  assert.match(companyWorkspace, /setCompanies\(\[\]\); setSelected\(null\)/);
+  for (const fixtureId of ["company-5263", "company-1527", "company-4188"]) {
+    assert.equal(companyPage.includes(fixtureId), false);
+    assert.equal(companyWorkspace.includes(fixtureId), false);
+  }
 });
