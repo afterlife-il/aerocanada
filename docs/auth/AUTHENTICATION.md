@@ -1,6 +1,6 @@
 # Authentication
 
-Status: persistent staging foundation deployed and publicly validated at `aviation.ready2go.aero`; not production-complete.
+Status: persistent password/session and MFA foundations deployed and publicly validated at `aviation.ready2go.aero`; not production-complete.
 
 ## Password and user storage
 
@@ -21,6 +21,8 @@ Password change/reset, administrator user management, OAuth/OIDC, a production S
 Migration 006 adds encrypted TOTP factors, hashed one-use recovery codes, E.164 phone factors and bounded OTP challenges. TOTP secrets use AES-256-GCM under `AUTH_ENCRYPTION_KEY`, never a committed key. Login returns a short-lived challenge instead of a session when TOTP is enabled; a valid current TOTP or unused recovery code is required before secure session cookies are issued. Recovery codes are returned once at enrollment and stored only as SHA-256 digests.
 
 Phone enrollment normalizes E.164 numbers, expires OTPs after ten minutes, limits attempts to five and enforces a one-minute resend cooldown even after successful consumption. The only implemented delivery adapter is `staging-spool`: it writes individual codes to a server-only mode-0600 spool configured by `PHONE_OTP_STAGING_SPOOL`. Codes are never returned by the public API and never written to application logs. Production must configure and test a real SMS adapter before phone authentication can be advertised as operational.
+
+The staging rollout applied migration 006 and recreated only the API. Acceptance used temporary non-enabled factors, verified a phone challenge from the container-private spool, then deleted the factor, challenge and spool record. The owner account remained `mfa_enabled=false`. TOTP/recovery behavior is covered by the zero-skip PostgreSQL suite; owner enrollment remains an explicit user decision.
 
 ## Staging validation
 

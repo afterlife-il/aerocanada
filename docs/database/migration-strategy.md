@@ -41,7 +41,7 @@ Migration 004 adds `import_batches`, `imported_records`, and `import_quarantine`
 
 Migration 005 adds persistent authentication users, scrypt credentials, sessions and authentication audit events. Its checksum is `80ff5c77057b0a98be65d278fa31f899c24811cc92742baba55629d1130946f2`; it was applied to staging after the `pre-auth-20260715T145902Z` backup.
 
-Migration 006 adds tenant-bound encrypted TOTP factors, hashed one-use recovery codes, verified E.164 phone factors, expiring bounded-attempt OTP challenges and the related audit categories. Its local checksum is `5bddbca138bf5b260b39d84e1c8ec12a9b21dfe3b7b7ed92404cd3a1449333c1`. It is locally implemented and PostgreSQL-tested with zero skips; staging deployment remains pending until its focused rollout gate.
+Migration 006 adds tenant-bound encrypted TOTP factors, hashed one-use recovery codes, verified E.164 phone factors, expiring bounded-attempt OTP challenges and the related audit categories. Its checksum is `5bddbca138bf5b260b39d84e1c8ec12a9b21dfe3b7b7ed92404cd3a1449333c1`. It is applied locally and to dedicated staging PostgreSQL after the `pre-mfa-20260715T151639Z` backup.
 
 ## Reconciliation Checks
 

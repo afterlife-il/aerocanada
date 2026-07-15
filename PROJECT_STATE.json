@@ -4,7 +4,7 @@
     "current_branch": "main",
     "local_head": "47fd95c before this documentation commit",
     "origin_main": "47fd95c before this documentation commit",
-    "deployment_status": "persistent staging publicly available; migration 005 and persistent cookie authentication deployed and publicly validated; interactive browser acceptance blocked by tooling",
+    "deployment_status": "persistent staging publicly available; migrations 001-006 and API ae5a2c9 deployed; password sessions and non-enabling MFA/phone acceptance publicly validated; interactive browser acceptance blocked by tooling",
     "current_module": "MFA and phone OTP foundation",
     "current_sprint": "Encrypted TOTP recovery codes and provider-abstracted phone enrollment"
   },
@@ -229,7 +229,7 @@
   "security_status": {
     "hardcoded_secrets": "none_added_in_saas_foundation",
     "auth": "postgres_users_scrypt_credentials_tenant_sessions_csrf_lockout_and_audit_deployed_to_staging",
-    "mfa": "totp_recovery_and_staging_phone_enrollment_implemented_locally_pending_deploy",
+    "mfa": "totp_recovery_and_staging_phone_enrollment_deployed; owner_factor_disabled; production_sms_unconfigured",
     "rbac": "role_and_permission_foundation",
     "tenant_isolation": "repository_queries_and_composite_constraints_verified_on_staging",
     "audit_logs": "authentication_events_persistent_in_staging_postgres; broader_business_audit_incomplete",
@@ -256,7 +256,7 @@
     "source": "Yoyamic",
     "target": "SaaS_Aviation",
     "strategy": "live read-only source audit, deterministic sample, idempotency and reconciliation before any full import",
-    "schema_changes": "migrations_001_005_deployed_to_dedicated_staging_postgres_only",
+    "schema_changes": "migrations_001_006_deployed_to_dedicated_staging_postgres_only",
     "source_counts": "companies=5884; company_details=6389; contacts=17502; parts=93410",
     "sample_result": "companies=7; addresses=9; contacts=13; parts=7; stock=0; quarantine=0",
     "idempotency_result": "second run inserted 0 and reconciled 36 unchanged",
@@ -264,6 +264,6 @@
     "reports": "/opt/ready2go/saas-aviation/migration-reports/20260715T135622Z-dry-run; 20260715T140926Z-sample; 20260715T140954Z-sample-idempotency"
   },
   "current_sprint": "Persistent staging authentication",
-  "last_completed_task": "Implemented migration 006, encrypted TOTP enrollment/login challenges, hashed one-use recovery codes, and rate-limited E.164 phone enrollment through a non-public staging spool. PostgreSQL passed 22/22 with zero skips; deployment is pending.",
-  "next_recommended_task": "Back up staging, add server-only MFA/spool configuration, apply migration 006, deploy only the API and validate disabled/enrollment boundaries without enabling MFA on the owner account."
+  "last_completed_task": "Deployed migration 006 and API ae5a2c9 after a root-only backup. Public acceptance proved CSRF, TOTP enrollment, phone request/verification without public OTP disclosure, zero temporary residue and owner MFA still disabled.",
+  "next_recommended_task": "Implement OAuth/OIDC provider configuration, state/nonce/PKCE callback validation, account linking rules and truthful disabled provider UI states."
 }
