@@ -1,6 +1,6 @@
 # OAuth and OIDC providers
 
-Status: provider configuration and authorization-request security foundation implemented; no external provider is configured in staging.
+Status: provider configuration and authorization-request security foundation deployed; no external provider is configured in staging.
 
 ## Supported provider definitions
 
@@ -11,5 +11,7 @@ Configuration requires a server-only client ID, client secret and exact callback
 ## Remaining callback work
 
 External credentials are unavailable. Therefore authorization redirects, token exchange, ID-token signature/issuer/audience validation, provider-subject persistence, tenant membership decisions, duplicate-email review, account linking/disconnect and revocation have not been activated or claimed as tested. No access token is logged or stored by the current foundation.
+
+Public acceptance on 2026-07-15 returned four providers, zero configured providers and four truthful disabled messages. The login HTML contained all four labels and the exact staging-unconfigured explanation. Password login remained 200. Only the API and web containers were recreated; database services and the migration ledger were unchanged.
 
 LinkedIn is limited to official OAuth/OIDC fields and permissions actually granted. No scraping, contact harvesting, unofficial invitation automation or simulated capability is permitted. Contact enrichment and invitations remain manual/user-reviewed unless an official granted API supports them.
