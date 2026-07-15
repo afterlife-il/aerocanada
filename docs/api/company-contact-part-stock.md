@@ -1,5 +1,7 @@
 # Company / Contact / Part / Stock API
 
+The operational Part and Stock web workspaces consume `/v1/parts`, `/v1/parts/:id`, `/v1/stock`, and `/v1/stock/:id`. They intentionally do not consume the older sample-adapter `/360` routes in persistent staging. Filtering/sorting/pagination are currently deterministic client operations over tenant-scoped persistent result sets; server-side pagination remains the next scale step.
+
 Status: Express API foundation deployed to isolated persistent staging with PostgreSQL; not production-ready.
 
 All routes are under `/v1` and require a bearer session:

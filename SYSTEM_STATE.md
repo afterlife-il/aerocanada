@@ -11,8 +11,8 @@ Last updated: 2026-07-15
 - Current branch: `main`
 - Current HEAD: `47fd95c` before this documentation commit
 - Origin HEAD: `47fd95c` before this documentation commit
-- Current module: OAuth/OIDC safe status and truthful disabled UI deployed; external callback activation blocked on provider credentials
-- Next module: operationalize Company, Part and Stock navigation, filters and actions
+- Current module: persistent Part and Stock workspaces implemented locally without fixture `/360` adapters; focused web rollout pending
+- Next module: deploy and validate Part/Stock URL-state workspaces, then complete audited archive/delete lifecycle and Company remaining fields
 - Docker status: Docker Desktop 29.6.1, Linux/WSL2 engine running
 - PostgreSQL status: local PostgreSQL 16 healthy at `127.0.0.1:55432`; migrations 001-006 applied locally and to dedicated staging PostgreSQL
 - Frontend status: static/sample-backed public frontend unchanged; local `persistent-api` Company workspace implemented; production build passed

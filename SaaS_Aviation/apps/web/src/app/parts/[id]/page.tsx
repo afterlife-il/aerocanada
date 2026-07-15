@@ -16,6 +16,8 @@ import { data, getPart } from "@/lib/data";
 import { getEntityDocumentReadModel } from "@/lib/documents";
 import { resolvePanelRows } from "@/lib/panel-data";
 import { getPart360ReadModel } from "@/lib/part-stock";
+import { getDataSourceConfig } from "@/lib/data-source-mode";
+import Link from "next/link";
 
 export const dynamicParams = false;
 
@@ -25,6 +27,7 @@ export function generateStaticParams() {
 
 export default async function PartDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (getDataSourceConfig().mode === "persistent-api") return <AppShell><PageHeader eyebrow="Part 360" title="Persistent Part" description="Part details are loaded from PostgreSQL in the operational workspace." /><div className="rounded border border-border bg-panel p-5 text-sm">This legacy static detail path is disabled in persistent staging. <Link className="font-semibold text-accent" href={`/parts/?id=${encodeURIComponent(id)}`}>Open the persistent Part record</Link>.</div></AppShell>;
   const part = getPart(id);
   const part360 = getPart360ReadModel(part.id);
   const documents = getEntityDocumentReadModel("part", part.id);

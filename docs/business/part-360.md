@@ -1,5 +1,7 @@
 # Part 360
 
+Persistent staging uses the query-addressable `/parts/?id=<uuid>` workspace backed only by core PostgreSQL Part and Stock endpoints. Search covers display/normalized PN, description, manufacturer, ATA, aircraft and alternates; status filtering, deterministic sorting, URL state, reset, empty/error/loading states and 20-row pagination are operational. RFQ, Quotes, PO, SO and Documents are explicitly empty workflow boundaries; sample-linked rows are not displayed. Legacy static `/parts/<fixture-id>/` pages direct users to the persistent workspace rather than rendering fixture details.
+
 Last updated: 2026-07-07
 
 ## Scope

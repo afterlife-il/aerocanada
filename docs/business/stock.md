@@ -1,5 +1,7 @@
 # Stock 360 and Company Inventory
 
+Persistent staging uses `/stock/internal/?id=<uuid>` backed only by core PostgreSQL Stock and Part endpoints. Search, status, zero/non-zero quantity, sorting, URL state, reset, empty/error/loading states and 20-row pagination are operational. Each row and detail is labelled Imported or Manual/staging from its legacy reference. The UI states `Legacy stock migration not yet completed` and presents Documents, commercial orders and service workflows as boundaries with no fixture rows. Legacy static detail paths no longer render fixture Stock in persistent mode.
+
 Last updated: 2026-07-02
 
 ## Scope

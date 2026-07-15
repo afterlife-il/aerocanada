@@ -156,6 +156,8 @@ Migration 006 and API `ae5a2c9` are deployed for encrypted TOTP enrollment, shor
 
 OAuth/OIDC configuration status and state/nonce/PKCE-S256 request primitives are deployed for Google, Microsoft, Apple and LinkedIn. Public acceptance returned four providers, zero configured and four exact disabled messages; password login remained 200. Callback/token exchange, account linking and provider-subject persistence are not activated because external credentials are unavailable. No LinkedIn scraping or unofficial invitation automation exists.
 
+The public Part and Stock pages are locally replaced with PostgreSQL-only operational workspaces: query-addressable details, URL-state search/filter/sort/reset/pagination, loading/error/empty states, source labels and explicit legacy-Stock/workflow boundaries. Persistent mode no longer renders fixture Part/Stock details or consumes sample `/360` adapters. Focused web deployment is pending.
+
 The public Company failure was traced to an unauthenticated 401 combined with retained pre-rendered fixtures. The deployed correction removes fixture initialization and serialization from persistent mode, clears rows after failure, provides sign-in/retry actions and safe correlation references, and keeps explicit sample mode separate. Public login, PostgreSQL Company reads, unauthorized handling and no-fixture HTML passed. Web is `98a9076`; API is `3994fb2`.
 
 ## Yoyamic migration gate — 2026-07-15

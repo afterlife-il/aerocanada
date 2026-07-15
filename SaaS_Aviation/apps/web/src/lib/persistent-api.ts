@@ -36,7 +36,10 @@ export interface ApiPart {
   id: string;
   tenantId: string;
   partNumber: string;
+  normalizedPartNumber: string;
   description: string;
+  manufacturer?: string; manufacturerCode?: string; ata?: string; ipc?: string; aircraft?: string[];
+  status: "active" | "inactive"; alternates: string[]; legacyId?: string; updatedAt: string;
 }
 
 export interface ApiStock {
@@ -44,10 +47,12 @@ export interface ApiStock {
   tenantId: string;
   partId: string;
   quantity: number;
+  serialNumber?: string; condition?: string; releaseType?: string; status: string; locationText?: string;
   ownerCompanyId?: string;
   supplierCompanyId?: string;
   tagInfoCompanyId?: string;
   traceabilityCompanyId?: string;
+  acquisitionCost?: number; quotedValue?: number; currency?: string; legacyId?: string; updatedAt: string;
 }
 
 export class PersistentApiError extends Error {
@@ -127,6 +132,7 @@ export const persistentApi = {
   listParts(config?: DataSourceConfig) {
     return request<ApiPart[]>("/v1/parts", {}, config);
   },
+  getPart(id: string, config?: DataSourceConfig) { return request<ApiPart>(`/v1/parts/${id}`, {}, config); },
   createPart(input: Record<string, unknown>, config?: DataSourceConfig) {
     return request<ApiPart>("/v1/parts", { method: "POST", body: JSON.stringify(input) }, config);
   },
@@ -136,6 +142,7 @@ export const persistentApi = {
   listStock(config?: DataSourceConfig) {
     return request<ApiStock[]>("/v1/stock", {}, config);
   },
+  getStock(id: string, config?: DataSourceConfig) { return request<ApiStock>(`/v1/stock/${id}`, {}, config); },
   createStock(input: Record<string, unknown>, config?: DataSourceConfig) {
     return request<ApiStock>("/v1/stock", { method: "POST", body: JSON.stringify(input) }, config);
   }

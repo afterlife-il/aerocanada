@@ -291,3 +291,15 @@ test("static CTO admin route ships only safe Basic Auth config", () => {
   assert.equal(htaccess.includes("Yoyamic"), false);
   assert.equal(htaccess.includes("cto:"), false);
 });
+
+test("public Part and Stock workspaces use persistent APIs without fixture adapters", () => {
+  const partPage = readFileSync(new URL("../app/parts/page.tsx", import.meta.url), "utf8");
+  const stockPage = readFileSync(new URL("../app/stock/internal/page.tsx", import.meta.url), "utf8");
+  const partWorkspace = readFileSync(new URL("../components/modules/persistent-part-workspace.tsx", import.meta.url), "utf8");
+  const stockWorkspace = readFileSync(new URL("../components/modules/persistent-stock-workspace.tsx", import.meta.url), "utf8");
+  assert.equal(partPage.includes("@/lib/data"), false); assert.equal(partPage.includes("@/lib/part-stock"), false);
+  assert.equal(stockPage.includes("@/lib/data"), false); assert.equal(stockPage.includes("@/lib/part-stock"), false);
+  assert.match(partWorkspace, /persistentApi\.listParts/); assert.match(partWorkspace, /persistentApi\.listStock/);
+  assert.match(stockWorkspace, /persistentApi\.listStock/); assert.match(stockWorkspace, /Legacy stock migration not yet completed/);
+  assert.equal(partWorkspace.includes("getPart360ReadModel"), false); assert.equal(stockWorkspace.includes("getStock360ReadModel"), false);
+});

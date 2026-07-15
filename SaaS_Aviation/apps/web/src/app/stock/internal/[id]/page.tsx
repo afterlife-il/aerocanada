@@ -10,6 +10,8 @@ import { EntityTimeline } from "@/components/ui/entity-timeline";
 import { data, getStock } from "@/lib/data";
 import { getEntityDocumentReadModel } from "@/lib/documents";
 import { getStock360ReadModel } from "@/lib/part-stock";
+import { getDataSourceConfig } from "@/lib/data-source-mode";
+import Link from "next/link";
 
 export const dynamicParams = false;
 
@@ -19,6 +21,7 @@ export function generateStaticParams() {
 
 export default async function StockDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (getDataSourceConfig().mode === "persistent-api") return <AppShell><PageHeader eyebrow="Stock 360" title="Persistent Stock" description="Stock details are loaded from PostgreSQL in the operational workspace." /><div className="rounded border border-border bg-panel p-5 text-sm">This legacy static detail path is disabled in persistent staging. <Link className="font-semibold text-accent" href={`/stock/internal/?id=${encodeURIComponent(id)}`}>Open the persistent Stock record</Link>.</div></AppShell>;
   const stock = getStock(id);
   const stock360 = getStock360ReadModel(stock.id);
   const documents = getEntityDocumentReadModel("stock", stock.id);
