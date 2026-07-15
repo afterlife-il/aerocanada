@@ -1,6 +1,6 @@
 # Migration Strategy
 
-Status: explicit local migration runner and hardened read-only import foundation.
+Status: explicit migration runner, live read-only Yoyamic audit, and migration-control schema validated locally; full import not approved.
 
 ## Direction
 
@@ -35,6 +35,10 @@ The local PostgreSQL provider is selected only when `PERSISTENCE_PROVIDER=postgr
 - Deterministic legacy mapping records with optional source-row checksums.
 - Reconciliation summaries over dry-run anomaly counts.
 
+`apps/api/src/importers/yoyamic-live-audit.ts` adds the controlled live audit path. It requires environment-only connection/report configuration, forces MariaDB `tx_read_only=1`, reads only hard-coded SELECT projections, emits aggregate findings without raw contact data, and blocks full import on manual-review or rejected findings.
+
+Migration 004 adds `import_batches`, `imported_records`, and `import_quarantine`, plus tenant-scoped legacy-ID uniqueness for Companies, Contacts, and Parts. It was applied locally with checksum `3ffbc9b0cbe43ff47fdab39b990278ce65c50068546e444e6da5c2a84850e0f4`; PostgreSQL tests passed with zero skips. It has not yet been applied to persistent staging.
+
 ## Reconciliation Checks
 
 Implemented dry-run checks include:
@@ -49,8 +53,6 @@ Implemented dry-run checks include:
 - invalid quantity
 - missing condition
 
-## Next Step
+## Current gate
 
-Provision an isolated development/test PostgreSQL database, set `TEST_DATABASE_URL`, run `npm run migrate:apply`, then run the PostgreSQL integration tests. Do not point this provider at Yoyamic or any live customer database.
-
-After PostgreSQL proof is available, the next migration-adapter step is to add a real MySQL read implementation behind `YoyamicReadonlySource` using read-only credentials, server-side statement timeout, and the existing query plans. Do not run a live import until read-only access, mapping review, anomaly thresholds, and rollback/reconciliation procedure are approved.
+Run the live aggregate dry-run into a restricted server report, then design a representative sample that excludes collision groups and orphans. Do not run the full import while Part normalization collisions, Company duplicates, or Contact/detail orphans remain unresolved. Before any sample write, apply migration 004 to staging only after a fresh backup and disk/health checks.

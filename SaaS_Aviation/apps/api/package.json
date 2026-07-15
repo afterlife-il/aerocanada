@@ -9,16 +9,18 @@
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test --loader ts-node/esm src/server.test.ts src/postgres-persistence.test.ts",
+    "test": "node --test --loader ts-node/esm src/server.test.ts src/postgres-persistence.test.ts src/importers/yoyamic-live-audit.test.ts",
     "migrate:status": "tsx src/persistence/migrations.ts status",
     "migrate:apply": "tsx src/persistence/migrations.ts apply",
-    "seed:staging": "tsx src/persistence/seed-staging.ts"
+    "seed:staging": "tsx src/persistence/seed-staging.ts",
+    "import:yoyamic:audit": "tsx src/importers/yoyamic-live-audit.ts"
   },
   "dependencies": {
     "@saas-aviation/shared": "0.1.0",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
+    "mysql2": "^3.23.0",
     "pg": "^8.22.0",
     "zod": "^3.25.67"
   },
