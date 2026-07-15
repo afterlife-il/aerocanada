@@ -9,6 +9,7 @@ import type { AviationErpDataSource, CorePersistence, DocumentOwnerModule } from
 import { getLegacyDataSource } from "./adapters/legacy-mysql-adapter.js";
 import { AuditService } from "./audit/audit-service.js";
 import { createDefaultAuthProvider, type AuthProvider } from "./auth/auth-provider.js";
+import { oauthProviderStatuses } from "./auth/oauth-providers.js";
 import { requirePermission, requireSession, sessionCredential } from "./auth/route-guard.js";
 import { openApiDocument } from "./openapi/openapi.js";
 import { createCorePersistenceProvider } from "./persistence/provider.js";
@@ -127,6 +128,10 @@ export function createApp(dependencies: AppDependencies = {}) {
 
   app.get("/openapi.json", (_req, res) => {
     res.json(openApiDocument);
+  });
+
+  app.get("/v1/auth/providers", (_req, res) => {
+    res.json({ data: oauthProviderStatuses() });
   });
 
   app.post(

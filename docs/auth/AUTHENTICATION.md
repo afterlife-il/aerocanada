@@ -24,6 +24,8 @@ Phone enrollment normalizes E.164 numbers, expires OTPs after ten minutes, limit
 
 The staging rollout applied migration 006 and recreated only the API. Acceptance used temporary non-enabled factors, verified a phone challenge from the container-private spool, then deleted the factor, challenge and spool record. The owner account remained `mfa_enabled=false`. TOTP/recovery behavior is covered by the zero-skip PostgreSQL suite; owner enrollment remains an explicit user decision.
 
+External identity-provider configuration and its current limitations are documented in `docs/auth/OAUTH_PROVIDERS.md`.
+
 ## Staging validation
 
 On 2026-07-15 migration 005 was applied to the dedicated staging PostgreSQL database after a root-only backup. Public acceptance proved password login, cookie-authenticated session lookup, CSRF rejection and acceptance, disposable Company create/delete, session continuity after an API container restart, persisted logout, and unauthorized access after logout. The WAF requires an explicit zero-length body for empty POST requests; the browser client supplies this through `fetch`. No credential value was printed or committed.

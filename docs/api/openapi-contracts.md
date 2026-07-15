@@ -22,6 +22,7 @@ The first API contract pass covers the existing Express API read routes in `SaaS
 - `POST /v1/auth/mfa/totp/disable`
 - `POST /v1/auth/phone/enroll/request`
 - `POST /v1/auth/phone/enroll/verify`
+- `GET /v1/auth/providers`
 - `GET /v1/session`
 - `GET /v1/companies`
 - `GET /v1/parts`

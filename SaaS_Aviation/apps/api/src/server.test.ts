@@ -8,6 +8,7 @@ import { SampleDataSource } from "./adapters/sample-data-source.js";
 import { InMemoryAuthProvider, requestContextFromSession } from "./auth/auth-provider.js";
 import type { AuthProvider } from "./auth/auth-provider.js";
 import { createApp } from "./server.js";
+import { createOAuthAuthorizationRequest, oauthProviderStatuses, validateOAuthValue } from "./auth/oauth-providers.js";
 import { openApiDocument } from "./openapi/openapi.js";
 import { InMemoryCorePersistence } from "./persistence/core-memory-repository.js";
 import { dryRunYoyamicCoreImport, type LegacyYoyamicSnapshot } from "./importers/yoyamic-core-importer.js";
@@ -523,4 +524,22 @@ test("API returns a safe correlation ID and preserves valid client IDs", async (
     const response = await fetch(`http://127.0.0.1:${address.port}/health`, { headers: { "X-Correlation-ID": "web-safe-123" } });
     assert.equal(response.headers.get("X-Correlation-ID"), "web-safe-123");
   } finally { server.close(); }
+});
+
+test("OAuth providers remain truthful when disabled and authorization requests use state nonce and PKCE", async () => {
+  const statuses = oauthProviderStatuses({});
+  assert.equal(statuses.length, 4);
+  assert.equal(statuses.every((provider) => !provider.configured && provider.message === "Not configured for this staging environment"), true);
+  const request = createOAuthAuthorizationRequest("google", "client-id", "https://aviation.ready2go.aero/api/v1/auth/oauth/google/callback");
+  const url = new URL(request.authorizationUrl);
+  assert.equal(url.searchParams.get("state"), request.state);
+  assert.equal(url.searchParams.get("nonce"), request.nonce);
+  assert.equal(url.searchParams.get("code_challenge_method"), "S256");
+  assert.notEqual(url.searchParams.get("code_challenge"), request.codeVerifier);
+  assert.equal(validateOAuthValue(request.state, request.state), true);
+  assert.equal(validateOAuthValue(request.state, `${request.state}x`), false);
+  const app = createApp();
+  const response = await httpRequest(app, "GET", "/v1/auth/providers");
+  assert.equal(response.status, 200);
+  assert.equal((response.body as { data: Array<{ configured: boolean }> }).data.every((provider) => !provider.configured), true);
 });

@@ -30,6 +30,7 @@ export interface ApiCompanyActivity { id: string; category: string; action: stri
 export interface ApiWorkflowBoundary { category: string; status: "boundary"; companyId: string; futureOwner: string; requiredData: string[]; contextChecks: string[]; persistence: "none"; }
 export interface ApiCompany360 { company: ApiCompany; contacts: ApiContact[]; addresses: ApiCompanyAddress[]; inventory: ApiStock[]; documents: { persistent: false; source: "workflow-boundary"; documents: [] }; activity: ApiCompanyActivity[]; workflowBoundaries: ApiWorkflowBoundary[]; }
 export interface ApiCompanyPage { rows: ApiCompany[]; pagination: { page: number; pageSize: number; totalRows: number; totalPages: number }; }
+export type LoginResult = { session: AuthSession } | { mfaRequired: true; challengeId: string; methods: Array<"totp" | "recovery">; expiresAt: string };
 
 export interface ApiPart {
   id: string;
@@ -89,10 +90,13 @@ async function request<T>(path: string, init: RequestInit = {}, config: DataSour
 
 export const persistentApi = {
   async login(email: string, password: string, config?: DataSourceConfig) {
-    const result = await request<{ session: AuthSession }>("/v1/auth/login", { method: "POST", body: JSON.stringify({ email: email.trim(), password }) }, config);
-    if (!result.session.token) throw new PersistentApiError("Login response did not contain a session token.", 502, result, "login-response");
+    const result = await request<LoginResult>("/v1/auth/login", { method: "POST", body: JSON.stringify({ email: email.trim(), password }) }, config);
+    if ("session" in result && !result.session.token) throw new PersistentApiError("Login response did not contain a session token.", 502, result, "login-response");
     if (typeof window !== "undefined") window.localStorage.removeItem("saas_api_token");
     return result;
+  },
+  completeMfa(challengeId: string, code: string, config?: DataSourceConfig) {
+    return request<{ session: AuthSession }>("/v1/auth/mfa/challenge", { method: "POST", body: JSON.stringify({ challengeId, code: code.trim() }) }, config);
   },
   async logout(config?: DataSourceConfig) {
     try { return await request<{ loggedOut: true }>("/v1/auth/logout", { method: "POST" }, config); }

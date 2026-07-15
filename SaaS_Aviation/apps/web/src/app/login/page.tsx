@@ -1,7 +1,7 @@
 import { currentSession } from "@/lib/data";
 import { PersistentLoginForm } from "@/components/modules/persistent-login-form";
 
-const providers = ["Google", "LinkedIn", "Microsoft", "Apple"];
+const providers = ["Google", "Microsoft", "Apple", "LinkedIn"];
 
 export default function LoginPage() {
   return (
@@ -24,7 +24,7 @@ export default function LoginPage() {
             </div>
             <div className="rounded-md border border-border bg-panel px-3 py-3">
               <div className="text-xs text-muted">MFA</div>
-              <div className="mt-1 text-sm font-semibold">Planned</div>
+              <div className="mt-1 text-sm font-semibold">Supported</div>
             </div>
           </div>
         </div>
@@ -41,16 +41,17 @@ export default function LoginPage() {
           <PersistentLoginForm />
 
           <div className="mt-5 border-t border-border pt-4">
-            <div className="text-xs font-semibold text-muted">Provider-ready</div>
+            <div className="text-xs font-semibold text-muted">External identity providers</div>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {providers.map((provider) => (
                 <button
                   key={provider}
-                  className="h-9 rounded-md border border-border bg-background px-3 text-sm font-semibold text-muted"
+                  className="min-h-12 rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-muted"
                   type="button"
                   disabled
                 >
-                  {provider}
+                  <span className="block">{provider}</span>
+                  <span className="block text-[10px] font-normal">Not configured for this staging environment</span>
                 </button>
               ))}
             </div>

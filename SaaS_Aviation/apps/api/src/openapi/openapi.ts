@@ -147,6 +147,9 @@ export const openApiDocument = {
         }
       }
     },
+    "/v1/auth/providers": {
+      get: { tags: ["Session"], operationId: "listOAuthProviders", summary: "List safe external-provider configuration status", responses: { "200": { description: "Provider names and configured states; no secret values." } } }
+    },
     "/v1/auth/mfa/challenge": {
       post: { tags: ["Session"], operationId: "completeMfaChallenge", summary: "Complete a pending TOTP or recovery-code login challenge", responses: { "200": { description: "Session created." }, "401": { $ref: "#/components/responses/Unauthorized" } } }
     },

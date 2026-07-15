@@ -154,6 +154,8 @@ Persistent authentication is deployed through migration 005: tenant-bound users,
 
 Migration 006 and API `ae5a2c9` are deployed for encrypted TOTP enrollment, short-lived MFA login challenges, hashed one-use recovery codes, and E.164 phone enrollment with expiry, five-attempt limits and resend cooldown. The staging delivery adapter writes codes only to a configured container-private mode-0600 spool; it has no universal code and exposes no OTP in API responses or logs. PostgreSQL passed 22/22 with zero skips. Public non-enabling acceptance passed and removed all temporary factors; no MFA factor is enabled on the staging owner account, and no production SMS provider is configured.
 
+OAuth/OIDC configuration status and state/nonce/PKCE-S256 request primitives are implemented locally for Google, Microsoft, Apple and LinkedIn. The login UI supports MFA challenge entry and labels all external providers as not configured. Callback/token exchange, account linking and provider-subject persistence are not activated because external credentials are unavailable. No LinkedIn scraping or unofficial invitation automation exists. Focused API/web deployment is pending.
+
 The public Company failure was traced to an unauthenticated 401 combined with retained pre-rendered fixtures. The deployed correction removes fixture initialization and serialization from persistent mode, clears rows after failure, provides sign-in/retry actions and safe correlation references, and keeps explicit sample mode separate. Public login, PostgreSQL Company reads, unauthorized handling and no-fixture HTML passed. Web is `98a9076`; API is `3994fb2`.
 
 ## Yoyamic migration gate — 2026-07-15

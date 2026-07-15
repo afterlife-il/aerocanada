@@ -11,8 +11,8 @@ Last updated: 2026-07-15
 - Current branch: `main`
 - Current HEAD: `47fd95c` before this documentation commit
 - Origin HEAD: `47fd95c` before this documentation commit
-- Current module: TOTP/recovery-code and provider-abstracted phone OTP foundation deployed to staging
-- Next module: implement OAuth/OIDC provider architecture and truthful disabled states
+- Current module: OAuth/OIDC configuration, safe authorization primitives, truthful disabled UI and MFA challenge UI implemented locally; focused API/web rollout pending
+- Next module: deploy provider status and login UI, then continue Company/Part/Stock operationalization; external callback activation is blocked on provider credentials
 - Docker status: Docker Desktop 29.6.1, Linux/WSL2 engine running
 - PostgreSQL status: local PostgreSQL 16 healthy at `127.0.0.1:55432`; migrations 001-006 applied locally and to dedicated staging PostgreSQL
 - Frontend status: static/sample-backed public frontend unchanged; local `persistent-api` Company workspace implemented; production build passed
