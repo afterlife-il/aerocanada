@@ -49,10 +49,10 @@
       "scope": "PostgreSQL Company identity, Company/Contact/Address CRUD, search/filter/sort/pagination, related inventory, persisted activity, aligned local login contract, normalized UI forms, and explicit non-persistent Documents/commercial boundaries",
       "completion_status": "staging_candidate_after_remaining_auth_and_operational_prerequisites",
       "finished_work": "Phase 1.1 login contract, logout clearing, form normalization, Contact/Address editing, aggregate truthfulness, workflow boundaries, OpenAPI, tests, and documentation",
-      "remaining_work": "public DNS/TLS, visual browser review, persistent users/sessions, production identity/password handling, MFA, rate limiting, secure session strategy, persistent Documents, commercial modules, monitoring, and secret management",
+      "remaining_work": "visual browser review, Part/Stock DELETE API routes, persistent users/sessions, production identity/password handling, MFA, rate limiting, secure session strategy, persistent Documents, commercial modules, monitoring, and secret management",
       "known_blockers": "interactive browser control unavailable; production auth and operational prerequisites intentionally out of scope",
       "next_recommended_task": "complete interactive browser acceptance when tooling is available, then design persistent authentication/session prerequisites",
-      "validation_performed": "migrations 001-003 idempotent; PostgreSQL 15/15 no skips; staging login and CRUD; restart persistence; tenant isolation; restore; public DNS/TLS; pages/API/OpenAPI/assets; authenticated persisted Company/Part/Stock reads; protected systems health",
+      "validation_performed": "migrations 001-003 idempotent; PostgreSQL 15/15 no skips; public DNS/TLS/routes; login; Company/Contact/Address create-read-update-delete; Part/Stock create-read-update and quantity zero; targeted cleanup with zero residue; protected systems health",
       "deployment_status": "isolated persistent staging publicly available over verified HTTPS",
       "commit_reference": "Harden Company 360 persistent workflows"
     },
@@ -259,6 +259,6 @@
     "schema_changes": "migrations_001_003_deployed_to_dedicated_staging_postgres_only"
   },
   "current_sprint": "Company 360 Production Hardening Phase 1.1",
-  "last_completed_task": "Activated public DNS and Let's Encrypt HTTPS for aviation.ready2go.aero; verified public routes, API/OpenAPI/assets, login and persisted Company/Part/Stock reads. Browser control remained unavailable; protected systems including neo.ready2go.aero were unchanged.",
+  "last_completed_task": "Revalidated public DNS, TLS, routes, containers and neo.ready2go.aero; passed public persistent Company/Contact/Address CRUD and Part/Stock create-read-update. Part/Stock DELETE routes remain unimplemented; targeted acceptance cleanup left zero residue.",
   "next_recommended_task": "Complete interactive browser acceptance when tooling is available, then implement persistent authentication/session and production security prerequisites."
 }

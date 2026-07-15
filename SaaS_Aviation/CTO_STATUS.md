@@ -92,7 +92,7 @@ without another manual update.
 | Build | passing |
 | Last checked | `2026-07-14T19:00:00+03:00` |
 
-The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 passed, 0 failed, and 0 skipped. Public HTTPS routes, API/OpenAPI/assets, login, and persisted Company/Part/Stock reads passed on 2026-07-15. Visual browser automation was unavailable and was not counted as passing.
+The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 passed, 0 failed, and 0 skipped. Public HTTPS routes, API/OpenAPI/assets, login, Company/Contact/Address create-read-update-delete, and Part/Stock create-read-update with quantity zero passed on 2026-07-15. Part/Stock DELETE API routes do not exist; targeted database cleanup removed the acceptance records and verified zero residue. Visual browser automation was unavailable and was not counted as passing.
 
 ## Security Status
 
@@ -125,8 +125,8 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 | Authentication | Foundation | 35% | `5372dc2` | Not reviewed | Not deployed | Persistent session/audit store, MFA, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
 | Company 360 | Persistent staging foundation; not production-ready | 90% | `c667f284` | PostgreSQL 15/15; CRUD/restart/tenant/restore/public HTTPS/login/read passed; browser unavailable | Public persistent staging active | Persistent auth/session and operational prerequisites |
-| Part 360 | Workspace + persistent Part CRUD foundation | 75% | `c667f284` | Server create/read/update passed | Persistent staging deployed | Continue persistent Auth/Tenant/audit design |
-| Stock 360 | Persistent Stock CRUD foundation | 60% | `c667f284` | Server create/read/update, quantity 0 and independent company roles passed | Persistent staging deployed | Continue persistent Auth/Tenant/audit design |
+| Part 360 | Workspace + persistent Part create/read/update foundation | 75% | `c667f284` | Public create/read/update passed; DELETE API missing | Persistent staging deployed | Implement authorized DELETE with dependency rules |
+| Stock 360 | Persistent Stock create/read/update foundation | 60% | `c667f284` | Public create/read/update and quantity 0 passed; DELETE API missing | Persistent staging deployed | Implement authorized DELETE and audit rules |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Use hardened read-only Yoyamic adapter plans for future mapping |
 | Documents | In progress | 40% | `088e9d8` | `46f6e72`, `f14ddd4` reviewed; `088e9d8` pending | Static UI on staging; API runtime not deployed | Review `088e9d8`; hold Phase 2 for persistent audit + API deploy |
 | Warehouse | Architecture documented | 10% | local pending commit | Not reviewed | Not deployed | Review `docs/architecture/warehouse.md`; no production code implemented |
