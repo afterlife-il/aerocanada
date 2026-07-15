@@ -11,10 +11,12 @@ import { CoreDomainError } from "@saas-aviation/shared";
 import type { AuthSession, Permission, RequestContext } from "@saas-aviation/shared";
 import { sampleRequestContext, sampleTenants, sampleUsers } from "@saas-aviation/shared";
 import type { AuthProvider } from "./auth/auth-provider.js";
+import { PostgresAuthProvider } from "./auth/postgres-auth-provider.js";
 import { createApp } from "./server.js";
 import { applyMigrations, getMigrationStatus } from "./persistence/migrations.js";
 import type { PostgresConfig } from "./persistence/config.js";
 import { PostgresCorePersistence } from "./persistence/postgres-core-repository.js";
+import { InMemoryCorePersistence } from "./persistence/core-memory-repository.js";
 
 const { Pool } = pg;
 const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -305,5 +307,67 @@ test(
     } finally {
       await isolated.cleanup();
     }
+  }
+);
+
+test(
+  "PostgreSQL authentication hashes passwords, persists sessions, validates CSRF and locks repeated failures",
+  { skip: databaseUrl ? false : "Set TEST_DATABASE_URL or DATABASE_URL to run PostgreSQL integration tests." },
+  async () => {
+    assert.ok(databaseUrl);
+    const isolated = await createIsolatedSchema(databaseUrl);
+    const pool = new Pool({ connectionString: isolated.config.connectionString });
+    const env = { ...process.env, STAGING_ADMIN_EMAIL: "persistent-auth@example.test", STAGING_ADMIN_PASSWORD: "Persistent-Test-Password-2026!" };
+    try {
+      await applyMigrations({ provider: "postgres", postgres: isolated.config });
+      await pool.query("INSERT INTO tenants (id,name,slug,status,code) VALUES ('tenant-aci','AeroCanada','AeroCanada','active','aci770')");
+      const auth = new PostgresAuthProvider(isolated.config, env);
+      const loggedIn = await auth.authenticateWithPassword(env.STAGING_ADMIN_EMAIL, env.STAGING_ADMIN_PASSWORD);
+      assert.ok(loggedIn?.token);
+      assert.ok(loggedIn?.csrfToken);
+      const credential = `Bearer ${loggedIn.token}`;
+      assert.equal((await auth.getCurrentSession(credential))?.user.email, env.STAGING_ADMIN_EMAIL);
+      assert.equal(await auth.validateCsrf(loggedIn.token, loggedIn.csrfToken), true);
+      assert.equal(await auth.validateCsrf(loggedIn.token, "wrong-csrf"), false);
+      const credentialRow = await pool.query<{ algorithm: string; password_hash: string }>("SELECT algorithm,password_hash FROM auth_credentials");
+      assert.equal(credentialRow.rows[0]?.algorithm, "scrypt-v1");
+      assert.notEqual(credentialRow.rows[0]?.password_hash, env.STAGING_ADMIN_PASSWORD);
+      await auth.close();
+
+      const restarted = new PostgresAuthProvider(isolated.config, env);
+      assert.equal((await restarted.getCurrentSession(credential))?.user.email, env.STAGING_ADMIN_EMAIL);
+      const authApp = createApp({ auth: restarted, corePersistence: new InMemoryCorePersistence() });
+      const authServer = authApp.listen(0, "127.0.0.1");
+      await new Promise<void>((resolve) => authServer.once("listening", resolve));
+      try {
+        const { port } = authServer.address() as AddressInfo;
+        const loginResponse = await fetch(`http://127.0.0.1:${port}/v1/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: env.STAGING_ADMIN_EMAIL, password: env.STAGING_ADMIN_PASSWORD }) });
+        assert.equal(loginResponse.status, 200);
+        const setCookie = loginResponse.headers.get("set-cookie") ?? "";
+        assert.match(setCookie, /saas_session=.*HttpOnly.*Secure.*SameSite=Strict/i);
+        const sessionCookie = setCookie.match(/saas_session=([^;]+)/)?.[1];
+        const csrfCookie = setCookie.match(/saas_csrf=([^;]+)/)?.[1];
+        assert.ok(sessionCookie && csrfCookie);
+        const cookie = `saas_session=${sessionCookie}; saas_csrf=${csrfCookie}`;
+        assert.equal((await fetch(`http://127.0.0.1:${port}/v1/companies`, { headers: { Cookie: cookie } })).status, 200);
+        assert.equal((await fetch(`http://127.0.0.1:${port}/v1/companies`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({ name: "CSRF blocked" }) })).status, 403);
+        assert.equal((await fetch(`http://127.0.0.1:${port}/v1/companies`, { method: "POST", headers: { Cookie: cookie, "X-CSRF-Token": decodeURIComponent(csrfCookie), "Content-Type": "application/json" }, body: JSON.stringify({ name: "CSRF accepted" }) })).status, 201);
+      } finally { await new Promise<void>((resolve, reject) => authServer.close((error) => error ? reject(error) : resolve())); }
+      await restarted.revokeSession(loggedIn.token);
+      assert.equal(await restarted.getCurrentSession(credential), null);
+      const sessionA = await restarted.authenticateWithPassword(env.STAGING_ADMIN_EMAIL, env.STAGING_ADMIN_PASSWORD);
+      const sessionB = await restarted.authenticateWithPassword(env.STAGING_ADMIN_EMAIL, env.STAGING_ADMIN_PASSWORD);
+      assert.ok(sessionA && sessionB);
+      await restarted.revokeAllSessions(sessionA.user.id, sessionA.tenant.id);
+      assert.equal(await restarted.getCurrentSession(`Bearer ${sessionA.token}`), null);
+      assert.equal(await restarted.getCurrentSession(`Bearer ${sessionB.token}`), null);
+      for (let attempt = 0; attempt < 5; attempt++) assert.equal(await restarted.authenticateWithPassword(env.STAGING_ADMIN_EMAIL, "wrong-password"), null);
+      assert.equal(await restarted.authenticateWithPassword(env.STAGING_ADMIN_EMAIL, env.STAGING_ADMIN_PASSWORD), null);
+      const state = await pool.query<{ failed_attempts: number; locked: boolean }>("SELECT failed_attempts,locked_until>now() locked FROM auth_users");
+      assert.equal(state.rows[0]?.failed_attempts, 5);
+      assert.equal(state.rows[0]?.locked, true);
+      assert.equal(Number((await pool.query("SELECT count(*) FROM auth_audit_events")).rows[0]?.count) >= 7, true);
+      await restarted.close();
+    } finally { await pool.end(); await isolated.cleanup(); }
   }
 );

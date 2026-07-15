@@ -39,6 +39,8 @@ The local PostgreSQL provider is selected only when `PERSISTENCE_PROVIDER=postgr
 
 Migration 004 adds `import_batches`, `imported_records`, and `import_quarantine`, plus tenant-scoped legacy-ID uniqueness for Companies, Contacts, and Parts. It was applied locally with checksum `3ffbc9b0cbe43ff47fdab39b990278ce65c50068546e444e6da5c2a84850e0f4`; PostgreSQL tests passed with zero skips. It has not yet been applied to persistent staging.
 
+Migration 005 adds persistent authentication users, scrypt credentials, sessions and authentication audit events. Its local checksum is `80ff5c77057b0a98be65d278fa31f899c24811cc92742baba55629d1130946f2`; staging application is pending a fresh backup and disk gate.
+
 ## Reconciliation Checks
 
 Implemented dry-run checks include:

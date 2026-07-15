@@ -147,6 +147,19 @@ export const openApiDocument = {
         }
       }
     },
+    "/v1/auth/revoke-all": {
+      post: {
+        tags: ["Session"],
+        operationId: "revokeAllSessions",
+        summary: "Revoke every active session for the current tenant user",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "All sessions revoked." },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "403": { description: "CSRF validation failed for cookie authentication." }
+        }
+      }
+    },
     "/v1/companies/{id}": {
       get: {
         tags: ["Companies"],

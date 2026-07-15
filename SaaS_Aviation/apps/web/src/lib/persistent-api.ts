@@ -66,11 +66,12 @@ async function request<T>(path: string, init: RequestInit = {}, config: DataSour
   const correlationId = globalThis.crypto?.randomUUID?.() ?? `web-${Date.now()}`;
   const response = await fetch(`${config.apiBaseUrl}${path}`, {
     ...init,
+    credentials: "same-origin",
     headers: {
       Accept: "application/json",
       "X-Correlation-ID": correlationId,
       ...(init.body ? { "Content-Type": "application/json" } : {}),
-      ...(typeof window !== "undefined" && window.localStorage.getItem("saas_api_token") ? { Authorization: `Bearer ${window.localStorage.getItem("saas_api_token")}` } : {}),
+      ...(!["GET", "HEAD"].includes(init.method ?? "GET") && typeof document !== "undefined" ? { "X-CSRF-Token": document.cookie.split(";").map((item) => item.trim()).find((item) => item.startsWith("saas_csrf="))?.slice("saas_csrf=".length) ?? "" } : {}),
       ...init.headers
     }
   });
@@ -90,7 +91,7 @@ export const persistentApi = {
   async login(email: string, password: string, config?: DataSourceConfig) {
     const result = await request<{ session: AuthSession }>("/v1/auth/login", { method: "POST", body: JSON.stringify({ email: email.trim(), password }) }, config);
     if (!result.session.token) throw new PersistentApiError("Login response did not contain a session token.", 502, result, "login-response");
-    if (typeof window !== "undefined") window.localStorage.setItem("saas_api_token", result.session.token);
+    if (typeof window !== "undefined") window.localStorage.removeItem("saas_api_token");
     return result;
   },
   async logout(config?: DataSourceConfig) {

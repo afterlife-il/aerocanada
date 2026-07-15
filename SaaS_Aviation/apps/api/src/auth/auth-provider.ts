@@ -1,6 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import { sampleTenants, sampleUsers } from "@saas-aviation/shared";
 import type { AuthSession, AuthUserRecord, Permission, RequestContext, Role, Tenant, User } from "@saas-aviation/shared";
+import { getPersistenceConfig } from "../persistence/config.js";
+import { PostgresAuthProvider } from "./postgres-auth-provider.js";
 
 export interface AuthenticatedUser {
   id: string;
@@ -16,6 +18,8 @@ export interface AuthProvider {
   authenticateWithPassword(email: string, password: string): Promise<AuthSession | null>;
   getCurrentSession(token?: string): Promise<AuthSession | null>;
   revokeSession(token: string): Promise<void>;
+  revokeAllSessions?(userId: string, tenantId: string): Promise<void>;
+  validateCsrf?(token: string, csrfToken: string): Promise<boolean>;
   createLoginAuditEvent(user: AuthenticatedUser): Promise<void>;
 }
 
@@ -117,8 +121,10 @@ export class InMemoryAuthProvider implements AuthProvider {
   }
 }
 
-export function createDefaultAuthProvider(env: NodeJS.ProcessEnv = process.env): InMemoryAuthProvider {
+export function createDefaultAuthProvider(env: NodeJS.ProcessEnv = process.env): AuthProvider {
   if (env.NODE_ENV !== "production") return new InMemoryAuthProvider();
+  const persistence = getPersistenceConfig(env);
+  if (persistence.provider === "postgres" && persistence.postgres) return new PostgresAuthProvider(persistence.postgres, env);
   const password = env.STAGING_ADMIN_PASSWORD;
   if (!password || password.length < 16) {
     throw new Error("STAGING_ADMIN_PASSWORD with at least 16 characters is required in production staging.");

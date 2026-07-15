@@ -150,6 +150,8 @@ Company 360 is a deployed persistent staging foundation on PostgreSQL. Phase 1.1
 normalizes forms, completes Contact/Address editing, removes fixture Documents from the persistent aggregate, and
 keeps commercial modules explicit non-persistent boundaries. Auth/sessions remain in-memory; it is not production-ready.
 
+Persistent authentication is implemented locally through migration 005: tenant-bound users, salted scrypt credentials, lockout state, session digests and authentication audit events. Browser cookies are HttpOnly/Secure/SameSite and mutations require CSRF validation. Logout and revoke-all are persisted. PostgreSQL integration passed with zero skips. Staging still runs the prior in-memory auth revision until this focused change is deployed; OTP, TOTP, OAuth, password reset and user administration remain incomplete.
+
 The public Company failure was traced to an unauthenticated 401 combined with retained pre-rendered fixtures. The deployed correction removes fixture initialization and serialization from persistent mode, clears rows after failure, provides sign-in/retry actions and safe correlation references, and keeps explicit sample mode separate. Public login, PostgreSQL Company reads, unauthorized handling and no-fixture HTML passed. Web is `98a9076`; API is `3994fb2`.
 
 ## Yoyamic migration gate — 2026-07-15

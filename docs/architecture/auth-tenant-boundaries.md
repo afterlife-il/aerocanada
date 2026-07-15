@@ -36,8 +36,9 @@ Public API routes:
 - `GET /openapi.json`
 - `POST /v1/auth/login`
 - `POST /v1/auth/logout`
+- `POST /v1/auth/revoke-all`
 - `GET /v1/session`
 
 ## Static Export Boundary
 
-The currently deployed web app is a static export. It can present auth-aware navigation and login UI, but it cannot enforce real sessions by itself. The Express API and future server runtime are the security boundary.
+The web app remains a static export; the Express API is the security boundary. Persistent browser sessions are server-validated against PostgreSQL and use secure cookies plus CSRF validation.

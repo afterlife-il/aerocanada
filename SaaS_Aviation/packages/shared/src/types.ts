@@ -75,6 +75,7 @@ export interface RequestContext {
 
 export interface AuthSession {
   token: string;
+  csrfToken?: string;
   user: User;
   tenant: Tenant;
   expiresAt: string;

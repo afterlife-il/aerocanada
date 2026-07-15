@@ -5,8 +5,8 @@
     "local_head": "72f2a8e before this documentation commit",
     "origin_main": "72f2a8e before this documentation commit",
     "deployment_status": "persistent staging publicly available; focused no-fixture Company web/API correction deployed and HTTP validated; interactive browser acceptance blocked by tooling",
-    "current_module": "Public persistent API and session UX correction",
-    "current_sprint": "Remove persistent fixture ambiguity and add actionable errors"
+    "current_module": "Persistent authentication foundation",
+    "current_sprint": "PostgreSQL users credentials sessions CSRF lockout and audit"
   },
   "documentation_policy": {
     "definition_of_done": true,
@@ -134,7 +134,7 @@
     "persistent_staging_backups": "predeploy-20260715T105420Z; proxy-prechange-20260715T114203Z; staging-20260715T114501Z; pre-import-20260715T140733Z",
     "persistent_staging_certificate": "Lets Encrypt aviation.ready2go.aero; valid 2026-07-15 through 2026-10-13",
     "persistent_staging_public_blocker": "interactive visual browser acceptance unavailable; HTTP/API verification passed",
-    "persistent_staging_auth_limit": "users and bearer sessions remain in memory; API restart requires re-login",
+    "persistent_staging_auth_limit": "deployed runtime remains in-memory until migration 005 and the new API/web are rolled out; local persistent implementation passed",
     "saas_aviation_url": "https://aerocanada-industries.com/SaaS_Aviation/",
     "saas_aviation_target": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation/",
     "saas_aviation_backup": "/var/www/vhosts/aerocanada-industries.com/httpdocs/SaaS_Aviation_backup_20260707_155253",
@@ -263,7 +263,7 @@
     "full_import_gate": "blocked_by_missing_names_normalized_duplicates_orphans_and_duplicate_company_emails",
     "reports": "/opt/ready2go/saas-aviation/migration-reports/20260715T135622Z-dry-run; 20260715T140926Z-sample; 20260715T140954Z-sample-idempotency"
   },
-  "current_sprint": "Public persistent API integration correction",
-  "last_completed_task": "Deployed the focused Company persistent-mode correction. Public HTML has no Company fixtures; login and authenticated PostgreSQL reads passed; unauthorized reads return 401 with actionable UI and correlation IDs.",
-  "next_recommended_task": "Implement persistent authentication/session storage, secure cookies, CSRF, lockout and authentication audit."
+  "current_sprint": "Persistent staging authentication",
+  "last_completed_task": "Implemented migration 005, salted scrypt credentials, tenant-bound persistent sessions, failed-attempt lockout, secure cookie and CSRF handling, logout/revoke-all and authentication audit tests. Deployment is pending.",
+  "next_recommended_task": "Back up staging PostgreSQL, apply migration 005, deploy affected API/web services and prove cookie session persistence across API restart."
 }

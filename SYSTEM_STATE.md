@@ -6,13 +6,13 @@ Last updated: 2026-07-15
 - Product identity: Ready2Go Aviation SaaS platform; initial tenant `aci770`, slug `/AeroCanada`; repository/resource renaming is intentionally deferred
 - Local staging proof: five healthy containers, migrations 001-003, repeat seed, login, OpenAPI, Company 360, and PostgreSQL persistence after API restart
 - Server disk gate: passed; 15,060,852,736 bytes remained after the focused web/API rollout
-- Authentication limitation: staging administrator and bearer sessions remain in memory; re-login is required after API restart
+- Authentication status: persistent PostgreSQL password/session foundation implemented locally; staging deployment pending; OTP/TOTP/OAuth not yet implemented
 
 - Current branch: `main`
 - Current HEAD: `72f2a8e` before this documentation commit
 - Origin HEAD: `72f2a8e` before this documentation commit
 - Current module: public persistent API/session UX correction
-- Next module: persistent password users/sessions, secure cookies, CSRF, lockout and audit
+- Next module: deploy persistent password/session foundation, then implement TOTP/recovery codes and provider-abstracted phone OTP
 - Docker status: Docker Desktop 29.6.1, Linux/WSL2 engine running
 - PostgreSQL status: local PostgreSQL 16 healthy at `127.0.0.1:55432`; migrations 001-004 applied locally and migration 004 applied to dedicated staging PostgreSQL
 - Frontend status: static/sample-backed public frontend unchanged; local `persistent-api` Company workspace implemented; production build passed

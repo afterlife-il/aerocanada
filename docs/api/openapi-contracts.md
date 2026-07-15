@@ -15,6 +15,7 @@ The first API contract pass covers the existing Express API read routes in `SaaS
 - `GET /health`
 - `POST /v1/auth/login`
 - `POST /v1/auth/logout`
+- `POST /v1/auth/revoke-all`
 - `GET /v1/session`
 - `GET /v1/companies`
 - `GET /v1/parts`

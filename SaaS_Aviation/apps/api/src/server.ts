@@ -9,7 +9,7 @@ import type { AviationErpDataSource, CorePersistence, DocumentOwnerModule } from
 import { getLegacyDataSource } from "./adapters/legacy-mysql-adapter.js";
 import { AuditService } from "./audit/audit-service.js";
 import { createDefaultAuthProvider, type AuthProvider } from "./auth/auth-provider.js";
-import { requirePermission, requireSession } from "./auth/route-guard.js";
+import { requirePermission, requireSession, sessionCredential } from "./auth/route-guard.js";
 import { openApiDocument } from "./openapi/openapi.js";
 import { createCorePersistenceProvider } from "./persistence/provider.js";
 
@@ -109,6 +109,17 @@ export function createApp(dependencies: AppDependencies = {}) {
   });
   app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:3007"] }));
   app.use(express.json());
+  app.use(asyncHandler(async (req, res, next) => {
+    if (["GET", "HEAD", "OPTIONS"].includes(req.method) || req.headers.authorization) { next(); return; }
+    const credential = sessionCredential(req);
+    if (!credential) { next(); return; }
+    const sessionToken = credential.replace(/^Bearer\s+/i, "");
+    const csrfToken = req.header("X-CSRF-Token");
+    if (!csrfToken || !auth.validateCsrf || !await auth.validateCsrf(sessionToken, csrfToken)) {
+      res.status(403).json({ error: "csrf_validation_failed" }); return;
+    }
+    next();
+  }));
 
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", service: "saas-aviation-api" });
@@ -134,6 +145,8 @@ export function createApp(dependencies: AppDependencies = {}) {
         return;
       }
 
+      res.cookie("saas_session", session.token, { httpOnly: true, secure: true, sameSite: "strict", path: "/", expires: new Date(session.expiresAt) });
+      if (session.csrfToken) res.cookie("saas_csrf", session.csrfToken, { httpOnly: false, secure: true, sameSite: "strict", path: "/", expires: new Date(session.expiresAt) });
       res.json({ data: { session } });
     })
   );
@@ -141,19 +154,35 @@ export function createApp(dependencies: AppDependencies = {}) {
   app.post(
     "/v1/auth/logout",
     asyncHandler(async (req, res) => {
-      const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+      const token = sessionCredential(req)?.replace(/^Bearer\s+/i, "");
       if (token) {
         await auth.revokeSession(token);
       }
 
+      res.clearCookie("saas_session", { httpOnly: true, secure: true, sameSite: "strict", path: "/" });
+      res.clearCookie("saas_csrf", { httpOnly: false, secure: true, sameSite: "strict", path: "/" });
       res.json({ data: { loggedOut: true } });
+    })
+  );
+
+  app.post(
+    "/v1/auth/revoke-all",
+    asyncHandler(async (req, res) => {
+      const credential = sessionCredential(req);
+      const session = await auth.getCurrentSession(credential);
+      if (!session) { res.status(401).json({ error: "unauthorized" }); return; }
+      if (!auth.revokeAllSessions) { res.status(501).json({ error: "persistent_session_revocation_unavailable" }); return; }
+      await auth.revokeAllSessions(session.user.id, session.tenant.id);
+      res.clearCookie("saas_session", { httpOnly: true, secure: true, sameSite: "strict", path: "/" });
+      res.clearCookie("saas_csrf", { httpOnly: false, secure: true, sameSite: "strict", path: "/" });
+      res.json({ data: { revoked: true } });
     })
   );
 
   app.get(
     "/v1/session",
     asyncHandler(async (req, res) => {
-      const session = await auth.getCurrentSession(req.headers.authorization);
+      const session = await auth.getCurrentSession(sessionCredential(req));
       res.json({ session });
     })
   );
