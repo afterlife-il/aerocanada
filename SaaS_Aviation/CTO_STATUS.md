@@ -150,7 +150,7 @@ Company 360 is a deployed persistent staging foundation on PostgreSQL. Phase 1.1
 normalizes forms, completes Contact/Address editing, removes fixture Documents from the persistent aggregate, and
 keeps commercial modules explicit non-persistent boundaries. Auth/sessions remain in-memory; it is not production-ready.
 
-The public Company failure was traced to an unauthenticated 401 combined with retained pre-rendered fixtures. The focused correction removes fixture initialization from persistent mode, clears rows after failure, provides sign-in/retry actions and safe correlation references, and keeps the explicit sample mode separate. Local validation passed; public deployment validation is pending.
+The public Company failure was traced to an unauthenticated 401 combined with retained pre-rendered fixtures. The deployed correction removes fixture initialization and serialization from persistent mode, clears rows after failure, provides sign-in/retry actions and safe correlation references, and keeps explicit sample mode separate. Public login, PostgreSQL Company reads, unauthorized handling and no-fixture HTML passed. Web is `98a9076`; API is `3994fb2`.
 
 ## Yoyamic migration gate — 2026-07-15
 

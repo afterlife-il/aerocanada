@@ -4,7 +4,7 @@
     "current_branch": "main",
     "local_head": "72f2a8e before this documentation commit",
     "origin_main": "72f2a8e before this documentation commit",
-    "deployment_status": "persistent staging publicly available over verified HTTPS; interactive browser acceptance blocked by tooling",
+    "deployment_status": "persistent staging publicly available; focused no-fixture Company web/API correction deployed and HTTP validated; interactive browser acceptance blocked by tooling",
     "current_module": "Public persistent API and session UX correction",
     "current_sprint": "Remove persistent fixture ambiguity and add actionable errors"
   },
@@ -264,6 +264,6 @@
     "reports": "/opt/ready2go/saas-aviation/migration-reports/20260715T135622Z-dry-run; 20260715T140926Z-sample; 20260715T140954Z-sample-idempotency"
   },
   "current_sprint": "Public persistent API integration correction",
-  "last_completed_task": "Reproduced the public unauthenticated Company request and corrected retained persistent-mode fixtures, generic errors, missing retry/sign-in actions, trailing-slash login redirect, and correlation IDs. Deployment validation is pending.",
-  "next_recommended_task": "Deploy the focused web/API correction, validate public login and PostgreSQL Company reads, then implement persistent authentication/session storage."
+  "last_completed_task": "Deployed the focused Company persistent-mode correction. Public HTML has no Company fixtures; login and authenticated PostgreSQL reads passed; unauthorized reads return 401 with actionable UI and correlation IDs.",
+  "next_recommended_task": "Implement persistent authentication/session storage, secure cookies, CSRF, lockout and authentication audit."
 }
