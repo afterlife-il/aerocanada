@@ -12,6 +12,7 @@ import {
   type YoyamicLegacySnapshot
 } from "./yoyamic-live-audit.js";
 import { assertYoyamicSelectOnly } from "./yoyamic-readonly-source.js";
+import { selectSample } from "./yoyamic-sample-import.js";
 
 const row = {} as RowDataPacket;
 
@@ -68,4 +69,14 @@ test("source SQL allowlist rejects writes, locking reads, multi-statements and f
     "SELECT * INTO OUTFILE '/tmp/x' FROM tb_company",
     "CALL write_company()"
   ]) assert.throws(() => assertYoyamicSelectOnly(sql));
+});
+
+test("sample selection excludes ambiguous entities and never selects stock", () => {
+  const input = snapshot();
+  input.companies.push({ ...row, id: 3, name: "Unique Airline", deletedFlag: "FAUX", status: "Available", website: "", cageCode: "", lastActivity: null });
+  input.companyDetails.push({ ...row, id: 12, companyId: 3, companyTypeId: 2, country: "Canada", city: "Montreal", state: "QC", street: "Test", postalCode: "", fax: "", phone: "", email: "", score: "", notes: "", vatNumber: "", firstContact: "", addressType: 0, timezone: "", label: "HQ" });
+  const sample = selectSample(input);
+  assert.deepEqual(sample.companies.map((company) => company.id), [3]);
+  assert.equal(sample.parts.length, 0);
+  assert.deepEqual(Object.keys(sample).sort(), ["companies", "contacts", "details", "parts"]);
 });

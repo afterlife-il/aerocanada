@@ -229,7 +229,7 @@ export function auditYoyamicSnapshot(snapshot: YoyamicLegacySnapshot, databaseNa
   };
 }
 
-class LiveYoyamicReadonlySource {
+export class LiveYoyamicReadonlySource {
   private constructor(private readonly connection: Connection, readonly databaseName: string) {}
 
   static async connect(url: string): Promise<LiveYoyamicReadonlySource> {
