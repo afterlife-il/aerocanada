@@ -149,7 +149,8 @@ export function assertYoyamicSelectOnly(sql: string): void {
   }
 
   const forbiddenPattern = new RegExp(`\\b(${yoyamicReadonlyPolicy.forbiddenSql.join("|")})\\b`, "i");
-  if (forbiddenPattern.test(normalized)) {
+  const withoutQuotedIdentifiers = normalized.replace(/`[^`]+`/g, "");
+  if (forbiddenPattern.test(withoutQuotedIdentifiers)) {
     throw new Error("Yoyamic read adapter rejected a write-capable SQL statement.");
   }
 

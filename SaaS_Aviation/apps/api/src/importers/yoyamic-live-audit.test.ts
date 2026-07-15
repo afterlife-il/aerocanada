@@ -60,6 +60,7 @@ test("dry-run blocks ambiguous duplicates and orphans without exposing source ro
 
 test("source SQL allowlist rejects writes, locking reads, multi-statements and file writes", () => {
   assert.doesNotThrow(() => assertYoyamicSelectOnly("SELECT id FROM tb_company LIMIT 1"));
+  assert.doesNotThrow(() => assertYoyamicSelectOnly("SELECT `delete` FROM tb_company LIMIT 1"));
   for (const sql of [
     "UPDATE tb_company SET status='x'",
     "SELECT * FROM tb_company FOR UPDATE",
