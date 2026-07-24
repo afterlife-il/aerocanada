@@ -59,3 +59,16 @@ Public DNS and HTTPS activation are complete. Interactive visual acceptance rema
 - Public acceptance: former fixture IDs and sample names zero, CSS 20,723 bytes `text/css`, JS 173,019 bytes `application/javascript`, required routes 200, unauthenticated Company 401, login/logout and disposable CRUD passed, session and Company survived API restart, Part 8 and Stock 1 reads passed, five containers healthy, Yoyamic 200, neo 303.
 - Post-deployment free space: `14,497,435,648` bytes. No cleanup beyond the pre-approved regenerable caches was performed.
 - Visual limitation: integrated browser control failed during initialization. Screenshots, hydration warnings and console status are unverified and require manual acceptance. Connected Mailboxes was not started.
+# 2026-07-24 — evidence-based CTO dashboard (in progress)
+
+- Scope: protected web/status component only.
+- Start revision: local/origin `5580e5653868667de075dc5d24fa6b96beaffbb9`.
+- Canonical status: `SaaS_Aviation/module-status.json`.
+- Deployment: not yet performed; web, API, PostgreSQL, Yoyamic, legacy PHP, MariaDB, Odoo, host PostgreSQL 14 and
+  rollback stack remain unchanged.
+- Local proof: standard suite 61 passed/0 failed/3 expected PostgreSQL-gated skips; dedicated PostgreSQL 23/23
+  with zero skips; typecheck, lint, isolated clean-install build and diff check passed. The in-place build generated
+  all 29 pages but Dropbox locked final output cleanup (`EBUSY`); the isolated build exported successfully.
+- Deployment attempt: SSH to the known staging host was denied because no authorized key/session is available.
+  No remote runtime changed.
+- Remaining: commit/push, authorized affected web deployment, protected-route and browser acceptance.

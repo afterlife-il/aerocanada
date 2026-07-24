@@ -1,7 +1,15 @@
 # CTO Status Dashboard - SaaS_Aviation
 
-Last updated: 2026-07-15
+Last updated: 2026-07-24
 Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 protected static deploy report.
+
+## Canonical evidence model
+
+The protected dashboard now consumes `module-status.json`; this file is a human-readable operational summary, not
+a second module-percentage source. Weighted progress, option/sub-option evidence, safe AeroCanada examples, test
+evidence, blockers, commits, runtime revisions and freshness labels live in the canonical JSON. The first
+reconciliation has no validated/green module: existing deployed foundations remain partial or blocked until all
+applicable evidence, public staging including visual acceptance, and required safe AeroCanada examples pass.
 
 ## Persistent staging preparation
 

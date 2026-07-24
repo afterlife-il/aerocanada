@@ -1,154 +1,57 @@
-import type { ReactNode } from "react";
 import { AppShell } from "@/components/erp/app-shell";
 import { PageHeader } from "@/components/erp/page-header";
-import { DataTable } from "@/components/ui/data-table";
-import { DetailPanel, KeyValue } from "@/components/ui/panels";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { getCtoStatus, type CtoModuleRow } from "@/lib/cto-status";
+import { getCtoStatus, maskSafeLabel, type ModuleWithProgress } from "@/lib/cto-status";
 
-function ListPanel({ title, items }: { title: string; items: string[] }) {
-  return (
-    <DetailPanel title={title}>
-      <ul className="space-y-2">
-        {items.map((item) => (
-          <li key={item} className="border-b border-border pb-2 text-sm text-foreground last:border-b-0 last:pb-0">
-            {item}
-          </li>
-        ))}
-      </ul>
-    </DetailPanel>
-  );
+const tone: Record<string, string> = {
+  validated: "bg-emerald-100 text-emerald-800",
+  operational: "bg-emerald-100 text-emerald-800",
+  partially_operational: "bg-amber-100 text-amber-900",
+  blocked: "bg-red-100 text-red-800",
+  in_progress: "bg-blue-100 text-blue-800",
+  architecture_only: "bg-blue-100 text-blue-800",
+  testing: "bg-blue-100 text-blue-800",
+  not_started: "bg-slate-100 text-slate-700",
+  deprecated: "bg-slate-100 text-slate-700"
+};
+
+function Metric({ label, value }: { label: string; value: string | number }) {
+  return <div className="rounded border border-border bg-panel p-3"><div className="text-xs uppercase tracking-wide text-muted">{label}</div><div className="mt-1 text-xl font-semibold">{value}</div></div>;
 }
 
-function MetadataCard({ title, rows }: { title: string; rows: Array<{ label: string; value: ReactNode }> }) {
+function Progress({ module }: { module: ModuleWithProgress }) {
+  const bar = module.hasRegression ? "bg-red-600" : module.status === "validated" ? "bg-emerald-600" : module.status === "blocked" ? "bg-amber-500" : "bg-blue-600";
+  return <div><div className="mb-1 flex justify-between text-xs"><span>{module.validatedCriteria}/{module.applicableCriteria} passed</span><strong>{module.percentage}%</strong></div><div className="h-2 overflow-hidden rounded bg-slate-200"><div className={`h-full ${bar}`} style={{ width: `${module.percentage}%` }} /></div></div>;
+}
+
+function ModuleDetail({ module }: { module: ModuleWithProgress }) {
   return (
-    <DetailPanel title={title}>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-        {rows.map((row) => (
-          <KeyValue key={row.label} label={row.label} value={row.value} />
-        ))}
+    <details className="rounded border border-border bg-panel">
+      <summary className="grid cursor-pointer list-none gap-3 p-3 md:grid-cols-[minmax(12rem,1.2fr)_8rem_1fr_minmax(12rem,1fr)]">
+        <div><div className="font-semibold">{module.name}</div><div className="text-xs text-muted">{module.category} · {module.owner}</div></div>
+        <span className={`h-fit w-fit rounded px-2 py-1 text-xs font-semibold ${tone[module.status]}`}>{module.status.replaceAll("_", " ")}</span>
+        <Progress module={module} />
+        <div className="text-xs"><strong>Next:</strong> {module.nextAction}</div>
+      </summary>
+      <div className="grid gap-4 border-t border-border p-4 xl:grid-cols-2">
+        <section><h3 className="mb-2 font-semibold">Weighted checklist</h3><div className="space-y-1">{module.criteria.map((criterion) => <div key={criterion.id} className="grid grid-cols-[1fr_5rem_5rem] gap-2 border-b border-border py-1 text-xs"><span>{criterion.label}</span><span>{criterion.weight}%</span><span className={criterion.state === "failed" ? "text-red-700" : ""}>{criterion.state}{criterion.state === "partial" ? ` (${criterion.partialScore}/${criterion.weight})` : ""}</span></div>)}</div></section>
+        <section><h3 className="mb-2 font-semibold">Options and sub-options</h3>{module.options.length ? module.options.map((option) => <details key={option.name} className="mb-2 rounded bg-panel-muted p-2"><summary className="cursor-pointer text-sm font-medium">{option.name} · {option.status}</summary><ul className="mt-2 pl-4 text-xs">{option.subOptions.map((sub) => <li key={sub.name}>{sub.name} — {sub.status}</li>)}</ul></details>) : <p className="text-sm text-muted">No implemented options recorded.</p>}
+          <h3 className="mb-1 mt-4 font-semibold">Evidence and runtime</h3><dl className="grid grid-cols-[8rem_1fr] gap-1 text-xs"><dt>Tests</dt><dd>{module.testResults}</dd><dt>Deployed</dt><dd>{module.deployedCommit}</dd><dt>Runtime</dt><dd>{module.runtimeRevision}</dd><dt>Last validation</dt><dd>{module.lastValidationDate} · {module.lastValidator}</dd><dt>Blockers</dt><dd>{module.blockers.join("; ") || "None recorded"}</dd></dl>
+        </section>
+        {module.validationExamples.length > 0 && <section className="xl:col-span-2"><h3 className="mb-2 font-semibold">Safe AeroCanada validation examples</h3><div className="grid gap-2 md:grid-cols-2">{module.validationExamples.map((example) => <a className="rounded border border-border p-2 text-xs hover:bg-panel-muted" href={example.route} key={`${example.entityType}-${example.saasEntityId}`}><strong>{maskSafeLabel(example.safeDisplayLabel)}</strong><br />{example.scenario}: {example.actualResult}<br /><span className="text-muted">{example.sourceSystem} · {example.validationDate}</span></a>)}</div></section>}
       </div>
-    </DetailPanel>
+    </details>
   );
 }
-
-const moduleColumns = [
-  { key: "module", header: "Module", cell: (row: CtoModuleRow) => <span className="font-semibold">{row.module}</span> },
-  { key: "status", header: "Status", cell: (row: CtoModuleRow) => <StatusBadge status={row.status} /> },
-  { key: "progress", header: "Progress", cell: (row: CtoModuleRow) => <span className="font-mono">{row.progressPct}%</span>, className: "text-right" },
-  { key: "sprint", header: "Sprint", cell: (row: CtoModuleRow) => row.sprint },
-  { key: "commit", header: "Last Commit", cell: (row: CtoModuleRow) => <span className="font-mono">{row.lastCommit}</span> },
-  { key: "review", header: "Review Status", cell: (row: CtoModuleRow) => row.reviewStatus },
-  { key: "deploy", header: "Deploy Status", cell: (row: CtoModuleRow) => row.deployStatus },
-  { key: "next", header: "Next Action", cell: (row: CtoModuleRow) => row.nextAction }
-];
 
 export default function CtoDashboardPage() {
   const status = getCtoStatus();
-
   return (
     <AppShell>
-      <PageHeader
-        eyebrow="Internal — development team only"
-        title="CTO Dashboard"
-        description="Not part of the customer ERP. Project-status snapshot for engineering leadership: build/deploy health, module progress, blockers, and roadmap."
-      />
-
-      <div className="mb-4 rounded-lg border border-[oklch(0.74_0.17_25)] bg-[oklch(0.97_0.02_25)] px-4 py-3 text-sm text-[oklch(0.4_0.15_25)]">
-        Internal tool. The deployed `/SaaS_Aviation/admin/` path is protected by Apache Basic Auth. {status.dataNote}
-      </div>
-
-      <div className="overflow-hidden rounded-lg border border-border bg-panel">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7">
-          <div className="border-r border-b border-border px-3 py-3"><KeyValue label="Version" value={status.global.version} /></div>
-          <div className="border-r border-b border-border px-3 py-3"><KeyValue label="Branch" value={status.global.branch} /></div>
-          <div className="border-r border-b border-border px-3 py-3"><KeyValue label="Last Deployed Commit" value={status.global.lastDeployedCommit} /></div>
-          <div className="border-r border-b border-border px-3 py-3"><KeyValue label="Last GitHub Commit" value={status.global.lastGithubCommit} /></div>
-          <div className="border-r border-b border-border px-3 py-3"><KeyValue label="Build" value={<StatusBadge status={status.global.buildStatus} />} /></div>
-          <div className="border-r border-b border-border px-3 py-3"><KeyValue label="Tests" value={<StatusBadge status={status.global.testStatus} />} /></div>
-          <div className="border-b border-border px-3 py-3 lg:col-span-2 2xl:col-span-1"><KeyValue label="Deployment" value={status.global.deploymentStatus} /></div>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-4 xl:grid-cols-2 2xl:grid-cols-4">
-        <MetadataCard
-          title="Build Metadata"
-          rows={[
-            { label: "Current Branch", value: status.buildMetadata.branch },
-            { label: "Latest Local Commit", value: <span className="font-mono">{status.buildMetadata.latestLocalCommit}</span> },
-            { label: "Latest Origin/Main", value: <span className="font-mono">{status.buildMetadata.latestOriginMainCommit}</span> },
-            { label: "Build Timestamp", value: status.buildMetadata.buildTimestamp },
-            { label: "Export Mode", value: status.buildMetadata.staticExportMode }
-          ]}
-        />
-        <MetadataCard
-          title="Deployment"
-          rows={[
-            { label: "Last Deployed Commit", value: <span className="font-mono">{status.deployment.lastDeployedCommit}</span> },
-            { label: "Last Deployment Date", value: status.deployment.lastDeploymentDate },
-            { label: "Environment", value: status.deployment.environment },
-            { label: "Backup Path", value: <span className="break-all font-mono text-xs">{status.deployment.backupPath}</span> },
-            { label: "Admin Status", value: status.deployment.protectedAdminStatus }
-          ]}
-        />
-        <MetadataCard
-          title="Checks"
-          rows={[
-            { label: "Tests", value: <StatusBadge status={status.checks.testStatus} /> },
-            { label: "Typecheck", value: <StatusBadge status={status.checks.typecheckStatus} /> },
-            { label: "Lint", value: <StatusBadge status={status.checks.lintStatus} /> },
-            { label: "Build", value: <StatusBadge status={status.checks.buildStatus} /> },
-            { label: "Last Checked", value: status.checks.lastCheckedAt }
-          ]}
-        />
-        <MetadataCard
-          title="Security"
-          rows={[
-            { label: "/Admin Basic Auth", value: status.security.adminProtectedByBasicAuth ? "Enabled" : "Missing" },
-            { label: "Public Sidebar", value: status.security.ctoRouteHiddenFromPublicSidebar ? "CTO route hidden" : "CTO route exposed" },
-            { label: "API Runtime", value: status.security.apiRuntimeDeployed ? "Deployed" : "Not deployed" },
-            { label: "DB/Yoyamic", value: status.security.dbOrYoyamicTouched ? "Touched" : "Not touched" }
-          ]}
-        />
-      </div>
-
-      <div className="mt-4">
-        <DetailPanel title="Modules">
-          <div className="overflow-x-auto">
-            <DataTable rows={status.modules} columns={moduleColumns} />
-          </div>
-        </DetailPanel>
-      </div>
-
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
-        <DetailPanel title="Current Sprint">
-          <p className="text-sm text-foreground">{status.currentSprint}</p>
-        </DetailPanel>
-        <DetailPanel title="Next Sprint">
-          <p className="text-sm text-foreground">{status.nextSprint}</p>
-        </DetailPanel>
-      </div>
-
-      <div className="mt-4 grid gap-4 xl:grid-cols-3">
-        <ListPanel title="Blockers" items={status.blockers} />
-        <ListPanel title="Technical Debt" items={status.technicalDebt} />
-        <ListPanel title="Architecture Decisions" items={status.architectureDecisions} />
-      </div>
-
-      <div className="mt-4">
-        <DetailPanel title="Latest Activity">
-          <div className="space-y-3">
-            {status.activity.map((entry) => (
-              <div key={entry.commit} className="grid gap-1 border-b border-border pb-3 text-sm last:border-b-0 last:pb-0 sm:grid-cols-[100px_90px_120px_1fr] sm:gap-3">
-                <div className="font-mono text-xs text-muted">{entry.date}</div>
-                <div className="font-mono text-xs text-muted">{entry.commit}</div>
-                <div className="text-xs text-muted">{entry.author}</div>
-                <div className="text-foreground">{entry.summary}</div>
-              </div>
-            ))}
-          </div>
-        </DetailPanel>
-      </div>
+      <PageHeader eyebrow="Protected internal control center" title="CTO Module Progress Dashboard" description="Evidence-based Ready2Go Aviation delivery tracking. AeroCanada (aci770) is the first validation tenant, not the platform identity." />
+      <div className="mb-4 rounded border border-blue-300 bg-blue-50 p-3 text-sm"><strong>{status.freshness}:</strong> {status.dataNote}</div>
+      <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-6"><Metric label="Overall" value={`${status.overallPercentage}%`} /><Metric label="Modules" value={status.modules.length} /><Metric label="Validated" value={status.validatedModules} /><Metric label="Partial" value={status.partialModules} /><Metric label="Blocked" value={status.blockedModules} /><Metric label="Regressions" value={status.regressions} /></div>
+      <section className="mt-4 rounded border border-border bg-panel p-4"><h2 className="font-semibold">Deployment and test evidence</h2><div className="mt-2 grid gap-2 text-xs md:grid-cols-3"><div><strong>Web:</strong> {status.runtime.webRevision}<br /><strong>API:</strong> {status.runtime.apiRevision}</div><div><strong>Database:</strong> {status.runtime.databaseMigrations}<br /><strong>Containers:</strong> {status.runtime.containerHealth}</div><div><strong>Tests:</strong> {status.tests.lastRun}<br /><strong>Public acceptance:</strong> {status.tests.publicAcceptance}</div></div></section>
+      <section className="mt-4"><div className="mb-2 flex items-end justify-between"><h2 className="text-lg font-semibold">Module progress grid</h2><span className="text-xs text-muted">Expand a module for evidence</span></div><div className="space-y-2">{status.modules.map((module) => <ModuleDetail key={module.id} module={module} />)}</div></section>
     </AppShell>
   );
 }

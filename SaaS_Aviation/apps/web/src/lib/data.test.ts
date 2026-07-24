@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createCompanySchema, createContactSchema, sampleRequestContext } from "@saas-aviation/shared";
 import { currentSession, data, getCompany360ReadModel, getCompanyListReadModel, getStock } from "./data.js";
-import { getCtoStatus } from "./cto-status.js";
+import { calculatePercentage, deriveStatus, getCtoStatus, maskSafeLabel, type ModuleRecord, type WeightedCriterion } from "./cto-status.js";
 import { assertPersistentApiMode, getDataSourceConfig, initialRecordsForMode } from "./data-source-mode.js";
 import { persistentApi, PersistentApiError } from "./persistent-api.js";
 import { getDashboardData } from "./dashboard.js";
@@ -218,61 +218,43 @@ test("web documents upload adapter validates unsafe upload metadata", () => {
   assert.ok(rejected.errors.includes("mime_type_not_allowed"));
 });
 
-test("CTO status covers every requested module with a next action", () => {
+test("CTO status covers the requested module catalog with calculated percentages", () => {
   const status = getCtoStatus();
-  const expectedModules = [
-    "Core", "Authentication", "Dashboard", "Company 360", "Part 360", "Stock 360", "Company Inventory",
-    "Documents", "Warehouse", "RFQ", "Supplier Quotes", "Customer Quotes", "Purchase Orders", "Sales Orders",
-    "Repair / Exchange / Lease", "Accounting", "Reports", "Administration", "AI", "API", "Security", "Multi-Tenant"
-  ];
-
-  assert.equal(status.modules.length, expectedModules.length);
-  assert.deepEqual(status.modules.map((row) => row.module), expectedModules);
+  for (const name of ["Core / Architecture", "Authentication", "Company 360", "Contacts", "Addresses", "Part 360", "Stock 360", "Documents", "RFQ", "Connected Mailboxes", "Yoyamic Read-Only Audit", "Quarantine Resolution"]) {
+    assert.ok(status.modules.some((module) => module.name === name), `missing ${name}`);
+  }
+  assert.ok(status.modules.length >= 45);
   assert.equal(status.modules.every((row) => row.nextAction.length > 0), true);
-  assert.equal(status.modules.every((row) => row.progressPct >= 0 && row.progressPct <= 100), true);
-  assert.ok(status.blockers.length > 0);
+  assert.equal(status.modules.every((row) => row.percentage >= 0 && row.percentage <= 100), true);
+  assert.equal(status.freshness, "last-recorded");
 });
 
-test("CTO status exposes static build and deployment metadata", () => {
-  const status = getCtoStatus();
-
-  assert.equal(status.buildMetadata.branch, "main");
-  assert.equal(status.buildMetadata.latestLocalCommit, "Harden Company 360 persistent workflows");
-  assert.equal(status.buildMetadata.latestOriginMainCommit, "5862d57");
-  assert.equal(status.buildMetadata.staticExportMode, "Next.js output export");
-  assert.match(status.buildMetadata.buildTimestamp, /^2026-07-14T/);
-
-  assert.equal(status.deployment.lastDeployedCommit, "bb0ba80");
-  assert.equal(status.deployment.environment, "staging/public static frontend");
-  assert.equal(status.deployment.protectedAdminStatus, "/SaaS_Aviation/admin/ protected by Apache Basic Auth");
-  assert.match(status.deployment.backupPath, /SaaS_Aviation_backup_20260707_155253$/);
+test("weighted calculation requires explicit partial scores and redistributes not-applicable weight", () => {
+  const criteria: WeightedCriterion[] = [
+    { id: "passed", label: "Passed", weight: 40, state: "passed" },
+    { id: "partial", label: "Partial", weight: 40, state: "partial", partialScore: 20 },
+    { id: "na", label: "N/A", weight: 20, state: "not_applicable" }
+  ];
+  assert.equal(calculatePercentage(criteria), 75);
+  assert.throws(() => calculatePercentage([{ id: "bad", label: "Bad", weight: 100, state: "partial" }]), /explicit partialScore/);
 });
 
-test("CTO status exposes check and security metadata", () => {
+test("failed or blocked evidence prevents green and records regression", () => {
   const status = getCtoStatus();
-
-  assert.equal(status.checks.testStatus, "passing");
-  assert.equal(status.checks.typecheckStatus, "passing");
-  assert.equal(status.checks.lintStatus, "passing");
-  assert.equal(status.checks.buildStatus, "passing");
-  assert.match(status.checks.lastCheckedAt, /^2026-07-14T/);
-
-  assert.equal(status.security.adminProtectedByBasicAuth, true);
-  assert.equal(status.security.ctoRouteHiddenFromPublicSidebar, true);
-  assert.equal(status.security.apiRuntimeDeployed, false);
-  assert.equal(status.security.dbOrYoyamicTouched, false);
-  assert.equal(status.security.notes.some((note) => note.includes("PostgreSQL provider code is local only")), true);
+  assert.equal(status.modules.filter((module) => module.status === "validated").length, 0);
+  assert.equal(status.modules.some((module) => module.status === "blocked"), true);
+  const base = status.modules[0] as ModuleRecord;
+  const failed = { ...base, blockers: [], criteria: base.criteria.map((criterion, index) => index === 0 ? { ...criterion, state: "failed" as const } : criterion) };
+  assert.equal(deriveStatus(failed), "blocked");
 });
 
-test("CTO status activity timeline includes the last ten commits with authors", () => {
+test("CTO status renders options, safe links, freshness labels, and masks contact data", () => {
   const status = getCtoStatus();
-
-  assert.equal(status.activity.length, 10);
-  assert.deepEqual(
-    status.activity.map((entry) => entry.commit),
-    ["c0d901d", "e473550", "4df9e14", "11baac6", "786aaa7", "8a266ba", "ba1755f", "7e7fe5e", "d803c9d", "bb0ba80"]
-  );
-  assert.equal(status.activity.every((entry) => entry.author.length > 0), true);
+  const company = status.modules.find((module) => module.id === "company-360");
+  assert.ok(company && company.options.some((option) => option.subOptions.length > 0));
+  assert.equal(status.modules.flatMap((module) => module.validationExamples).every((example) => example.route.startsWith("/")), true);
+  assert.equal(maskSafeLabel("Jane +1 514 555 0199 jane@example.com"), "Jane [masked-phone] [masked-email]");
+  assert.match(status.dataNote, /never live/);
 });
 
 test("CTO dashboard is not exposed from public navigation", () => {

@@ -1,6 +1,15 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-07-15
+Last updated: 2026-07-24
+
+## Evidence-based CTO control center
+
+The protected `/admin/cto/` interface now consumes canonical `SaaS_Aviation/module-status.json`. Module and
+sub-option progress is calculated from weighted criteria; arbitrary percentages were removed. The initial
+reconciliation tracks the full requested catalog and conservatively reports zero validated modules because no
+module currently has every applicable criterion passed together with complete public visual acceptance and the
+required safe AeroCanada example matrix. Runtime fields are labeled last-recorded; current tests and deployment
+remain pending until the gates in this task finish.
 
 ## Persistent staging preparation
 

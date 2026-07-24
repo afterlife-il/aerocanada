@@ -13,3 +13,10 @@ Before completing any task:
 5. Keep deployment truth explicit, including whether the public frontend, API, database, Yoyamic, or legacy PHP changed.
 
 A task is incomplete until its code and documentation describe the same verified repository state.
+
+## Module Progress Definition of Done
+
+No module or sub-option is complete until its weighted checklist in
+`SaaS_Aviation/module-status.json` is updated, automated tests pass, public staging is validated, and at least one
+safe concrete AeroCanada tenant example is recorded. Failed or blocked evidence must remove green status. HTTP 200,
+a visible page, a mockup, an endpoint, fixture data, or documentation alone never proves completion.
