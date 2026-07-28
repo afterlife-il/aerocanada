@@ -1,6 +1,6 @@
 # CTO Status Dashboard - SaaS_Aviation
 
-Last updated: 2026-07-24
+Last updated: 2026-07-28
 Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 protected static deploy report.
 
 ## Backup Strategy V2 production deployment - 2026-07-24
@@ -164,7 +164,7 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 | Core | Operational | 85% | `141fee0` | Not formally reviewed | Static export only | Map to read-only Yoyamic adapter |
 | Authentication | Persistent staging foundation | 70% | `ae5a2c9` | PostgreSQL 22/22; password, restart/logout, CSRF, TOTP enrollment and phone verification acceptance passed | Deployed to persistent staging | OAuth, production SMS, identity administration, rate limiting |
 | Dashboard | Foundation | 65% | `05b04d7` | Not reviewed | Not deployed | Map to legacy adapter |
-| Company 360 | Persistent staging foundation; not production-ready | 90% | `c667f284` | PostgreSQL 15/15; CRUD/restart/tenant/restore/public HTTPS/login/read passed; browser unavailable | Public persistent staging active | Persistent auth/session and operational prerequisites |
+| Company 360 | Review; persistent staging workflows validated | 96% | `67583c4` plus final metadata commit | 64/64 zero skips; public note lifecycle, API-restart persistence and Chromium acceptance passed | API/web and migration 007 deployed | Complete Documents, connected mail, business-card and downstream commercial workflows |
 | Part 360 | Workspace + persistent Part create/read/update foundation | 75% | `c667f284` | Public create/read/update passed; DELETE API missing | Persistent staging deployed | Implement authorized DELETE with dependency rules |
 | Stock 360 | Persistent Stock create/read/update foundation | 60% | `c667f284` | Public create/read/update and quantity 0 passed; DELETE API missing | Persistent staging deployed | Implement authorized DELETE and audit rules |
 | Company Inventory | Foundation | 50% | `366e375` | Not reviewed | Not deployed | Use hardened read-only Yoyamic adapter plans for future mapping |
@@ -190,7 +190,7 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 
 Company 360 now contains a complete code-path for multiple operational notes: create, update, pin/unpin, delete, tenant isolation, `company.read`/`company.manage`, Zod validation, PostgreSQL migration 007, OpenAPI, persistent-client integration, dense UI, and activity events. The CTO control center now renders Business, Technical, UI, Persistence, Permissions, API, Tests, Documentation, AeroCanada validation, and Production readiness dimensions plus the requested five lifecycle labels.
 
-The final suite with `TEST_DATABASE_URL` passed 64/64 with zero skips; its API/PostgreSQL portion passed 23/23. Migration 007 applied with checksum-ledger and idempotency proof. The masked isolated `aci770` scenario covers create/edit/pin/restart/activity/unpin/delete, read-only behavior, and cross-tenant denial. Typecheck, lint, and production build passed. The integrated backend was empty, but system Chrome/cached Playwright Chromium plus `agent-browser` completed local desktop/mobile UI and CTO acceptance and exposed a now-fixed async form-reset defect. Company 360 remains 89% until public staging evidence passes.
+The final suite with `TEST_DATABASE_URL` passed 64/64 with zero skips; its API/PostgreSQL portion passed 23/23. Migration 007 applied locally and to dedicated staging PostgreSQL. The masked `aci770` scenario covers create/edit/pin/restart/activity/unpin/delete, read-only behavior, and cross-tenant denial. Typecheck, lint, production build, local desktop/mobile browser validation and authenticated public Chromium acceptance passed. The public acceptance note persisted through an API restart and was then unpinned and deleted. Company 360 is 96%; incomplete Documents, connected mail, business-card ingestion and downstream commercial workflows prevent 100% and production-ready status.
 
 Company 360 is a deployed persistent staging foundation on PostgreSQL. Phase 1.1 aligns login contracts,
 normalizes forms, completes Contact/Address editing, removes fixture Documents from the persistent aggregate, and

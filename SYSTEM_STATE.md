@@ -1,6 +1,6 @@
 # System State
 
-## 2026-07-28 Company 360 final-validation continuation
+## 2026-07-28 Company 360 public deployment and acceptance
 
 - Branch/HEAD/origin at validation: `main`, `d6f04726131a8ff771275b4aea070f7b27cd812a`, matching before commit.
 - Local Docker Desktop/WSL2 PostgreSQL 16 restored at `127.0.0.1:55432`.
@@ -8,8 +8,12 @@
 - PostgreSQL suite: 23 passed, 0 failed, 0 skipped, including masked isolated `aci770` Company-note lifecycle, restart persistence, validation, activity, permissions, and tenant isolation.
 - Browser fallback validated: integrated runtime had no backend, but system Chrome and cached Playwright Chromium were usable through `agent-browser` 0.33.1. Company list/detail, note lifecycle, restart persistence, activity, empty/error states, mobile/desktop layout and CTO dimensions passed locally; no application console/network/hydration errors were observed.
 - Browser acceptance found and the sprint fixed an async form-reset defect that prevented post-create refresh.
-- Company 360 remains 89% pending public staging. No commit, push, or staging deployment had occurred at this checkpoint. Yoyamic, legacy PHP, MariaDB, Odoo, Backup V1/V2, and production databases are unchanged.
-- Next action: commit/push, create rollback backup, deploy migration 007 plus affected API/web, and complete public acceptance. Do not start Part 360.
+- Product commit `f2a8d50466efb77f74a7c0317d5bc5dd418ae51c` and the required Docker packaging fix `67583c494715aa2070f37bdcbcaf18cc23108261` were pushed to `main`.
+- Rollback backup `/opt/ready2go/saas-aviation/backups/pre-company360-20260728T141156Z` passed its SHA-256 manifest. Migration 007 is applied to dedicated staging PostgreSQL with checksum `b0b1c62c649482f8d05df151b0e6bbfe319319c1cfc5b7149f6b152f7c59acee`.
+- Matching API/web images from `67583c494715aa2070f37bdcbcaf18cc23108261` were deployed. Only API/web were recreated; PostgreSQL, Redis and MinIO IDs/start times remained unchanged.
+- Authenticated public Chromium acceptance passed Company list/detail, note create/edit/pin, API-restart persistence, unpin/delete with zero acceptance-note residue, and CTO Dashboard visual/DOM evidence. Public health and OpenAPI returned 200.
+- Company 360 is 96%. Persistent Documents, connected mail, business-card ingestion and commercial workflows remain incomplete, so production readiness is not claimed. Do not start Part 360 until the user accepts this Company boundary.
+- Yoyamic, legacy PHP, MariaDB, host PostgreSQL, Odoo and Backup V1/V2 were not modified.
 
 ## 2026-07-24 CTO dashboard reconciliation
 

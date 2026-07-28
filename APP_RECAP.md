@@ -1,6 +1,21 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-07-24
+Last updated: 2026-07-28
+
+## Company 360 public deployment and acceptance - 2026-07-28
+
+Migration 007 and matching API/web images were deployed to the isolated
+`saas-aviation-staging` stack after rollback backup
+`/opt/ready2go/saas-aviation/backups/pre-company360-20260728T141156Z`.
+Authenticated public Chromium acceptance on the real `aci770` Company proved
+note create, edit, pin, persistence through an API restart, unpin and delete;
+the acceptance note was removed. The CTO Dashboard rendered its weighted
+evidence and ten completion dimensions publicly. Company 360 is now 96%, not
+100%: persistent Documents, connected mail, business-card ingestion and
+downstream commercial workflows remain incomplete. Only the API and web were
+recreated; PostgreSQL, Redis and MinIO retained their container identities.
+Yoyamic, legacy PHP, MariaDB, host PostgreSQL, Odoo and Backup V1/V2 were not
+modified.
 
 ## Backup Strategy V2 production deployment - 2026-07-24
 
