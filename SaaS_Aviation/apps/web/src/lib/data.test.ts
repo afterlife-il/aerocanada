@@ -226,6 +226,8 @@ test("CTO status covers the requested module catalog with calculated percentages
   assert.ok(status.modules.length >= 45);
   assert.equal(status.modules.every((row) => row.nextAction.length > 0), true);
   assert.equal(status.modules.every((row) => row.percentage >= 0 && row.percentage <= 100), true);
+  assert.equal(status.modules.every((row) => Object.keys(row.dimensions).length === 10), true);
+  assert.equal(status.modules.every((row) => ["Not started", "In progress", "Review", "Validated", "Production Ready"].includes(row.controlStatus)), true);
   assert.equal(status.freshness, "last-recorded");
 });
 
@@ -300,4 +302,6 @@ test("public Company workspace never imports or serializes sample Company record
     assert.equal(companyPage.includes(fixtureId), false);
     assert.equal(companyWorkspace.includes(fixtureId), false);
   }
+  assert.equal(companyWorkspace.includes("event.currentTarget.reset()"), false, "async submit handlers must capture the form before awaiting");
+  assert.match(companyWorkspace, /const form = event\.currentTarget/);
 });

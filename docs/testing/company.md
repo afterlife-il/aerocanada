@@ -23,3 +23,13 @@ Authentication remains in-memory and is not production-grade. On 2026-07-15 the 
 # Public persistent failure regression
 
 The Company workspace regression suite verifies that `persistent-api` mode discards pre-rendered fixture input, while explicit `sample-static` mode may retain it. API tests verify safe correlation IDs. PostgreSQL integration must run with `TEST_DATABASE_URL` or `DATABASE_URL`; a skipped PostgreSQL test is not a pass.
+
+## Phase 3 validation - 2026-07-28
+
+- Final repository suite with `TEST_DATABASE_URL`: 64 passed, 0 failed, 0 skipped.
+- Company note API coverage: create, edit, pin, aggregate read, delete, validation path, `company.read`/`company.manage`, and activity recording through the shared repository contract.
+- `npm run typecheck`, `npm run lint`, and `npm run build` passed.
+- PostgreSQL zero-skip proof: 23 passed, 0 failed, 0 skipped after Docker Desktop was restored. Migration 007 checksum, idempotent re-apply, note persistence through repository/API restart, create/edit/pin/unpin/delete, controlled blank-body validation, audit events, `company.read`/`company.manage`, and cross-tenant denial passed.
+- No browser or public staging validation was performed because deployment was explicitly out of scope.
+
+Final-validation continuation: the integrated browser runtime had no registered backend, but root-cause checks found system Chrome plus cached Playwright Chromium. `agent-browser` 0.33.1 was installed outside the project and successfully automated the persistent local UI. The masked `aci770` flow covered Company list/detail, note create/edit/pin, API restart persistence, activity, unpin/delete, empty state, controlled validation error, desktop/mobile rendering, and the canonical CTO Dashboard. Browser inspection found no page errors, failed application requests, or hydration errors; console output contained only Next development/React DevTools informational messages. Visual validation also exposed and fixed the async form-reset bug that prevented post-create refresh.

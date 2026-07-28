@@ -4,12 +4,14 @@ import {
   CoreDomainError,
   createCompanySchema,
   createCompanyAddressSchema,
+  createCompanyNoteSchema,
   createContactSchema,
   createPartSchema,
   createStockSchema,
   normalizePartNumber,
   updateCompanySchema,
   updateCompanyAddressSchema,
+  updateCompanyNoteSchema,
   updateContactSchema,
   updatePartSchema,
   updateStockSchema
@@ -18,11 +20,13 @@ import type {
   CompanyRecord,
   CompanyActivityRecord,
   CompanyAddressRecord,
+  CompanyNoteRecord,
   CompanyRole,
   ContactRecord,
   CorePersistence,
   CreateCompanyInput,
   CreateCompanyAddressInput,
+  CreateCompanyNoteInput,
   CreateContactInput,
   CreatePartInput,
   CreateStockInput,
@@ -32,6 +36,7 @@ import type {
   StockRecord,
   UpdateCompanyInput,
   UpdateCompanyAddressInput,
+  UpdateCompanyNoteInput,
   UpdateContactInput,
   UpdatePartInput,
   UpdateStockInput
@@ -81,6 +86,11 @@ interface CompanyAddressRow {
 interface CompanyActivityRow {
   id: string; tenant_id: string; company_id: string; category: CompanyActivityRecord["category"]; action: string; summary: string;
   reference_id: string | null; occurred_at: Date; actor_id: string;
+}
+
+interface CompanyNoteRow {
+  id: string; tenant_id: string; company_id: string; body: string; pinned: boolean;
+  created_at: Date; updated_at: Date; created_by: string; updated_by: string;
 }
 
 interface ContactRow {
@@ -218,6 +228,11 @@ function companyAddressFromRow(row: CompanyAddressRow): CompanyAddressRecord {
 function companyActivityFromRow(row: CompanyActivityRow): CompanyActivityRecord {
   return { id: row.id, tenantId: row.tenant_id, companyId: row.company_id, category: row.category, action: row.action,
     summary: row.summary, referenceId: optional(row.reference_id), occurredAt: row.occurred_at.toISOString(), actorId: row.actor_id };
+}
+
+function companyNoteFromRow(row: CompanyNoteRow): CompanyNoteRecord {
+  return { id: row.id, tenantId: row.tenant_id, companyId: row.company_id, body: row.body, pinned: row.pinned,
+    createdAt: row.created_at.toISOString(), updatedAt: row.updated_at.toISOString(), createdBy: row.created_by, updatedBy: row.updated_by };
 }
 
 function contactFromRow(row: ContactRow): ContactRecord {
@@ -519,6 +534,44 @@ export class PostgresCorePersistence implements CorePersistence {
     if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
     const result = await this.pool.query<CompanyActivityRow>("SELECT * FROM company_activity WHERE tenant_id=$1 AND company_id=$2 ORDER BY occurred_at DESC", [context.tenant.tenantId, company.id]);
     return result.rows.map(companyActivityFromRow);
+  }
+
+  async listCompanyNotes(context: RequestContext, companyId: string): Promise<CompanyNoteRecord[]> {
+    const company = await this.getCompanyById(context, companyId);
+    if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    const result = await this.pool.query<CompanyNoteRow>("SELECT * FROM company_notes WHERE tenant_id=$1 AND company_id=$2 ORDER BY pinned DESC, updated_at DESC", [context.tenant.tenantId, company.id]);
+    return result.rows.map(companyNoteFromRow);
+  }
+
+  async createCompanyNote(context: RequestContext, companyId: string, input: CreateCompanyNoteInput): Promise<CompanyNoteRecord> {
+    const parsed = createCompanyNoteSchema.parse(input);
+    const company = await this.getCompanyById(context, companyId);
+    if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
+    return withTransaction(this.pool, async (client) => {
+      const id = randomUUID();
+      const result = await client.query<CompanyNoteRow>("INSERT INTO company_notes (id,tenant_id,company_id,body,pinned,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$6) RETURNING *", [id, context.tenant.tenantId, company.id, parsed.body, parsed.pinned, context.tenant.userId]);
+      await this.recordCompanyActivity(client, context, company.id, "company", "note-created", "Company note created.", id);
+      return companyNoteFromRow(result.rows[0] as CompanyNoteRow);
+    });
+  }
+
+  async updateCompanyNote(context: RequestContext, id: string, input: UpdateCompanyNoteInput): Promise<CompanyNoteRecord> {
+    const parsed = stripUndefined(updateCompanyNoteSchema.parse(input));
+    return withTransaction(this.pool, async (client) => {
+      const current = await client.query<CompanyNoteRow>("SELECT * FROM company_notes WHERE tenant_id=$1 AND id=$2", [context.tenant.tenantId, id]);
+      const row = current.rows[0]; if (!row) throw new CoreDomainError("not_found", "Note was not found in the current tenant.");
+      const result = await client.query<CompanyNoteRow>("UPDATE company_notes SET body=$3,pinned=$4,updated_at=now(),updated_by=$5 WHERE tenant_id=$1 AND id=$2 RETURNING *", [context.tenant.tenantId, id, parsed.body ?? row.body, parsed.pinned ?? row.pinned, context.tenant.userId]);
+      await this.recordCompanyActivity(client, context, row.company_id, "company", "note-updated", "Company note updated.", id);
+      return companyNoteFromRow(result.rows[0] as CompanyNoteRow);
+    });
+  }
+
+  async deleteCompanyNote(context: RequestContext, id: string): Promise<void> {
+    await withTransaction(this.pool, async (client) => {
+      const result = await client.query<CompanyNoteRow>("DELETE FROM company_notes WHERE tenant_id=$1 AND id=$2 RETURNING *", [context.tenant.tenantId, id]);
+      const row = result.rows[0]; if (!row) throw new CoreDomainError("not_found", "Note was not found in the current tenant.");
+      await this.recordCompanyActivity(client, context, row.company_id, "company", "note-deleted", "Company note deleted.", id);
+    });
   }
 
   async listContactsByCompany(context: RequestContext, companyId: string): Promise<ContactRecord[]> {

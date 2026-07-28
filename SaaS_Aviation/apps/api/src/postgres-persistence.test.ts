@@ -148,6 +148,8 @@ test(
     assert.ok(databaseUrl);
     const isolated = await createIsolatedSchema(databaseUrl);
     const tenantA = context("a");
+    tenantA.tenant.tenantCode = "aci770";
+    tenantA.tenant.tenantName = "AEROCANADA INDUSTRIES 770 INC.";
     const tenantB = context("b");
 
     try {
@@ -185,6 +187,7 @@ test(
       const companyB = await repo.createCompany(tenantB, { name: "PG Company B", roles: ["customer"] });
       const contactA = await repo.createContact(tenantA, companyA.id, { firstName: "Alex", lastName: "Aero", email: "alex@example.test" });
       const addressA = await repo.createCompanyAddress(tenantA, companyA.id, { label: "Head Office", addressLine1: "1 Aviation Way", city: "Montreal", country: "Canada", isPrimary: true });
+      const noteA = await repo.createCompanyNote(tenantA, companyA.id, { body: "AeroCanada-approved operational note example.", pinned: true });
       const temporaryContact = await repo.createContact(tenantA, companyA.id, { firstName: "Delete", lastName: "Me" });
       await repo.updateContact(tenantA, temporaryContact.id, { jobTitle: "Temporary" });
       await repo.deleteContact(tenantA, temporaryContact.id);
@@ -208,6 +211,8 @@ test(
       assert.deepEqual((await restarted.getCompanyById(tenantA, companyA.id))?.tags, ["verified", "aviation"]);
       assert.equal((await restarted.listContactsByCompany(tenantA, companyA.id))[0]?.id, contactA.id);
       assert.equal((await restarted.listCompanyAddresses(tenantA, companyA.id))[0]?.id, addressA.id);
+      assert.equal((await restarted.listCompanyNotes(tenantA, companyA.id))[0]?.id, noteA.id);
+      await assert.rejects(restarted.listCompanyNotes(tenantB, companyA.id), hasCode("not_found"));
       assert.equal((await restarted.listCompanyActivity(tenantA, companyA.id)).some((event) => event.action === "address-created"), true);
       await assert.rejects(restarted.listCompanyAddresses(tenantB, companyA.id), hasCode("not_found"));
       await assert.rejects(restarted.listCompanyActivity(tenantB, companyA.id), hasCode("not_found"));
@@ -262,6 +267,12 @@ test(
       });
       assert.equal(apiContact.status, 201);
       const apiContactId = (apiContact.body as { data: { id: string } }).data.id;
+      const apiNote = await httpRequest(app, "POST", `/v1/companies/${apiCompanyId}/notes`, tokenA, { body: "Masked AeroCanada operational follow-up.", pinned: false });
+      assert.equal(apiNote.status, 201);
+      const apiNoteId = (apiNote.body as { data: { id: string } }).data.id;
+      assert.equal((await httpRequest(app, "PATCH", `/v1/company-notes/${apiNoteId}`, tokenA, { body: "Masked AeroCanada operational follow-up verified." })).status, 200);
+      assert.equal((await httpRequest(app, "PATCH", `/v1/company-notes/${apiNoteId}`, tokenA, { pinned: true })).status, 200);
+      assert.equal((await httpRequest(app, "POST", `/v1/companies/${apiCompanyId}/notes`, tokenA, { body: "   " })).status, 400);
       const apiPart = await httpRequest(app, "POST", "/v1/parts", tokenA, { partNumber: "API-PG-1", description: "API part" });
       assert.equal(apiPart.status, 201);
       const apiPartId = (apiPart.body as { data: { id: string } }).data.id;
@@ -281,7 +292,7 @@ test(
       const apiRestartedRepo = new PostgresCorePersistence(isolated.config);
       const restartedApp = createApp({
         corePersistence: apiRestartedRepo,
-        auth: new StaticAuthProvider([session(tokenA, tenantA), session("pg-api-b", tenantB)])
+        auth: new StaticAuthProvider([session(tokenA, tenantA), session("pg-api-read", tenantA, ["company.read"]), session("pg-api-b", tenantB)])
       });
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}`, tokenA)).status, 200);
       const company360 = await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/360`, tokenA);
@@ -289,6 +300,12 @@ test(
       assert.equal((company360.body as { data: { contacts: Array<{ id: string }>; inventory: Array<{ id: string }>; workflowBoundaries: unknown[] } }).data.contacts[0]?.id, apiContactId);
       assert.equal((company360.body as { data: { contacts: unknown[]; inventory: Array<{ id: string }>; workflowBoundaries: unknown[] } }).data.inventory.some((item) => item.id === apiStockId), true);
       assert.equal((company360.body as { data: { workflowBoundaries: unknown[] } }).data.workflowBoundaries.length, 5);
+      const restartedNote = (company360.body as { data: { notes: Array<{ id: string; body: string; pinned: boolean }> } }).data.notes.find((note) => note.id === apiNoteId);
+      assert.equal(restartedNote?.body, "Masked AeroCanada operational follow-up verified.");
+      assert.equal(restartedNote?.pinned, true);
+      const noteActivity = (company360.body as { data: { activity: Array<{ action: string; referenceId?: string }> } }).data.activity.filter((event) => event.referenceId === apiNoteId).map((event) => event.action);
+      assert.equal(noteActivity.includes("note-created"), true);
+      assert.equal(noteActivity.filter((action) => action === "note-updated").length, 2);
       assert.deepEqual((company360.body as { data: { documents: unknown } }).data.documents, { persistent: false, source: "workflow-boundary", documents: [] });
       assert.equal((company360.body as { data: { workflowBoundaries: Array<{ persistence: string; futureOwner: string }> } }).data.workflowBoundaries.every((boundary) => boundary.persistence === "none" && boundary.futureOwner.length > 0), true);
       const restartedContacts = await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/contacts`, tokenA);
@@ -298,6 +315,14 @@ test(
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/stock/${apiStockId}`, tokenA)).status, 200);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}`, "pg-api-b")).status, 404);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/contacts`, "pg-api-b")).status, 404);
+      assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/notes`, "pg-api-read")).status, 200);
+      assert.equal((await httpRequest(restartedApp, "POST", `/v1/companies/${apiCompanyId}/notes`, "pg-api-read", { body: "Denied" })).status, 403);
+      assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/notes`, "pg-api-b")).status, 404);
+      assert.equal((await httpRequest(restartedApp, "PATCH", `/v1/company-notes/${apiNoteId}`, "pg-api-b", { pinned: false })).status, 404);
+      assert.equal((await httpRequest(restartedApp, "PATCH", `/v1/company-notes/${apiNoteId}`, tokenA, { pinned: false })).status, 200);
+      assert.equal((await httpRequest(restartedApp, "DELETE", `/v1/company-notes/${apiNoteId}`, tokenA)).status, 200);
+      const notesAfterDelete = await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/notes`, tokenA);
+      assert.deepEqual((notesAfterDelete.body as { data: unknown[] }).data, []);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/parts/${apiPartId}`, "pg-api-b")).status, 404);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/stock/${apiStockId}`, "pg-api-b")).status, 404);
       assert.equal((await httpRequest(restartedApp, "GET", `/v1/companies/${apiCompanyId}/360`, "pg-api-b")).status, 404);

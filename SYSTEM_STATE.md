@@ -1,5 +1,16 @@
 # System State
 
+## 2026-07-28 Company 360 final-validation continuation
+
+- Branch/HEAD/origin at validation: `main`, `d6f04726131a8ff771275b4aea070f7b27cd812a`, matching before commit.
+- Local Docker Desktop/WSL2 PostgreSQL 16 restored at `127.0.0.1:55432`.
+- Migration 007 applied via the repository runner with checksum `25a4c322f4247e9f58d6fdb74808eae191197bdb5938557823773146b5f73aee`; re-apply was idempotent.
+- PostgreSQL suite: 23 passed, 0 failed, 0 skipped, including masked isolated `aci770` Company-note lifecycle, restart persistence, validation, activity, permissions, and tenant isolation.
+- Browser fallback validated: integrated runtime had no backend, but system Chrome and cached Playwright Chromium were usable through `agent-browser` 0.33.1. Company list/detail, note lifecycle, restart persistence, activity, empty/error states, mobile/desktop layout and CTO dimensions passed locally; no application console/network/hydration errors were observed.
+- Browser acceptance found and the sprint fixed an async form-reset defect that prevented post-create refresh.
+- Company 360 remains 89% pending public staging. No commit, push, or staging deployment had occurred at this checkpoint. Yoyamic, legacy PHP, MariaDB, Odoo, Backup V1/V2, and production databases are unchanged.
+- Next action: commit/push, create rollback backup, deploy migration 007 plus affected API/web, and complete public acceptance. Do not start Part 360.
+
 ## 2026-07-24 CTO dashboard reconciliation
 
 - Branch/HEAD/origin at task start: `main`, `5580e5653868667de075dc5d24fa6b96beaffbb9`, matching.

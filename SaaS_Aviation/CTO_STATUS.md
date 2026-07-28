@@ -3,6 +3,38 @@
 Last updated: 2026-07-24
 Source: `APP_RECAP.md`, `PROJECT_STATE.json`, `git log`, and the 2026-07-07 protected static deploy report.
 
+## Backup Strategy V2 production deployment - 2026-07-24
+
+Backup V2 is deployed as restic over the existing rclone Dropbox transport.
+Filesystem snapshot `c87e97a7` plus 13 logical database snapshots completed.
+The repository references 31,348,486,314 bytes for 41,396,241,175 logical
+restore bytes (1.321:1 initial deduplication). All 14 snapshots and a 10% sample
+of 500 data packs passed integrity checking.
+
+Production restore evidence passed for `/etc` (1,812 files), 7 active MariaDB
+schemas (1,119 tables), host PostgreSQL (3 databases/1,514 tables), AeroCanada
+PostgreSQL (2/47), and SaaS_Aviation PostgreSQL (2/22). The three V2 timers are
+enabled at non-overlapping UTC windows. Backup V1 remains enabled and unchanged
+through the required full parallel cycle. The unmapped already-broken
+`aerocanada_corrupted` MariaDB schema cannot be logically dumped; its raw files
+remain included. No SaaS_Aviation/Yoyamic code, image, API, frontend, database
+contents, Plesk backup schedule, or legacy PHP was changed.
+
+## Backup Strategy V2 preparation — 2026-07-24
+
+Before deployment, Backup V2 was prepared locally as a guarded restic + rclone package under
+`infrastructure/backup-v2`, with architecture and operating procedures in
+`docs/infrastructure/BACKUP_STRATEGY.md`. It provides encrypted deduplicated
+incremental snapshots, 7 daily / 8 weekly / 12 monthly / 3 yearly retention,
+dry-run-by-default pruning, repository checks, and isolated verified restores.
+
+An isolated Docker/Alpine restic smoke test passed shell syntax, two synthetic
+snapshots with changed data, full stored-data integrity checking, verified
+restore, exclusions, and retention dry-run. This is not production restore
+evidence. This preparation record is superseded by the verified production
+deployment section above. V1 retirement still requires a complete overlap
+cycle and explicit approval.
+
 ## Canonical evidence model
 
 The protected dashboard now consumes `module-status.json`; this file is a human-readable operational summary, not
@@ -153,6 +185,12 @@ The required PostgreSQL runtime command passed locally on 2026-07-14 with 15 pas
 | Multi-Tenant | Foundation | 55% | `c667f284` | Second-tenant API isolation and composite FK rejection passed on staging | Isolated staging deployed | Continue persistent RBAC, RLS and audit design |
 
 ## Current Sprint
+
+## Phase 3 product sprint - Company Notes (2026-07-28)
+
+Company 360 now contains a complete code-path for multiple operational notes: create, update, pin/unpin, delete, tenant isolation, `company.read`/`company.manage`, Zod validation, PostgreSQL migration 007, OpenAPI, persistent-client integration, dense UI, and activity events. The CTO control center now renders Business, Technical, UI, Persistence, Permissions, API, Tests, Documentation, AeroCanada validation, and Production readiness dimensions plus the requested five lifecycle labels.
+
+The final suite with `TEST_DATABASE_URL` passed 64/64 with zero skips; its API/PostgreSQL portion passed 23/23. Migration 007 applied with checksum-ledger and idempotency proof. The masked isolated `aci770` scenario covers create/edit/pin/restart/activity/unpin/delete, read-only behavior, and cross-tenant denial. Typecheck, lint, and production build passed. The integrated backend was empty, but system Chrome/cached Playwright Chromium plus `agent-browser` completed local desktop/mobile UI and CTO acceptance and exposed a now-fixed async form-reset defect. Company 360 remains 89% until public staging evidence passes.
 
 Company 360 is a deployed persistent staging foundation on PostgreSQL. Phase 1.1 aligns login contracts,
 normalizes forms, completes Contact/Address editing, removes fixture Documents from the persistent aggregate, and

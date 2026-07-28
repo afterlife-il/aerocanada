@@ -17,3 +17,5 @@ Core rules:
 - RFQ/quote/order identifiers remain workflow boundaries until those modules are implemented.
 
 No Yoyamic query, legacy PHP change, live database access, deployment, or production migration occurred.
+
+Migration 007 adds `company_notes`, keyed and constrained by tenant/company composite ownership. Notes carry author/update audit fields, a pin flag, a 1-5,000 character database constraint, cascade with their Company, and sort pinned-first then most-recently-updated. It was applied locally on 2026-07-28 through the approved runner with checksum `25a4c322f4247e9f58d6fdb74808eae191197bdb5938557823773146b5f73aee`; re-apply preserved the original ledger timestamp and created no duplicate entry.

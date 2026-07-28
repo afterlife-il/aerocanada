@@ -331,8 +331,9 @@ export function createApp(dependencies: AppDependencies = {}) {
     await handleCoreResponse(res, async () => {
       const company = await corePersistence.getCompanyById(context, companyId);
       if (!company) throw new CoreDomainError("not_found", "Company was not found in the current tenant.");
-      const [contacts, addresses, stock, activity] = await Promise.all([
+      const [contacts, addresses, notes, stock, activity] = await Promise.all([
         corePersistence.listContactsByCompany(context, company.id), corePersistence.listCompanyAddresses(context, company.id),
+        corePersistence.listCompanyNotes(context, company.id),
         corePersistence.listStock(context), corePersistence.listCompanyActivity(context, company.id)
       ]);
       const inventory = stock.filter((item) => [item.ownerCompanyId, item.supplierCompanyId, item.tagInfoCompanyId, item.traceabilityCompanyId].includes(company.id));
@@ -343,7 +344,7 @@ export function createApp(dependencies: AppDependencies = {}) {
         "purchase-order": { futureOwner: "Purchase Orders module", requiredData: ["companyId", "tenantId", "approved supplier quote"], contextChecks: ["company.read", "tenant match"] },
         "sales-order": { futureOwner: "Sales Orders module", requiredData: ["companyId", "tenantId", "approved customer quote"], contextChecks: ["company.read", "tenant match"] }
       } as const;
-      return { company, contacts, addresses, inventory, documents: { persistent: false, source: "workflow-boundary", documents: [] }, activity,
+      return { company, contacts, addresses, notes, inventory, documents: { persistent: false, source: "workflow-boundary", documents: [] }, activity,
         workflowBoundaries: Object.entries(boundaryMetadata).map(([category, metadata]) => ({ category, status: "boundary", companyId: company.id, persistence: "none", ...metadata })) };
     });
   }));
@@ -374,6 +375,34 @@ export function createApp(dependencies: AppDependencies = {}) {
     if (!requirePermission(context, res, "company.manage")) return;
     const id = requiredParam(req, res, "id"); if (!id) return;
     await handleCoreResponse(res, async () => { await corePersistence.deleteCompanyAddress(context, id); return { deleted: true }; });
+  }));
+
+  app.get("/v1/companies/:companyId/notes", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.read")) return;
+    const companyId = requiredParam(req, res, "companyId"); if (!companyId) return;
+    await handleCoreResponse(res, () => corePersistence.listCompanyNotes(context, companyId));
+  }));
+
+  app.post("/v1/companies/:companyId/notes", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.manage")) return;
+    const companyId = requiredParam(req, res, "companyId"); if (!companyId) return;
+    await handleCoreResponse(res, () => corePersistence.createCompanyNote(context, companyId, req.body), 201);
+  }));
+
+  app.patch("/v1/company-notes/:id", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.manage")) return;
+    const id = requiredParam(req, res, "id"); if (!id) return;
+    await handleCoreResponse(res, () => corePersistence.updateCompanyNote(context, id, req.body));
+  }));
+
+  app.delete("/v1/company-notes/:id", asyncHandler(async (req, res) => {
+    const context = await requireSession(req, res, auth); if (!context) return;
+    if (!requirePermission(context, res, "company.manage")) return;
+    const id = requiredParam(req, res, "id"); if (!id) return;
+    await handleCoreResponse(res, async () => { await corePersistence.deleteCompanyNote(context, id); return { deleted: true }; });
   }));
 
   app.get(

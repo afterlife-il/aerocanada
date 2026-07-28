@@ -2,6 +2,37 @@
 
 Last updated: 2026-07-24
 
+## Backup Strategy V2 production deployment - 2026-07-24
+
+Deployed restic over the existing rclone Dropbox transport alongside unchanged
+Backup V1. Filesystem snapshot `c87e97a7` and 13 logical database snapshots
+completed without a local full archive. The repository references
+31,348,486,314 bytes for 41,396,241,175 logical restore bytes, an initial
+1.321:1 deduplication ratio.
+
+All snapshot metadata and a 10% sample of 500 data packs passed. Verified
+restores passed for `/etc` (1,812 files), 7 active MariaDB schemas (1,119
+tables), host PostgreSQL (3 databases/1,514 tables), AeroCanada PostgreSQL
+(2/47), and SaaS_Aviation PostgreSQL (2/22). Three V2 timers are enabled after
+V1's Saturday window. Backup V1 remains enabled and cannot be retired until a
+complete overlap cycle is compared and explicit approval is given. The
+unmapped already-broken `aerocanada_corrupted` schema remains a disclosed
+logical-dump exception while its raw files remain included.
+
+## Backup Strategy V2 preparation — 2026-07-24
+
+Before deployment, prepared an enterprise Backup V2 package using restic over
+the existing rclone Dropbox transport. The package streams encrypted,
+content-deduplicated incremental data without creating a full local archive and
+includes guarded retention/pruning, integrity checks, verified temporary
+restores, systemd templates, an isolated smoke test, and complete operations /
+disaster-recovery documentation.
+
+Local synthetic validation passed two snapshots, changed-data handling, a full
+repository data check, verified restore, exclusions and retention dry-run.
+This local preparation evidence is superseded by the verified production
+deployment section above. Backup V1 remains active and unchanged.
+
 ## Evidence-based CTO control center
 
 The protected `/admin/cto/` interface now consumes canonical `SaaS_Aviation/module-status.json`. Module and
@@ -183,6 +214,12 @@ Report-based Yoyamic staging deployments exist for stock ownership and stock lis
 - 2026-06-24: Yoyamic stock ownership, stock list actions, and change-stock UI work documented.
 
 ## Next Sprint
+
+## CTO Sprint Phase 3 - Product Development Restart (2026-07-28)
+
+Product work resumed with Company 360 only. The sprint added an end-to-end operational Company notes slice: tenant-scoped PostgreSQL schema migration 007, repository methods, `company.read`/`company.manage` API routes, OpenAPI schemas, create/edit/pin/delete UI, validation/error handling, and activity audit events. The protected CTO Dashboard now shows the ten requested evidence dimensions and five human lifecycle labels without changing the canonical weighted calculation.
+
+Local evidence: the final suite with `TEST_DATABASE_URL` passed 64/64 with zero skips; its API/PostgreSQL portion passed 23/23. Migration 007 applied with a verified checksum, re-applied idempotently, and the masked isolated `aci770` note lifecycle survived restart with permission and tenant-isolation proof. Typecheck, lint, and production build passed. System Chrome plus cached Playwright Chromium provided the controlled browser fallback; Company list/detail, notes, activity, empty/error states, mobile/desktop layout, and the CTO Dashboard passed locally. The run fixed an async form-reset defect found visually. Public staging remains the final evidence gate, so Company 360 stays at 89% before deployment.
 
 ## Staging authentication and persistence revalidation - 2026-07-15
 

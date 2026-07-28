@@ -27,8 +27,9 @@ export interface ApiContact {
 
 export interface ApiCompanyAddress { id: string; companyId: string; label: string; addressLine1: string; addressLine2?: string; city?: string; state?: string; postalCode?: string; country: string; isPrimary: boolean; }
 export interface ApiCompanyActivity { id: string; category: string; action: string; summary: string; referenceId?: string; occurredAt: string; actorId: string; }
+export interface ApiCompanyNote { id: string; companyId: string; body: string; pinned: boolean; createdAt: string; updatedAt: string; createdBy: string; updatedBy: string; }
 export interface ApiWorkflowBoundary { category: string; status: "boundary"; companyId: string; futureOwner: string; requiredData: string[]; contextChecks: string[]; persistence: "none"; }
-export interface ApiCompany360 { company: ApiCompany; contacts: ApiContact[]; addresses: ApiCompanyAddress[]; inventory: ApiStock[]; documents: { persistent: false; source: "workflow-boundary"; documents: [] }; activity: ApiCompanyActivity[]; workflowBoundaries: ApiWorkflowBoundary[]; }
+export interface ApiCompany360 { company: ApiCompany; contacts: ApiContact[]; addresses: ApiCompanyAddress[]; notes: ApiCompanyNote[]; inventory: ApiStock[]; documents: { persistent: false; source: "workflow-boundary"; documents: [] }; activity: ApiCompanyActivity[]; workflowBoundaries: ApiWorkflowBoundary[]; }
 export interface ApiCompanyPage { rows: ApiCompany[]; pagination: { page: number; pageSize: number; totalRows: number; totalPages: number }; }
 export type LoginResult = { session: AuthSession } | { mfaRequired: true; challengeId: string; methods: Array<"totp" | "recovery">; expiresAt: string };
 
@@ -129,6 +130,9 @@ export const persistentApi = {
   createAddress(companyId: string, input: Record<string, unknown>, config?: DataSourceConfig) { return request<ApiCompanyAddress>(`/v1/companies/${companyId}/addresses`, { method: "POST", body: JSON.stringify(input) }, config); },
   updateAddress(id: string, input: Record<string, unknown>, config?: DataSourceConfig) { return request<ApiCompanyAddress>(`/v1/company-addresses/${id}`, { method: "PATCH", body: JSON.stringify(input) }, config); },
   deleteAddress(id: string, config?: DataSourceConfig) { return request<{ deleted: true }>(`/v1/company-addresses/${id}`, { method: "DELETE" }, config); },
+  createCompanyNote(companyId: string, input: Record<string, unknown>, config?: DataSourceConfig) { return request<ApiCompanyNote>(`/v1/companies/${companyId}/notes`, { method: "POST", body: JSON.stringify(input) }, config); },
+  updateCompanyNote(id: string, input: Record<string, unknown>, config?: DataSourceConfig) { return request<ApiCompanyNote>(`/v1/company-notes/${id}`, { method: "PATCH", body: JSON.stringify(input) }, config); },
+  deleteCompanyNote(id: string, config?: DataSourceConfig) { return request<{ deleted: true }>(`/v1/company-notes/${id}`, { method: "DELETE" }, config); },
   listParts(config?: DataSourceConfig) {
     return request<ApiPart[]>("/v1/parts", {}, config);
   },

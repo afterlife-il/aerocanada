@@ -104,6 +104,14 @@ export interface CompanyActivityRecord {
   actorId: string;
 }
 
+export interface CompanyNoteRecord extends PersistentAuditFields {
+  id: string;
+  tenantId: TenantId;
+  companyId: string;
+  body: string;
+  pinned: boolean;
+}
+
 export interface ContactRecord extends PersistentAuditFields {
   id: string;
   tenantId: TenantId;
@@ -175,6 +183,8 @@ export type CreateContactInput = z.input<typeof createContactSchema>;
 export type UpdateContactInput = z.input<typeof updateContactSchema>;
 export type CreateCompanyAddressInput = z.input<typeof createCompanyAddressSchema>;
 export type UpdateCompanyAddressInput = z.input<typeof updateCompanyAddressSchema>;
+export type CreateCompanyNoteInput = z.input<typeof createCompanyNoteSchema>;
+export type UpdateCompanyNoteInput = z.input<typeof updateCompanyNoteSchema>;
 export type CreatePartInput = z.input<typeof createPartSchema>;
 export type UpdatePartInput = z.input<typeof updatePartSchema>;
 export type CreateStockInput = z.input<typeof createStockSchema>;
@@ -256,6 +266,15 @@ export const updateCompanyAddressSchema = createCompanyAddressSchema.partial().r
   message: "At least one address field is required."
 });
 
+export const createCompanyNoteSchema = z.object({
+  body: z.string().trim().min(1).max(5000),
+  pinned: z.boolean().default(false)
+});
+
+export const updateCompanyNoteSchema = createCompanyNoteSchema.partial().refine((value) => Object.keys(value).length > 0, {
+  message: "At least one note field is required."
+});
+
 export const createPartSchema = z.object({
   legacyId: z.union([z.string(), z.number()]).optional(),
   partNumber: z.string().trim().min(1).max(120),
@@ -310,6 +329,10 @@ export interface CoreCompanyRepository {
   updateCompanyAddress(context: RequestContext, id: string, input: UpdateCompanyAddressInput): Promise<CompanyAddressRecord>;
   deleteCompanyAddress(context: RequestContext, id: string): Promise<void>;
   listCompanyActivity(context: RequestContext, companyId: string): Promise<CompanyActivityRecord[]>;
+  listCompanyNotes(context: RequestContext, companyId: string): Promise<CompanyNoteRecord[]>;
+  createCompanyNote(context: RequestContext, companyId: string, input: CreateCompanyNoteInput): Promise<CompanyNoteRecord>;
+  updateCompanyNote(context: RequestContext, id: string, input: UpdateCompanyNoteInput): Promise<CompanyNoteRecord>;
+  deleteCompanyNote(context: RequestContext, id: string): Promise<void>;
 }
 
 export interface CoreContactRepository {

@@ -445,7 +445,8 @@ test("login contract returns a non-empty session token and authorizes Company re
 
 test("Company hardening routes cover search, full Contact/Address updates, boundaries, and deletes", async () => {
   const token = "company-hardening";
-  const app = createApp({ corePersistence: new InMemoryCorePersistence(), auth: new StaticAuthProvider([sessionWithPermissions(token, sampleRequestContext.tenant.permissions)]) });
+  const readOnlyToken = "company-read-only";
+  const app = createApp({ corePersistence: new InMemoryCorePersistence(), auth: new StaticAuthProvider([sessionWithPermissions(token, sampleRequestContext.tenant.permissions), sessionWithPermissions(readOnlyToken, ["company.read"])]) });
   const created = await httpPost(app, "/v1/companies", token, { name: "Hardening Company", website: "https://example.test", roles: ["customer"], tags: ["phase-1-1"] });
   const companyId = (created.body as { data: { id: string } }).data.id;
   const page = await httpGet(app, "/v1/companies?q=hardening&status=active&role=customer&sort=name&direction=desc&page=1&pageSize=1", token);
@@ -461,12 +462,20 @@ test("Company hardening routes cover search, full Contact/Address updates, bound
   const addresses = await httpGet(app, `/v1/companies/${companyId}/addresses`, token);
   assert.equal((addresses.body as { data: Array<{ isPrimary: boolean }> }).data.filter((row) => row.isPrimary).length, 1);
   assert.equal((await httpPatch(app, `/v1/company-addresses/${firstAddressId}`, token, { city: "Montreal" })).status, 200);
+  const note = await httpPost(app, `/v1/companies/${companyId}/notes`, token, { body: "Call before shipping serialized units.", pinned: true });
+  const noteId = (note.body as { data: { id: string } }).data.id;
+  assert.equal((await httpPatch(app, `/v1/company-notes/${noteId}`, token, { body: "Call operations before shipping serialized units." })).status, 200);
   const aggregate = await httpGet(app, `/v1/companies/${companyId}/360`, token);
-  const aggregateData = (aggregate.body as { data: { documents: unknown; workflowBoundaries: Array<{ persistence: string; futureOwner: string }> } }).data;
+  const aggregateData = (aggregate.body as { data: { notes: Array<{ body: string; pinned: boolean }>; documents: unknown; workflowBoundaries: Array<{ persistence: string; futureOwner: string }> } }).data;
+  assert.equal(aggregateData.notes[0]?.pinned, true);
+  assert.match(aggregateData.notes[0]?.body ?? "", /operations/);
+  assert.equal((await httpGet(app, `/v1/companies/${companyId}/notes`, readOnlyToken)).status, 200);
+  assert.equal((await httpPost(app, `/v1/companies/${companyId}/notes`, readOnlyToken, { body: "Unauthorized" })).status, 403);
   assert.deepEqual(aggregateData.documents, { persistent: false, source: "workflow-boundary", documents: [] });
   assert.equal(aggregateData.workflowBoundaries.every((item) => item.persistence === "none" && item.futureOwner.length > 0), true);
   assert.equal((await httpRequest(app, "DELETE", `/v1/contacts/${contactId}`, token)).status, 200);
   assert.equal((await httpRequest(app, "DELETE", `/v1/company-addresses/${secondAddressId}`, token)).status, 200);
+  assert.equal((await httpRequest(app, "DELETE", `/v1/company-notes/${noteId}`, token)).status, 200);
   assert.equal((await httpRequest(app, "DELETE", `/v1/companies/${companyId}`, token)).status, 200);
 });
 
@@ -475,6 +484,7 @@ test("openapi document covers current read routes with component schemas", () =>
   assert.ok(openApiDocument.components.schemas.CompanyCreateRequest);
   assert.ok(openApiDocument.components.schemas.ContactUpdateRequest);
   assert.ok(openApiDocument.components.schemas.CompanyAddressUpdateRequest);
+  assert.ok(openApiDocument.components.schemas.CompanyNoteUpdateRequest);
   assert.ok(openApiDocument.components.schemas.Company360Response);
   assert.ok(openApiDocument.components.schemas.PartNumber);
   assert.ok(openApiDocument.components.schemas.StockItem);

@@ -20,3 +20,5 @@ static export metadata must never be presented as live.
 The initial 2026-07-24 reconciliation deliberately records incomplete catalog modules at 0% and records known
 implemented modules conservatively. It does not infer evidence from pages, endpoints, fixtures, HTTP status alone,
 or old prose percentages.
+
+The control-center UI groups this same canonical evidence into ten read-only views: Business, Technical, UI, Persistence, Permissions, API, Tests, Documentation, AeroCanada validation, and Production readiness. These dimensions do not create evidence or modify percentages. The human-facing lifecycle labels are Not started, In progress, Review, Validated, and Production Ready; green remains impossible without the canonical public-staging and safe-tenant gates.

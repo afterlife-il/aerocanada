@@ -1,14 +1,14 @@
 {
-  "last_updated": "2026-07-24",
+  "last_updated": "2026-07-28",
   "module_progress": {
     "canonical_source": "SaaS_Aviation/module-status.json",
     "calculation": "derived weighted criteria; no manually entered percentage",
     "freshness": "last-recorded",
     "route": "/admin/cto/",
     "validated_modules": 0,
-    "status": "implementation complete; full gates and affected web deployment pending",
-    "deployment_truth": "no runtime changed during reconciliation yet",
-    "next_action": "pass full and PostgreSQL zero-skip gates, deploy web/status only, validate protected public dashboard"
+    "status": "ten-dimension control center implemented locally; evidence gates remain canonical",
+    "deployment_truth": "no runtime changed during Phase 3 product sprint",
+    "next_action": "apply migration 007, pass Company notes PostgreSQL zero-skip tests, then record safe AeroCanada acceptance"
   },
   "repository_state": {
     "current_branch": "main",
@@ -17,6 +17,37 @@
     "deployment_status": "persistent staging publicly available; migrations 001-006, API 2e8b1d0 and web 3c9480d deployed; PostgreSQL-only Part/Stock workspaces publicly validated; interactive browser acceptance blocked by tooling",
     "current_module": "Operational persistent Part and Stock workspaces",
     "current_sprint": "PostgreSQL-only lists details filters sorting pagination URL state and truthful boundaries"
+  },
+  "backup_v2": {
+    "completion_status": "production V2 deployed and validated; V1/V2 parallel cycle in progress",
+    "chosen_technology": "restic with rclone Dropbox backend",
+    "finished_work": [
+      "encrypted deduplicated incremental backup operator",
+      "guarded retention and pruning",
+      "repository integrity and verified temporary restore automation",
+      "systemd service and timer templates",
+      "architecture, restore, disaster recovery, migration and rollback documentation",
+      "isolated synthetic end-to-end smoke test",
+      "production filesystem snapshot c87e97a7 and 13 logical database snapshots",
+      "10 percent repository data-pack integrity verification",
+      "verified isolated filesystem, MariaDB, host PostgreSQL, AeroCanada PostgreSQL and SaaS_Aviation PostgreSQL restores",
+      "three enabled V2 systemd timers at non-overlapping UTC windows"
+    ],
+    "remaining_work": [
+      "run V1 and V2 together for one full backup cycle",
+      "compare V1 archive size and duration with the next V2 added bytes and duration",
+      "repeat restore verification after the first scheduled V2 run",
+      "request explicit approval before any V1 retirement"
+    ],
+    "known_blockers": [
+      "Backup V1 retirement is prohibited until the overlap cycle completes and explicit approval is received",
+      "aerocanada_corrupted is an unmapped broken MariaDB schema and cannot produce a logical dump; raw files remain included",
+      "long-term storage and bandwidth reduction cannot be measured from one baseline"
+    ],
+    "next_recommended_task": "allow one complete V1/V2 cycle, compare measured results, repeat restore checks, then request approval before disabling V1",
+    "validation_performed": "filesystem c87e97a7 plus 13 DB snapshots; all metadata and 500 of 500 sampled packs passed; retention dry-run; verified /etc, MariaDB and three PostgreSQL restores; protected service health and HTTPS passed",
+    "deployment_status": "V2 deployed and three timers enabled; V1 unchanged and active; SaaS_Aviation, Yoyamic, APIs, frontends, databases, Plesk backup schedule and legacy PHP unchanged",
+    "commit_reference": "working tree; no commit requested"
   },
   "documentation_policy": {
     "definition_of_done": true,
@@ -56,15 +87,15 @@
     },
     "company_360": {
       "status": "persistent_foundation_deployed_to_staging_not_production_ready",
-      "scope": "PostgreSQL Company identity, Company/Contact/Address CRUD, search/filter/sort/pagination, related inventory, persisted activity, aligned local login contract, normalized UI forms, and explicit non-persistent Documents/commercial boundaries",
+      "scope": "PostgreSQL Company identity, Company/Contact/Address CRUD, multiple operational notes, search/filter/sort/pagination, related inventory, persisted activity, aligned local login contract, normalized UI forms, and explicit non-persistent Documents/commercial boundaries",
       "completion_status": "staging_candidate_after_remaining_auth_and_operational_prerequisites",
-      "finished_work": "Phase 1.1 login contract, logout clearing, form normalization, Contact/Address editing, aggregate truthfulness, workflow boundaries, OpenAPI, tests, and documentation",
-      "remaining_work": "visual browser review, Part/Stock DELETE API routes, MFA, password reset/user administration, rate limiting, persistent Documents, commercial modules, monitoring, and secret management",
-      "known_blockers": "interactive browser control unavailable; MFA and remaining operational prerequisites are not implemented",
-      "next_recommended_task": "implement TOTP/recovery codes and provider-abstracted phone OTP, then add identity administration",
-      "validation_performed": "migrations 001-005; PostgreSQL 21/21 no skips; public DNS/TLS/routes; secure cookie login; CSRF rejection/acceptance; Company CRUD; session persistence across API restart; logout revocation; protected systems health",
-      "deployment_status": "isolated persistent staging publicly available over verified HTTPS",
-      "commit_reference": "Harden Company 360 persistent workflows"
+      "finished_work": "Phase 3 Company notes repository/API/OpenAPI/UI with create/edit/pin/delete, validation, permissions and activity events; CTO ten-dimension control view",
+      "remaining_work": "public staging validation, persistent Documents, commercial histories and premium quick actions",
+      "known_blockers": "public staging migration/API/web deployment and live acceptance remain pending",
+      "next_recommended_task": "commit/push and deploy migration 007 plus affected API/web components, then complete public browser acceptance",
+      "validation_performed": "final suite 64/64 zero skips with TEST_DATABASE_URL; API/PostgreSQL 23/23; migration 007 checksum/idempotency/restart/permissions/tenant-isolation passed; typecheck, lint and build passed",
+      "deployment_status": "existing isolated staging unchanged; Phase 3 notes and dashboard changes are local only",
+      "commit_reference": "working tree; no commit requested"
     },
     "part_360": {
       "status": "workspace_completed_with_local_postgres_part_crud_api_not_deployed",
@@ -110,9 +141,9 @@
       "status": "architecture_pending"
     },
     "cto_dashboard": {
-      "status": "internal_tool_protected_on_staging_phase_2_metadata_pending_deploy",
-      "scope": "dev-team-only status page at /admin/cto in the SaaS_Aviation frontend: global build/deploy status, deployment metadata, check statuses, security status, 22-module status table, blockers, sprint tracking, technical debt, architecture decisions, and 10-commit activity timeline",
-      "data_source": "hand-maintained static snapshot in apps/web/src/lib/cto-status.ts, kept in sync with SaaS_Aviation/CTO_STATUS.md",
+      "status": "evidence_weighted_ten_dimension_control_center_local_changes_not_deployed",
+      "scope": "protected control center with calculated completion, five lifecycle labels, and Business, Technical, UI, Persistence, Permissions, API, Tests, Documentation, AeroCanada validation and Production readiness dimensions",
+      "data_source": "canonical SaaS_Aviation/module-status.json with derived calculations in apps/web/src/lib/cto-status.ts",
       "not_part_of_customer_erp": true,
       "access_control": "Apache Basic Auth protects /SaaS_Aviation/admin/ on staging; credentials are server-side only and not committed"
     },
@@ -275,7 +306,7 @@
     "full_import_gate": "blocked_by_missing_names_normalized_duplicates_orphans_and_duplicate_company_emails",
     "reports": "/opt/ready2go/saas-aviation/migration-reports/20260715T135622Z-dry-run; 20260715T140926Z-sample; 20260715T140954Z-sample-idempotency"
   },
-  "current_sprint": "Persistent staging authentication",
-  "last_completed_task": "Deployed web 2ff9534 only and passed public zero-fixture, CSS/JS, routes, login/logout, Company CRUD, API-restart persistence, Part/Stock and five-container health checks; visual browser evidence remains unavailable.",
-  "next_recommended_task": "Complete manual visual and browser-console acceptance, then wait for explicit approval before Connected Mailboxes."
+  "current_sprint": "CTO Sprint Phase 3 Company 360 product development",
+  "last_completed_task": "Validated migration 007, PostgreSQL 23/23 zero skips, and the masked local aci770 Company note lifecycle in Playwright/Chromium; fixed the browser-discovered async form refresh defect.",
+  "next_recommended_task": "Commit/push and deploy migration 007 plus affected API/web components, then complete public browser acceptance; do not start Part 360 yet."
 }

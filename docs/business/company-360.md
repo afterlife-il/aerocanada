@@ -87,3 +87,9 @@ Company 360 remains deployed as a static/sample read-model screen. Locally, the 
 PostgreSQL mode is local/dev only and requires explicit `DATABASE_URL` configuration. The static frontend does not connect to it unless `persistent-api` mode is selected locally.
 
 Validation on 2026-07-14 applied migration 002 and passed the real PostgreSQL suite without skips. On 2026-07-15 the isolated staging runtime passed authenticated Company/Contact/Address CRUD, reconnect persistence/re-login, tenant isolation, backup/restore, and forced-host proxy validation. Browser automation and public validation remain blocked by tooling plus missing DNS/TLS.
+
+## Phase 3 Notes Workflow - 2026-07-28
+
+Company 360 now has a distinct operational-notes workflow in persistent mode. Authorized users can create, edit, pin, unpin, and delete tenant-scoped notes. Each mutation records a Company activity event; validation rejects blank notes and limits bodies to 5,000 characters. This is separate from the single Company profile `notes` field and supports multiple auditable working notes.
+
+The memory/API/UI tests, typecheck, lint, and production build pass. Docker Desktop was restored on 2026-07-28; migration 007 applied with a checksum-ledger entry, its second application was idempotent, and the PostgreSQL suite passed 23/23 with zero skips. The safe isolated `aci770` scenario covers note create/edit/pin, repository/API restart persistence, activity events, unpin/delete, read-only denial, and cross-tenant denial. Playwright/Chromium browser acceptance passed locally through the system-level `agent-browser` fallback, including desktop/mobile rendering, empty/error states, activity, restart persistence, and the CTO evidence view. Public staging acceptance remains pending, so no completion weight was added yet.

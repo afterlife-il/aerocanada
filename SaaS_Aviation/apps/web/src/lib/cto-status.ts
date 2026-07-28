@@ -62,6 +62,27 @@ export interface ModuleWithProgress extends ModuleRecord {
   validatedCriteria: number;
   applicableCriteria: number;
   hasRegression: boolean;
+  controlStatus: "Not started" | "In progress" | "Review" | "Validated" | "Production Ready";
+  dimensions: Record<"Business" | "Technical" | "UI" | "Persistence" | "Permissions" | "API" | "Tests" | "Documentation" | "AeroCanada validation" | "Production readiness", number>;
+}
+
+function criterionScore(criterion: WeightedCriterion | undefined): number {
+  if (!criterion || ["not_started", "failed", "blocked"].includes(criterion.state)) return 0;
+  if (criterion.state === "passed" || criterion.state === "not_applicable") return 100;
+  return Math.round(((criterion.partialScore ?? 0) / criterion.weight) * 100);
+}
+
+function dimensionScore(module: ModuleRecord, ids: string[]): number {
+  const values = ids.map((id) => module.criteria.find((criterion) => criterion.id === id)).filter(Boolean).map(criterionScore);
+  return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0;
+}
+
+function controlStatus(module: ModuleRecord, percentage: number): ModuleWithProgress["controlStatus"] {
+  if (module.status === "validated") return "Validated";
+  if (percentage === 100 && module.deployedCommit !== "pending") return "Production Ready";
+  if (percentage === 0) return "Not started";
+  if (percentage >= 80) return "Review";
+  return "In progress";
 }
 
 export function calculatePercentage(criteria: WeightedCriterion[]): number {
@@ -144,7 +165,20 @@ export function getCtoStatus() {
     status: deriveStatus(module),
     validatedCriteria: module.criteria.filter((criterion) => criterion.state === "passed").length,
     applicableCriteria: module.criteria.filter((criterion) => criterion.state !== "not_applicable").length,
-    hasRegression: module.criteria.some((criterion) => criterion.state === "failed")
+    hasRegression: module.criteria.some((criterion) => criterion.state === "failed"),
+    controlStatus: controlStatus(module, calculatePercentage(module.criteria)),
+    dimensions: {
+      Business: dimensionScore(module, ["business-spec", "actions"]),
+      Technical: dimensionScore(module, ["database-schema", "repository", "api", "tenant-isolation", "automated-tests"]),
+      UI: dimensionScore(module, ["ui", "list-tools", "detail"]),
+      Persistence: dimensionScore(module, ["database-schema", "repository"]),
+      Permissions: dimensionScore(module, ["tenant-isolation"]),
+      API: dimensionScore(module, ["api"]),
+      Tests: dimensionScore(module, ["automated-tests"]),
+      Documentation: dimensionScore(module, ["business-spec"]),
+      "AeroCanada validation": dimensionScore(module, ["aerocanada-example"]),
+      "Production readiness": dimensionScore(module, ["public-staging"])
+    }
   }));
   const overallPercentage = Math.round(calculated.reduce((sum, module) => sum + module.percentage, 0) / calculated.length);
   return {
