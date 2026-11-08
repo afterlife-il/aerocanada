@@ -1,6 +1,18 @@
 # AeroCanada Project Recap
 
-Last updated: 2026-07-28
+Last updated: 2026-11-08
+
+## Claude Code tooling configuration - 2026-11-08
+
+Repository Claude Code configuration was added: Ponytail (`DietrichGebert/ponytail`)
+and the `anthropics/skills` plugins (`document-skills`, `example-skills`) are
+declared in `.claude/settings.json`; Graphify (`graphifyy` 0.9.75) adds a
+`CLAUDE.md` section and guarded PreToolUse/SessionStart hooks, with a cloud-only
+install hook. OmniRoute was deliberately not installed. Verified in a cloud
+session: plugin installs succeeded via `claude plugin install`, and the graphify
+install hook reinstalled the CLI from a clean state. No graph has been built yet.
+No application code, frontend, API, database, Yoyamic or legacy PHP changed.
+See `docs/ai/claude-code-tooling.md`.
 
 ## Company 360 public deployment and acceptance - 2026-07-28
 
