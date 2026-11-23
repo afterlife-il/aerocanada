@@ -33,3 +33,13 @@ Empreinte SHA-256 du fichier `SHA256SUMS` des sources, tests et procédures du c
 Le candidat publie des permissions distinctes READ, CREATE, UPDATE et SEND. La traduction des anciens descripteurs internes `.write` est centralisée dans la passerelle MCP; les outils create/add/import obtiennent `.create`, les outils update/mark/validate/restore/archive obtiennent `.update`. La liste d’activation refuse archive/delete/remove. Les tests de portée confirment qu’un jeton CREATE ne peut pas faire UPDATE et qu’aucun scope générique WRITE ou DELETE n’est publié.
 
 La suite isolée a réussi après ce correctif : 17 tests Python, handlers PHP métier, MariaDB bootstrap synthétique, PDF FPDF local et transport Gmail simulé. 29 empreintes du candidat sont vérifiées. Le serveur actif n’a pas été modifié; l’identité employé Yoyamic, les nouveaux scopes Auth0, les droits de schéma et les tests Claude restent des prérequis de déploiement.
+
+
+## Passerelle réelle sur MariaDB isolée — 23 novembre 2026
+
+- Ajout d’un test E2E qui démarre une instance MariaDB temporaire sur socket privé avec `--skip-networking`, schéma synthétique, et compte éphémère limité à SELECT et INSERT/UPDATE sur les tables nécessaires. L’instance de production n’est pas utilisée.
+- Appels exercés au travers de la passerelle candidate : création, mise à jour et relecture d’une compagnie, d’un contact lié, et d’un Part Number; création puis relecture d’une RFQ avec ligne; enregistrement/relecture de Supplier Quote et Customer Quotation; génération d’un PDF; aperçu d’email non persisté.
+- Sujet OAuth synthétique inconnu refusé. Aucun appel SEND, aucun email réel, aucune modification de données de production.
+- Le test E2E passe individuellement. La suite complète `run_isolated_tests.sh` passe : 17 tests Python, syntaxe PHP, handlers, MariaDB bootstrap et assertions, inventory/workflow et six étapes E2E de la passerelle.
+- Le manifeste SHA-256 local a été recalculé et vérifié après ajout du runner E2E.
+- Cela valide uniquement le candidat sur données synthétiques. Déploiement toujours bloqué : compte MariaDB de service en SELECT/USAGE seulement, scopes OAuth candidat non provisionnés sur le serveur actif (44 scopes candidat, 3 annoncés; 42 manquants), absence de mapping Auth0 subject → employé vérifié, configuration runtime candidate absente et aucun accès de session Claude disponible. ChatGPT ne voit que les trois outils de lecture déjà déployés. Aucun changement de production ou rollback n’a été nécessaire.
