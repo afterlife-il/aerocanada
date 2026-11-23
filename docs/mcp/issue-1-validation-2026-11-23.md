@@ -26,3 +26,10 @@ Empreinte SHA-256 du fichier `SHA256SUMS` des sources, tests et procédures du c
 - Les trois outils déjà déployés ont réussi depuis le connecteur ChatGPT existant, sur une référence synthétique sans résultat : `search_part`, `get_stock`, `get_part_history`. Aucune nouvelle fonction candidate n’est visible.
 - Le candidat comporte 54 outils de lecture et 18 scopes ; 16 scopes ne sont pas annoncés par les métadonnées OAuth du serveur actif. La passerelle attend également un mapping Auth0-subject ↔ employé Yoyamic vérifié, absent. Les permissions du lecteur DB ne couvrent pas des écritures et l’accès identité/audit du candidat n’est pas validé.
 - Déploiement annulé avant toute modification, car ces contrôles empêchent d’assurer des lectures autorisées. Aucun redémarrage, changement de permission, mutation ERP ou email. Rollback non déclenché car la production n’a pas changé. La disponibilité depuis Claude et celle des outils candidate dans ChatGPT ne sont pas vérifiées.
+
+
+## Durcissement CREATE/UPDATE — 23 novembre 2026
+
+Le candidat publie des permissions distinctes READ, CREATE, UPDATE et SEND. La traduction des anciens descripteurs internes `.write` est centralisée dans la passerelle MCP; les outils create/add/import obtiennent `.create`, les outils update/mark/validate/restore/archive obtiennent `.update`. La liste d’activation refuse archive/delete/remove. Les tests de portée confirment qu’un jeton CREATE ne peut pas faire UPDATE et qu’aucun scope générique WRITE ou DELETE n’est publié.
+
+La suite isolée a réussi après ce correctif : 17 tests Python, handlers PHP métier, MariaDB bootstrap synthétique, PDF FPDF local et transport Gmail simulé. 29 empreintes du candidat sont vérifiées. Le serveur actif n’a pas été modifié; l’identité employé Yoyamic, les nouveaux scopes Auth0, les droits de schéma et les tests Claude restent des prérequis de déploiement.
