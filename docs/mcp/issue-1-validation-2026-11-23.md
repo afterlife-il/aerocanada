@@ -43,3 +43,12 @@ La suite isolée a réussi après ce correctif : 17 tests Python, handlers PHP m
 - Le test E2E passe individuellement. La suite complète `run_isolated_tests.sh` passe : 17 tests Python, syntaxe PHP, handlers, MariaDB bootstrap et assertions, inventory/workflow et six étapes E2E de la passerelle.
 - Le manifeste SHA-256 local a été recalculé et vérifié après ajout du runner E2E.
 - Cela valide uniquement le candidat sur données synthétiques. Déploiement toujours bloqué : compte MariaDB de service en SELECT/USAGE seulement, scopes OAuth candidat non provisionnés sur le serveur actif (44 scopes candidat, 3 annoncés; 42 manquants), absence de mapping Auth0 subject → employé vérifié, configuration runtime candidate absente et aucun accès de session Claude disponible. ChatGPT ne voit que les trois outils de lecture déjà déployés. Aucun changement de production ou rollback n’a été nécessaire.
+
+
+## Préflight final Auth0 / MariaDB — 23 novembre 2026
+
+- Le manifeste candidat contient 100 outils et 44 scopes distincts. L’endpoint protégé actif annonce `aerocanada.parts.read`, `aerocanada.stock.read` et `aerocanada.history.read`; 42 scopes candidat manquent, dont tous les scopes CREATE/UPDATE/SEND. La matrice Auth0 exhaustive avec description, outils, rôles et statut est publiée dans [AUTH0_SCOPES_TO_CONFIGURE.md](AUTH0_SCOPES_TO_CONFIGURE.md).
+- Aucun outil d’administration Auth0 ni credential Management API n’est disponible. Les scopes et les permissions assignées à chaque utilisateur n’ont donc pas été modifiés/vérifiés. Le mapping privé Auth0 subject → employé Ready2Go n’est pas configuré; les sujets inconnus restent refusés par le candidat.
+- Le compte MariaDB actif `aerocanada_mcp_reader` est toujours limité à SELECT/USAGE. Aucun nouveau compte ni grant n’a été appliqué : le candidat attend une base unique, mais ses 18 tables d’écriture existent dans `aerocanada` et 19 dans `aerocanada_yoyamic`, sans base candidate définie. L’accès de production n’a pas été élargi.
+- MCP et MariaDB sont actifs sur la version précédente. Les 100 outils candidats ne sont pas déployés (0 outil candidat en production). ChatGPT conserve les 3 outils READ existants; aucune session Claude n’est accessible pour un test. Aucun redémarrage, changement de configuration, donnée commerciale ou email.
+- La sauvegarde existante a été vérifiée par SHA-256. Les tests isolés/E2E déjà réussis n’ont pas été rerun. Déploiement bloqué par les scopes/assignations Auth0, mapping utilisateur et clarification du schéma/comptes DB.
