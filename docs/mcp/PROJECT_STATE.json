@@ -1,0 +1,12 @@
+{
+  "mission": "AeroCanada MCP Full ERP — integration and go-live",
+  "updated_at": "2026-11-23T15:02:00Z",
+  "candidate_tools": 100,
+  "candidate_sha256sums": "1d6ef2a94a4ee285725ad3f01dd60f9d8b4de80076b6f505b2b47e9ddd1419e8",
+  "isolated_tests": {"python": 16, "php_handlers": "PASS", "mariadb_synthetic_offline": "PASS", "gmail": "mock only", "pdf": "synthetic data"},
+  "active_test_processes": 0,
+  "production": {"deployed": false, "service_restarted": false, "commercial_data_changed": false, "real_email_sent": false},
+  "integration_blockers": ["MariaDB Unix socket connect denied with EPERM in sandbox", "systemd D-Bus access denied", "Auth0 subject to Yoyamic employee mappings not verified", "live Claude and ChatGPT checks not performed"],
+  "next_steps": ["Verify schema and grants using dedicated principal in authorized environment", "Provision and validate subject-to-employee mappings and OAuth scopes", "Test both clients in staging", "Back up and test rollback before deployment"],
+  "constraints": "No production data mutations, no real emails, no OAuth bypass, no deployment before critical checks pass."
+}
