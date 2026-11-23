@@ -18,3 +18,11 @@ Empreinte SHA-256 du fichier `SHA256SUMS` des sources, tests et procédures du c
 - Le manifeste local recense 100 outils candidat, mais le service de production exécute toujours l’ancien connecteur en lecture seule (3 outils). Aucun déploiement, redémarrage, changement de permissions, mutation commerciale ou email réel n’a eu lieu.
 - Reste bloquant : aucun mapping vérifié Auth0 subject ↔ employé Yoyamic, aucun rôle MariaDB minimal d’écriture/audit ni base de staging, aucun jeton de boîte Gmail de test. Les appels réels depuis Claude et ChatGPT n’ont pas été testés et les connecteurs existants n’ont pas été modifiés.
 - Aucun backup de déploiement n’a été pris puisqu’aucun changement sensible n’a été appliqué; sauvegarde et rollback doivent précéder le déploiement futur.
+
+
+## Tentative de mise en service en lecture seule — 23 novembre 2026
+
+- Sauvegarde root-only vérifiée : `/var/backups/aerocanada-mcp/pre-readonly-deploy-20261123T160407Z.tar.gz`, 13 entrées, mode 0600, SHA-256 `027a42c9aa194998c0099021013412053ad3688604c7cb9ec66f3afc9727443d`.
+- Les trois outils déjà déployés ont réussi depuis le connecteur ChatGPT existant, sur une référence synthétique sans résultat : `search_part`, `get_stock`, `get_part_history`. Aucune nouvelle fonction candidate n’est visible.
+- Le candidat comporte 54 outils de lecture et 18 scopes ; 16 scopes ne sont pas annoncés par les métadonnées OAuth du serveur actif. La passerelle attend également un mapping Auth0-subject ↔ employé Yoyamic vérifié, absent. Les permissions du lecteur DB ne couvrent pas des écritures et l’accès identité/audit du candidat n’est pas validé.
+- Déploiement annulé avant toute modification, car ces contrôles empêchent d’assurer des lectures autorisées. Aucun redémarrage, changement de permission, mutation ERP ou email. Rollback non déclenché car la production n’a pas changé. La disponibilité depuis Claude et celle des outils candidate dans ChatGPT ne sont pas vérifiées.
