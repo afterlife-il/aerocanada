@@ -76,6 +76,12 @@ function moneySchema(): array
     return stringSchema(13) + ['pattern' => '^(0|[1-9][0-9]{0,9})(\.[0-9]{1,2})?$'];
 }
 
+function quoteMoneySchema(): array
+{
+    // Yoyamic stores quote prices in VARCHAR(11), unlike invoice DECIMAL fields.
+    return stringSchema(11) + ['pattern' => '^(0|[1-9][0-9]{0,7})(\.[0-9]{1,2})?$'];
+}
+
 function objectSchema(array $properties, array $required = []): array
 {
     return ['type' => 'object', 'properties' => $properties ?: (object)[], 'required' => $required, 'additionalProperties' => false];
@@ -329,7 +335,7 @@ function quoteData(PDO $db, array $args): array
     $inputs = [
         'quantity' => 'Fld_Qty', 'condition_id' => 'Fld_Condition', 'price' => 'Fld_Price',
         'currency_id' => 'Fld_Currency_ID', 'serial_number' => 'Fld_Part_SN', 'notes' => 'Fld_Remark',
-        'lead_time' => 'lead_time', 'release_id' => 'Fld_Release_ID',
+        'lead_time' => 'lead_time', 'moq' => 'moq', 'release_id' => 'Fld_Release_ID',
     ];
     foreach (['condition_id' => 'condition', 'currency_id' => 'currency', 'release_id' => 'release'] as $key => $ref) {
         if (isset($args[$key])) {
@@ -399,6 +405,7 @@ function createQuotes(PDO $db, array $args, int $employee): array
         $rows[] = quoteData($db, $line) + quoteSource($db, $line, $line['rfq_line_id'], $source) + [
             'Fld_RFQ_ID' => $rfq, 'Fld_Quote_Date' => $date, 'Fld_Part_Id' => $source['Fld_Part_ID'],
             'Fld_Priority_ID' => $source['Fld_Priority_ID'], 'id_tbl_rfq1' => $line['rfq_line_id'],
+            'moq' => $line['moq'] ?? '', 'lead_time' => $line['lead_time'] ?? '',
         ];
     }
     $ids = [];
@@ -808,6 +815,7 @@ function createSupplierQuote(PDO $db, array $args, int $employee): array
     $id = insert($db, 'tbl_RFQ_2', $values + [
         'Fld_RFQ_ID' => $line['Fld_RFQ_ID'], 'Fld_Supplier_ID' => $supplier, 'Fld_Part_ID' => (int)$line['Fld_Part_ID'],
         'Fld_Supplier_Contact_ID' => $args['contact_id'], 'Fld_Current_Date' => date('Y-m-d'), 'aci_contact' => $employee,
+        'lead_time' => '',
     ]);
     return ['id' => $id, 'rfq_reference' => $line['Fld_RFQ_ID']];
 }
@@ -909,6 +917,28 @@ function importCapabilities(PDO $db, array $args): array
         $partNumber = trim($item['part_number']);
         $aircraft = normalizeAircraft($item['aircraft'] ?? '');
         $capability = trim($item['capability']);
+        $parts = query($db, 'SELECT Fld_Part_ID, Fld_Part_MFG FROM tbl_Parts WHERE Fld_Part_Nbr = ? ORDER BY Fld_Part_ID LIMIT 2',
+            [$partNumber])->fetchAll(PDO::FETCH_ASSOC);
+        if (count($parts) !== 1) {
+            throw new DomainException('Le Part Number est absent ou ambigu dans le catalogue Yoyamic');
+        }
+        $part = $parts[0];
+        $manufacturer = trim((string)($item['manufacturer'] ?? ''));
+        if ($manufacturer === '' && (int)($part['Fld_Part_MFG'] ?? 0) > 0) {
+            $manufacturer = (string)query($db, 'SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID = ?',
+                [(int)$part['Fld_Part_MFG']])->fetchColumn();
+        }
+        if ($manufacturer === '') {
+            $manufacturer = (string)query($db, 'SELECT Fld_Company_Name FROM tb_company WHERE Fld_Company_ID = ?', [$company])->fetchColumn();
+        }
+        if ($manufacturer === '') {
+            throw new DomainException('Fabricant introuvable pour ce Part Number');
+        }
+        $ata = trim($item['ata'] ?? '');
+        $codeOem = trim($item['code_oem'] ?? '');
+        if (($ata !== '' && !ctype_digit($ata)) || ($codeOem !== '' && !ctype_digit($codeOem))) {
+            throw new InvalidArgumentException('ATA et code OEM doivent être des entiers');
+        }
         if (query($db, "SELECT id_capa_list FROM tbl_capa_list
             WHERE id_company = ? AND pn = ? AND COALESCE(aircraft, '') = ? AND capability = ?
             LIMIT 1 FOR UPDATE", [$company, $partNumber, $aircraft, $capability])->fetchColumn() !== false) {
@@ -916,10 +946,12 @@ function importCapabilities(PDO $db, array $args): array
             continue;
         }
         $ids[] = insert($db, 'tbl_capa_list', [
+            'Fld_Part_ID' => (int)$part['Fld_Part_ID'],
             'pn' => $partNumber, 'descriptioin' => trim($item['description'] ?? ''),
-            'aircraft' => $aircraft, 'ata' => trim($item['ata'] ?? ''), 'capability' => $capability,
+            'aircraft' => $aircraft, 'manufacturer' => $manufacturer, 'ata' => $ata === '' ? 0 : (int)$ata,
+            'capability' => $capability,
             'pma' => trim($item['pma'] ?? ''), 'doa' => trim($item['doa'] ?? ''), 'der' => trim($item['der'] ?? ''),
-            'code_oem' => trim($item['code_oem'] ?? ''), 'design_oem' => trim($item['design_oem'] ?? ''),
+            'code_oem' => $codeOem === '' ? 0 : (int)$codeOem, 'design_oem' => trim($item['design_oem'] ?? ''),
             'id_company' => $company, 'status' => '', 'entry_date' => date('Y-m-d'), 'comments' => '',
         ]);
     }
@@ -936,11 +968,13 @@ $line = objectSchema([
     'condition_id' => $id, 'observation' => stringSchema(1000, 0),
 ], ['part_id', 'quantity', 'rfq_type_id', 'condition_id']);
 $quoteFields = [
-    'quantity' => $id, 'condition_id' => $id, 'price' => moneySchema(), 'currency_id' => $id,
-    'serial_number' => stringSchema(100, 0), 'notes' => stringSchema(1000, 0),
-    'lead_time' => stringSchema(100, 0), 'release_id' => $id,
+    'quantity' => $id, 'condition_id' => $id, 'price' => quoteMoneySchema(), 'currency_id' => $id,
+    'serial_number' => stringSchema(34, 0), 'notes' => stringSchema(100, 0), 'moq' => stringSchema(15, 0),
+    'lead_time' => stringSchema(200, 0), 'release_id' => $id,
 ];
-$supplierQuoteFields = $quoteFields + ['payment_term_id' => $id, 'delivery' => stringSchema(200, 0)];
+$supplierQuoteFields = array_diff_key($quoteFields, ['moq' => true]) + [
+    'payment_term_id' => $id, 'delivery' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 999],
+];
 $orderTerms = [
     'customer_po_number' => stringSchema(100, 0), 'accepted_price' => moneySchema(),
     'accepted_qty' => $id, 'accepted_condition_id' => $id, 'payment_terms' => stringSchema(255, 0),
@@ -949,9 +983,10 @@ $orderTerms = [
 ];
 $quoteFilters = ['rfq_reference' => rfqSchema(), 'company_id' => $id, 'part_id' => $id];
 $capabilityItem = objectSchema([
-    'part_number' => stringSchema(80), 'description' => stringSchema(200, 0), 'aircraft' => stringSchema(80, 0),
-    'ata' => stringSchema(100, 0), 'capability' => stringSchema(100), 'pma' => stringSchema(100, 0),
-    'doa' => stringSchema(100, 0), 'der' => stringSchema(100, 0), 'code_oem' => stringSchema(100, 0),
+    'part_number' => stringSchema(23), 'description' => stringSchema(200, 0), 'aircraft' => stringSchema(80, 0),
+    'manufacturer' => stringSchema(300, 0), 'ata' => stringSchema(10, 0),
+    'capability' => stringSchema(100), 'pma' => stringSchema(11, 0),
+    'doa' => stringSchema(11, 0), 'der' => stringSchema(11, 0), 'code_oem' => stringSchema(11, 0),
     'design_oem' => stringSchema(100, 0),
 ], ['part_number', 'capability']);
 $invoiceStatus = ['draft', 'sent', 'paid', 'overdue', 'cancelled'];
