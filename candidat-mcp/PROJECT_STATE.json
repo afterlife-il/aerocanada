@@ -1,6 +1,6 @@
 {
   "mission": "AeroCanada MCP Full ERP — intégration et mise en service",
-  "updated_at": "2026-11-24T13:40:17Z",
+  "updated_at": "2026-11-24T14:14:05Z",
   "workspace": "/opt/aerocanada-mcp",
   "candidate": "candidat-mcp",
   "candidate_tools": 100,
@@ -39,7 +39,13 @@
     "existing_reader_grants": "PASS; aerocanada_mcp_reader grants compare equal to pre-change snapshot (33 column SELECT privileges); untouched",
     "production_business_write_test": "NOT RUN by design; production DML prohibited. All mutation tests ran on the isolated DDL clone.",
     "employee_6_identity_check": "PASS; read-only database check matched employee 6 to the known Yohan address; current role SuperAdmin",
-    "auth0_delegated_sub_match": "BLOCKED; no delegated token access or Auth0 /userinfo connector in this session; supplied Auth0 User ID was not treated as proof of token sub"
+    "auth0_delegated_sub_match": "BLOCKED; no delegated token access or Auth0 /userinfo connector in this session; supplied Auth0 User ID was not treated as proof of token sub",
+    "temporary_delegated_sub_probe": "PASS; 5 synthetic unittest cases cover RS256/issuer/audience/expiry/tamper, read-scope enforcement, MCP listing/output and no database access; only synthetic subject used",
+    "temporary_probe_no_scope_denied": "PASS; MCP tool returns Accès refusé without disclosing a subject when aerocanada.parts.read is missing",
+    "temporary_probe_live_subject": "NOT TESTED; current client tool catalog has no refreshed probe entry and no delegated sub was supplied to this runtime",
+    "existing_chatgpt_tools_after_probe_restart": "PASS; search_part, get_stock and get_part_history each returned no results for one synthetic nonexistent part number after restart",
+    "production_unauthenticated_mcp_after_probe_restart": "PASS; /mcp tools/list returns HTTP 401 without OAuth; protected-resource metadata retains the same 3 scopes",
+    "authenticated_live_tool_catalog": "NOT TESTED; user bearer token unavailable to this runtime; no attempt made to bypass OAuth"
   },
   "process_check": {
     "checked": true,
@@ -49,11 +55,11 @@
   },
   "production": {
     "deployed": false,
-    "service_restart": false,
+    "service_restart": true,
     "commercial_data_mutated": false,
     "real_email_sent": false,
     "service_active": true,
-    "live_connector": "legacy connector.py; still exposes the existing 3 read tools",
+    "live_connector": "Legacy read connector plus temporary verify_delegated_sub tool; candidate ERP gateway not deployed",
     "live_tool_count": 3,
     "business_reads_enabled": false,
     "backup_created": true,
@@ -68,7 +74,17 @@
     "writer_account_provisioned": true,
     "audit_table_provisioned": true,
     "writer_connected_to_runtime": false,
-    "writer_credential_path": "/etc/aerocanada-mcp/aerocanada_mcp_writer.password (root:root 0600; not configured in MCP)"
+    "writer_credential_path": "/etc/aerocanada-mcp/aerocanada_mcp_writer.password (root:root 0600; not configured in MCP)",
+    "temporary_identity_probe_deployed": true,
+    "temporary_identity_probe_name": "verify_delegated_sub",
+    "temporary_identity_probe_scope": "aerocanada.parts.read (existing READ scope only)",
+    "temporary_identity_probe_read_only": true,
+    "temporary_identity_probe_database_access": false,
+    "temporary_identity_probe_backup_path": "/var/backups/aerocanada-mcp/pre-temp-subcheck-20261124T140739Z.tar.gz",
+    "temporary_identity_probe_backup_sha256": "5b1e013159e00d4feee433f83d8c7ead1fd8be822d4ce365d35142c14ec3d905",
+    "temporary_identity_probe_runtime_catalog": "Tool is registered in the active source and isolated MCP list test; live authenticated tools/list could not be queried without a user token. Existing client snapshot still contains the original 3 tools.",
+    "service_restart_reason": "Restarted only to load the temporary subject probe; no candidate ERP tools/configuration were deployed.",
+    "live_tool_count_status": "Current ChatGPT tool snapshot exposes the original 3 tools. Authenticated tools/list on the restarted service was not queried; the isolated ASGI app lists 4 including the temporary probe."
   },
   "integration": {
     "mariadb_account_configured": true,
@@ -163,10 +179,12 @@
     "auth0_provider_and_active_resource_verification": "PASS",
     "production_database_writer": "aerocanada_mcp_writer@localhost (provisioned, locally authenticated, not connected to MCP)",
     "production_database_writer_privilege_test": "PASS; exact grant template passed 44-write isolated DDL-clone test and denied DELETE/DDL",
-    "candidate_db_writer_scope": "Mutation-handler tables and direct references only; not reviewed for all candidate READ tools"
+    "candidate_db_writer_scope": "Mutation-handler tables and direct references only; not reviewed for all candidate READ tools",
+    "temporary_probe_live_client_execution": false,
+    "temporary_probe_live_client_execution_reason": "The active tool namespace in this session has not refreshed and exposes only the 3 existing tools; delegated access token is not accessible to the server operator."
   },
   "verified_blockers": [
-    "No verified delegated Auth0 sub for Yohan is accessible to this server; the supplied Auth0 User ID cannot be equated to the signed token sub without /userinfo/token verification. Do not infer it from email.",
+    "Temporary read-only verify_delegated_sub probe is running under the existing OAuth flow; it must be invoked from Yohan’s refreshed client connection before any identity binding. The user identity is still unverified.",
     "The active MCP service still runs the legacy connector and advertises only three read scopes; 42 of 44 candidate scopes are absent from active metadata.",
     "Candidate runtime config and explicit subject-to-Ready2Go employee binding are not configured; the newly provisioned writer account and root-only credential remain disconnected from the service.",
     "The writer grant set covers mutation handlers and their direct references, not yet a reviewed full-ERP read permission set for all 100 tools.",
@@ -190,6 +208,12 @@
       "candidat-mcp/DB_WRITER_PROVISIONING.md",
       "candidat-mcp/SHA256SUMS",
       "candidat-mcp/PROJECT_STATE.json"
+    ],
+    "temporary_identity_probe_source_commit": "c43db2478dc170ebc1f173f351c0e72f3e8f861f",
+    "temporary_identity_probe_test_commit": "916d63c5c1430541246e3d4fe2de93a77ba9f66e",
+    "temporary_identity_probe_files": [
+      "connector.py",
+      "test_identity_probe.py"
     ]
   },
   "git_local": {
@@ -199,16 +223,16 @@
     "erp_repo_modified": false
   },
   "next_steps": [
-    "In Cowork, call the existing Auth0 /userinfo endpoint with Yohan’s delegated AeroCanada access token and provide only the returned sub claim; do not provide or store the bearer token.",
-    "After /userinfo verification, match that sub to Ready2Go employee 6 and configure an explicit private binding; keep writes disabled until this verification.",
-    "Review the final candidate READ grants and active scopes, then integrate the candidate into the existing MCP service only after security preflight and rollback checks.",
-    "After authorized cutover, verify create_rfq and other tools from the existing ChatGPT and Claude sessions; do not use production business writes or real email for validation."
+    "Refresh/reopen the existing AeroCanada MCP connection in ChatGPT or Claude and invoke verify_delegated_sub; provide only the returned sub, never an access token.",
+    "Compare the validated sub with the Auth0 User ID supplied by the user; only on exact match, create and verify the explicit private mapping to Ready2Go employee 6.",
+    "After that comparison, remove verify_delegated_sub from the active connector and restart the service; then resume candidate preflight and deployment checks. Do not deploy ERP writes before identity and scope/schema preflights pass.",
+    "Test the full candidate only in isolation; no production commercial writes or real email."
   ],
   "constraints": "Do not alter commercial production data, send real mail, bypass OAuth, or deploy before critical validations pass.",
   "deployment_attempt": {
-    "result": "not deployed; legacy MCP still active with 3 read tools",
-    "reason": "Candidate activation remains blocked because the supplied Auth0 User ID has not been verified as the delegated token sub. Read-only verification confirms Yoyamic employee 6 matches Yohan and has current role SuperAdmin; no subject binding was created.",
-    "production_changes": "new local-only MariaDB writer principal and InnoDB audit table provisioned after verified backup; no commercial DML, service config change, restart, or email send"
+    "result": "ERP candidate remains not deployed; temporary read-only subject probe alone is deployed in the existing MCP service",
+    "reason": "Identity verification still awaits invocation of verify_delegated_sub through a refreshed user OAuth connection. No Auth0-to-employee binding was created.",
+    "production_changes": "Only the temporary read-only subject probe was added to active connector.py and the service was restarted. It uses the existing parts.read scope, makes no DB call, and returns only the signed sub. No commercial DML, OAuth setting change, or email send."
   },
   "implementation_changes": [
     "Candidate maps legacy internal .write descriptors to separate published .create and .update OAuth scopes",
@@ -228,7 +252,8 @@
     "live_chatgpt_existing_tools": "PASS; all 3 existing reads returned empty for synthetic non-existent part number",
     "live_claude": "NOT TESTED; no Claude tool/session available",
     "production_preflight": "PASS for isolated 44-operation schema/grant validation and production writer/audit provisioning; candidate activation remains BLOCKED by missing verified Auth0 sub, identity binding, candidate runtime config and active scope publication",
-    "candidate_gateway_mysql_e2e": "PASS; ephemeral database only; no production writes or real email"
+    "candidate_gateway_mysql_e2e": "PASS; ephemeral database only; no production writes or real email",
+    "temporary_identity_probe": "PASS in synthetic MCP ASGI tests; production service restarted and protected-resource behavior plus existing ChatGPT reads passed; subject-only tool invocation still awaits user client catalog refresh"
   },
   "candidate_oauth_scope_compatibility": "BLOCKED; candidate declares 44 unique scopes, active resource advertises 3; 42 candidate scopes missing including all CREATE/UPDATE/SEND scopes",
   "auth0_scope_inventory": {
@@ -260,7 +285,7 @@
     "candidate_private_binding_configured": false,
     "unknown_subjects_denied_by_candidate": true,
     "yoyamic_employee_6_check": "PASS; email matches Yohan; current role SuperAdmin",
-    "user_id_to_delegated_sub": "NOT VERIFIED; delegated token and Auth0 /userinfo access are unavailable to this session"
+    "user_id_to_delegated_sub": "PENDING; temporary verify_delegated_sub tool is deployed, but it has not yet been invoked from Yohan’s refreshed OAuth client session"
   },
   "mariadb_write_identity": {
     "existing_principal": "aerocanada_mcp_reader@localhost",
@@ -280,7 +305,8 @@
     "claude_session": "unavailable for execution",
     "chatgpt_candidate_tool_discovery": "not available; existing 3 read tools previously verified, candidate not exposed",
     "isolated_suite": "PASS after compatibility fixes; 17 Python tests plus PHP/MariaDB/gateway suites",
-    "create_rfq_live": "NOT TESTED; tool is not published by the active service"
+    "create_rfq_live": "NOT TESTED; tool is not published by the active service",
+    "temporary_identity_probe": "Deployed with existing aerocanada.parts.read scope; only synthetic output tested; live user invocation pending"
   },
   "rfq_production_schema": {
     "database": "aerocanada_yoyamic",
