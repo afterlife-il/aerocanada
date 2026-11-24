@@ -72,9 +72,9 @@ $page = ['limit' => ['type' => 'integer', 'minimum' => 1, 'maximum' => 100],
 $readRoles = ['User', 'Sales', 'Manager', 'Admin', 'SuperAdmin'];
 $opsRoles = ['Manager', 'Admin', 'SuperAdmin'];
 $shipperFields = [
-    'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 120],
-    'contact_name' => ['type' => 'string', 'maxLength' => 120],
-    'contact_phone' => ['type' => 'string', 'maxLength' => 40],
+    'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 20],
+    'contact_name' => ['type' => 'string', 'maxLength' => 30],
+    'contact_phone' => ['type' => 'string', 'maxLength' => 20],
 ];
 $schema = static fn (array $properties, array $required = []): array =>
     ['type' => 'object', 'properties' => $properties, 'required' => $required, 'additionalProperties' => false];
