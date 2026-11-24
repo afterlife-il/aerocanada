@@ -70,12 +70,14 @@ UPDATE tb_company_contact
     SET Fld_Contact_Name = CASE id_company_contact WHEN 1 THEN 'Synthetic Customer Buyer' ELSE 'Synthetic Supplier Buyer' END,
         Fld_Contact_Email = CASE id_company_contact WHEN 1 THEN 'customer@synthetic.invalid' ELSE 'supplier@synthetic.invalid' END;
 ALTER TABLE tbl_Parts
-    ADD Fld_Part_MFG INT NULL, ADD Fld_AC_ID INT NULL, ADD Fld_Part_List_Price DECIMAL(13,3) NULL,
+    ADD Fld_AC_ID INT NULL, ADD Fld_Part_List_Price DECIMAL(13,3) NULL,
     ADD Fld_Part_Price_Currency_ID INT NULL, ADD Fld_Remark TEXT NULL, ADD alt_pn VARCHAR(500) NULL,
     ADD ata_chapter VARCHAR(50) NULL, ADD cage_code VARCHAR(50) NULL, ADD moq INT NULL,
     ADD oem_lead_time VARCHAR(100) NULL, ADD core_value DECIMAL(13,3) NULL,
     ADD id_currency_core_value INT NULL, ADD Fld_Add_PN_Date DATETIME NULL,
     ADD aci_contact_entry INT NULL, ADD wanted TINYINT NOT NULL DEFAULT 0,
+    ADD essentiality_category_id INT NOT NULL DEFAULT 0, ADD nha VARCHAR(250) NOT NULL DEFAULT '',
+    ADD length INT NOT NULL DEFAULT 0, ADD width INT NOT NULL DEFAULT 0, ADD height INT NOT NULL DEFAULT 0,
     ADD status VARCHAR(10) NOT NULL DEFAULT 'Available';
 ALTER TABLE tbl_Condition ADD Fld_Condition_Text VARCHAR(100) NOT NULL DEFAULT '';
 ALTER TABLE tbl_Currency ADD Fld_Currency_Text VARCHAR(10) NOT NULL DEFAULT '';
