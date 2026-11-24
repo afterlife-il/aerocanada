@@ -61,7 +61,7 @@ function integerField(int $min = 1, int $max = 2147483647): array
 
 function decimalField(): array
 {
-    return ['type' => 'string', 'maxLength' => 14, 'pattern' => '^[0-9]{1,10}(\.[0-9]{1,3})?$'];
+    return ['type' => 'string', 'maxLength' => 13, 'pattern' => '^[0-9]{1,10}(\.[0-9]{1,3})?$'];
 }
 
 function objectField(array $properties, array $required = []): array
@@ -206,10 +206,15 @@ const PART_FIELDS = [
     'alternate_part_numbers' => 'alt_pn',
     'ata_chapter' => 'ata_chapter',
     'cage_code' => 'cage_code',
+    'essentiality_category_id' => 'essentiality_category_id',
+    'next_higher_assembly' => 'nha',
     'minimum_order_quantity' => 'moq',
     'oem_lead_time' => 'oem_lead_time',
     'core_value' => 'core_value',
     'core_currency_id' => 'id_currency_core_value',
+    'length' => 'length',
+    'width' => 'width',
+    'height' => 'height',
 ];
 
 const PART_QUERY = 'SELECT p.Fld_Part_ID AS part_id, p.Fld_Part_Nbr AS part_number,
@@ -217,7 +222,8 @@ const PART_QUERY = 'SELECT p.Fld_Part_ID AS part_id, p.Fld_Part_Nbr AS part_numb
     p.Fld_AC_ID AS aircraft_id, a.Fld_AC_Model AS aircraft_model, p.alt_pn AS alternate_part_numbers,
     p.ata_chapter, p.cage_code, p.Fld_Part_List_Price AS list_price, p.Fld_Part_Price_Currency_ID AS currency_id,
     cur.Fld_Currency_Text AS currency, p.Fld_Remark AS remark, p.status,
-    p.wanted, p.moq AS minimum_order_quantity, p.oem_lead_time, p.core_value, p.id_currency_core_value AS core_currency_id
+    p.wanted, p.moq AS minimum_order_quantity, p.oem_lead_time, p.core_value, p.id_currency_core_value AS core_currency_id,
+    p.essentiality_category_id, p.nha AS next_higher_assembly, p.length, p.width, p.height
     FROM tbl_Parts p
     LEFT JOIN tb_company c ON c.Fld_Company_ID = p.Fld_Part_MFG
     LEFT JOIN tbl_Aircraft a ON a.Fld_AC_ID = p.Fld_AC_ID
@@ -290,7 +296,12 @@ function partValues(PDO $db, array $args, ?int $existingId = null): array
 function partCreate(PDO $db, array $args, int $employeeId): array
 {
     $data = partValues($db, $args) + [
-        'status' => 'Available', 'Fld_Add_PN_Date' => localDate('Y-m-d H:i:s'), 'aci_contact_entry' => $employeeId,
+        // The legacy Yoyamic form submits these required columns even when
+        // optional visible fields are blank. Fld_Add_PN_Date is VARCHAR(15).
+        'status' => 'Available', 'alt_pn' => '', 'Fld_Add_PN_Date' => localDate('Y-m-d'),
+        'aci_contact_entry' => $employeeId, 'ata_chapter' => 0, 'cage_code' => '',
+        'essentiality_category_id' => 0, 'nha' => '', 'moq' => 0, 'oem_lead_time' => '',
+        'core_value' => 0, 'id_currency_core_value' => 0, 'length' => 0, 'width' => 0, 'height' => 0,
     ];
     return ['part_id' => insert($db, PART_TABLE, $data)];
 }
@@ -443,7 +454,7 @@ function stockCreate(PDO $db, string $kind, array $args): array
         'Fld_Part_SN' => '',
     ];
     if ($kind === 'internal') {
-        $data += ['Fld_Status_Date' => localDate('Y-m-d'), 'Fld_Physical_Stock' => 'YES'];
+        $data += ['status' => 'Available', 'Fld_Status_Date' => localDate('Y-m-d'), 'Fld_Physical_Stock' => 'YES'];
     } else {
         $data += ['status' => 'available', 'Fld_Publish' => 'YES'];
     }
@@ -479,25 +490,28 @@ $id = integerField();
 $optionalId = integerField(0);
 $date = ['type' => 'string', 'format' => 'date', 'maxLength' => 10];
 $partProperties = [
-    'part_number' => textField(80), 'description' => textField(1000, true),
+    'part_number' => textField(23), 'description' => textField(250, true),
     'manufacturer_id' => $optionalId, 'aircraft_id' => $optionalId,
     'list_price' => decimalField(), 'currency_id' => $optionalId,
-    'remark' => textField(4000, true), 'alternate_part_numbers' => textField(500, true),
-    'ata_chapter' => textField(50, true), 'cage_code' => textField(50, true),
-    'minimum_order_quantity' => integerField(0), 'oem_lead_time' => textField(100, true),
-    'core_value' => decimalField(), 'core_currency_id' => $optionalId,
+    'remark' => textField(4000, true), 'alternate_part_numbers' => textField(10000, true),
+    'ata_chapter' => integerField(0, 99999), 'cage_code' => textField(20, true),
+    'essentiality_category_id' => integerField(0), 'next_higher_assembly' => textField(250, true),
+    'minimum_order_quantity' => integerField(0), 'oem_lead_time' => textField(200, true),
+    'core_value' => integerField(0), 'core_currency_id' => $optionalId,
+    'length' => integerField(0), 'width' => integerField(0), 'height' => integerField(0),
 ];
 $stockBase = [
-    'part_id' => $id, 'serial_number' => textField(120, true), 'supplier_id' => $optionalId, 'owner_id' => $id,
+    'part_id' => $id, 'serial_number' => textField(20, true), 'supplier_id' => $optionalId, 'owner_id' => $id,
     'condition_id' => $optionalId, 'release_id' => $optionalId, 'tag_company_id' => $optionalId,
     'traceability_company_id' => $optionalId, 'entry_date' => $date, 'tag_date' => $date,
-    'quantity' => integerField(0), 'unit_price' => decimalField(), 'currency_id' => $optionalId,
-    'warehouse_location' => textField(200, true), 'stock_remark' => textField(4000, true),
+    'quantity' => integerField(0),
+    'unit_price' => ['type' => 'string', 'maxLength' => 5, 'pattern' => '^[0-9]{1,5}$'], 'currency_id' => $optionalId,
+    'warehouse_location' => textField(10, true), 'stock_remark' => textField(248, true),
     'sales_remark' => textField(4000, true),
 ];
 $internalStock = $stockBase + [
-    'physical_stock' => enumField('YES', 'NO', 'PHYSICAL_STK', 'VIRTUAL_STK'), 'location_id' => $optionalId,
-    'status_id' => $id, 'status_date' => $date, 'shelf_life_limit' => textField(100, true),
+    'physical_stock' => enumField('YES', 'NO'), 'location_id' => $optionalId,
+    'status_id' => $id, 'status_date' => $date, 'shelf_life_limit' => textField(10, true),
     'external_location_id' => $optionalId, 'warehouse_location_id' => $optionalId, 'minimum_quantity' => integerField(0),
 ];
 $externalStock = $stockBase + ['publish' => enumField('YES', 'NO')];
