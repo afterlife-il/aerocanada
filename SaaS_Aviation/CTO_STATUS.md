@@ -226,3 +226,8 @@ Resolve the seven migration data-quality gates through an approved duplicate/orp
 the read-only audit and reconciliation. Full import remains prohibited until every stop condition passes. Continue
 persistent Auth/Tenant sessions, secure session handling, MFA, rate limiting, audit, monitoring, and secret
 management before production promotion.
+
+
+## Legacy AeroCanada MCP candidate gate — 2026-11-24
+
+This is a separate legacy integration, not the SaaS Aviation ERP and not a completed module. The candidate contains 100 tools, now archived under `candidat-mcp/`; zero candidate tools are deployed. The production MCP service remains on its legacy connector with three read-only tools. The active MCP protected-resource metadata exposes three scopes. A Yoyamic SuperAdmin account was identified for the supplied user address, but no signed Auth0 `sub` or explicit private binding is available. MariaDB still uses the SELECT-only reader; no new service principal/grants were applied. One RFQ candidate/schema incompatibility was corrected and E2E tested in isolated MariaDB; full schema fidelity, Auth0 binding, and both live clients remain unverified. No production data, service, or permissions were changed. Keep SaaS module percentages and readiness gates unchanged.

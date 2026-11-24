@@ -58,4 +58,15 @@ Correction locale du candidat : limite RFQ à 19 caractères; normalise une date
 
 Validation exécutée après correction : PHP lint workflow/tests PASS; 36 tests PHP workflow PASS; E2E candidat sur MariaDB éphémère avec largeur des champs RFQ correspondant à la production PASS, incluant CREATE/READ, persistance exacte des formats, refus de référence >19 caractères, protection contre la création d’une référence déjà présente, et refus d’un sujet synthétique inconnu. L’E2E conserve des fixtures synthétiques pour les tables non RFQ; il ne constitue pas une validation complète des 100 outils sur le schéma réel.
 
-Le point de contrôle final reste bloqué : l’endpoint MCP actif annonce 3 scopes, le runtime candidate/config Auth0-subject n’est pas installé, le compte DB existant est SELECT-only, et le source candidat n’est pas dans l’arbre GitHub inspecté (seuls les documents MCP y figurent). Aucun déploiement, grant SQL, changement Auth0 ou redémarrage.
+Le point de contrôle final reste bloqué : l’endpoint MCP actif annonce 3 scopes, le runtime candidate/config Auth0-subject n’est pas installé, le compte DB existant est SELECT-only, et le source candidat a été archivé dans GitHub à `candidat-mcp/` (commit `67c3cbf29568c61d37c4e7395e7a2931002aa73f`). Aucun déploiement, grant SQL, changement Auth0 ou redémarrage.
+
+
+## Contrôle serveur / identité — 24 novembre 2026
+
+- `aerocanada-mcp.service` et `mariadb.service` sont actifs; le service lance toujours `connector:create_app` depuis `/opt/aerocanada-mcp`, pas la passerelle candidate. Le dossier de runtime ne contient aucun `erp-config.json`; le processus n’a pas `AEROCANADA_ERP_CONFIG` ni `AEROCANADA_ERP_OPERATIONS`. Aucun restart ou changement runtime.
+- L’endpoint protégé du MCP annonce 3 scopes (`parts.read`, `stock.read`, `history.read`). Les 44 scopes candidate ne sont donc pas encore publiés (2 communs, 42 absents côté ressource active), même si l’utilisateur rapporte que 45 permissions Auth0 et le rôle operator sont configurés. L’API Auth0 et les jetons délégués ne sont pas accessibles ici.
+- Un seul appel ChatGPT a été exécuté sur un Part Number synthétique inexistant avec l’ancien outil `search_part`; résultat vide et sans erreur. ChatGPT ne découvre encore que les 3 anciens outils. Aucun connecteur ou session Claude n’est accessible.
+- Le compte Yoyamic associé à l’adresse fournie existe et a le statut `SuperAdmin`. L’identifiant `sub` Auth0 n’est pas disponible; aucune liaison private candidate n’a été créée et aucun `sub` n’est inventé.
+- L’utilisateur MariaDB actif `aerocanada_mcp_reader` n’a pas de privilèges DML globaux (pas de SELECT/INSERT/UPDATE/DELETE global; ses SELECT sont limités par colonne/table). Aucun compte app distinct n’a été créé. `mcp_erp_audit` manque dans le schéma Yoyamic; les 19 autres tables de write-set du candidat y sont présentes.
+- Un décalage RFQ de production a été corrigé uniquement dans le candidat : longueur master 19, date master 9, ligne 30/15; la validation E2E correspondante s’exécute sur MariaDB isolée et réussit. Le schéma, les données et les droits de production n’ont pas été modifiés.
+- Outils candidate réellement déployés : 0/100. Backup existant vérifié SHA-256 et rollback disponible; aucun déploiement tenté puisque l’identité Auth0, les grants minimaux et la validation complète du schéma restent bloquants.
