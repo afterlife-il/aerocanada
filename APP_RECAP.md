@@ -253,3 +253,8 @@ The 100-tool candidate is archived under `candidat-mcp/` on the Issue #1 validat
 
 
 The 2026-11-24 Yoyamic schema-only read smoke invoked 48 non-email candidate read handlers on an isolated MariaDB clone containing DDL only: no production rows copied, no SQL table/column errors, six Gmail/email reads skipped, and sixteen non-SQL outcomes due to absent sample records. The RFQ field-width E2E also passed in isolation. These are not validation of the 44 write handlers or a deployment. Production MCP remains unchanged at three tools.
+
+
+### AeroCanada MCP — vérification ciblée du 24 novembre 2026
+
+Le candidat corrigé passe maintenant un E2E en MariaDB isolée construit à partir du DDL Yoyamic sans données : compagnie et contact CREATE/READ, create_rfq CREATE/READ, dates legacy, anti-doublon. Les colonnes NOT NULL legacy des inserts compagnie/contact et le quoting de delete ont été corrigés. La suite isolée complète passe également (17 tests Python, handlers PHP, MariaDB, PDF et brouillon simulé). En production le service demeure sur le connecteur legacy à 3 outils; create_rfq n’y est pas publié. Le principal MariaDB reste SELECT-only, mcp_erp_audit manque, et le sub Auth0 exact de Yohan est inaccessible. Aucun grant, DDL, write commercial, redémarrage ou envoi réel.
