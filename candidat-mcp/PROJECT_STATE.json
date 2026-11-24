@@ -1,10 +1,10 @@
 {
   "mission": "AeroCanada MCP Full ERP — intégration et mise en service",
-  "updated_at": "2026-11-24T12:35:00Z",
+  "updated_at": "2026-11-24T12:42:00Z",
   "workspace": "/opt/aerocanada-mcp",
   "candidate": "candidat-mcp",
   "candidate_tools": 100,
-  "candidate_sha256sums": "433df0079a4451c7d399bd6c19cf6241a3ee29d25cee43025f48786df002a9e3",
+  "candidate_sha256sums": "5a674f08afa1a0f31916ca3cdd19cbc3f47f02ca634641c1378d26f9c36d3f5f",
   "tests": {
     "isolated_suite": "PASS; full suite rerun after adding actual candidate-gateway E2E against ephemeral MariaDB",
     "python_tests": 17,
