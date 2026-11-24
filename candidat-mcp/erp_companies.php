@@ -17,9 +17,9 @@ $pagination = [
 $companyFields = [
     'name' => ['Fld_Company_Name', $name],
     'website' => ['internet', $text(250)],
-    'cage_code' => ['cage_code', $text(32)],
+    'cage_code' => ['cage_code', $text(20)],
 ];
-$amount = ['type' => 'string', 'maxLength' => 15, 'pattern' => '^[0-9]{1,12}([.][0-9]{1,2})?$'];
+$amount = ['type' => 'string', 'maxLength' => 11, 'pattern' => '^[0-9]{1,11}$'];
 $paymentFields = [
     'customer_term_id' => ['customer_payment_term_id', $id],
     'customer_amount' => ['customer_payment_term_amount', $amount],
@@ -29,20 +29,20 @@ $paymentFields = [
     'aci_currency_id' => ['aci_payment_term_currencyid', $id],
 ];
 $contactFields = [
-    'name' => ['Fld_Contact_Name', $name],
-    'email' => ['Fld_Contact_Email', $text(254)],
-    'phone' => ['Fld_Contact_Phone', $text(50)],
-    'alternate_phone' => ['Fld_Contact_Phone2', $text(50)],
-    'mobile' => ['Fld_Company_Mobile', $text(50)],
-    'title' => ['Fld_Contact_Title', $text(128)],
+    'name' => ['Fld_Contact_Name', ['type' => 'string', 'minLength' => 1, 'maxLength' => 150]],
+    'email' => ['Fld_Contact_Email', $text(250)],
+    'phone' => ['Fld_Contact_Phone', $text(30)],
+    'alternate_phone' => ['Fld_Contact_Phone2', $text(30)],
+    'mobile' => ['Fld_Company_Mobile', $text(30)],
+    'title' => ['Fld_Contact_Title', $text(200)],
 ];
 $fleetFields = [
     'region_id' => ['Fld_Region', $id],
     'aircraft_id' => ['Fld_AC_ID', $id],
-    'engine' => ['Fld_Engine', $text(100)],
-    'unit' => ['Fld_Unit', $text(40)],
-    'serial_number' => ['msn', $text(80)],
-    'registration' => ['immat', $text(80)],
+    'engine' => ['Fld_Engine', $text(48)],
+    'unit' => ['Fld_Unit', $text(17)],
+    'serial_number' => ['msn', $text(10)],
+    'registration' => ['immat', $text(10)],
 ];
 $addressFields = [
     'company_type_id' => ['Fld_Company_Type_ID', $id],
@@ -356,7 +356,16 @@ return [
             $one($db, 'SELECT Fld_Company_Type_ID FROM tbl_Company_Type WHERE Fld_Company_Type_ID = ?', [$args['company_type_id']]);
             $one($db, 'SELECT Fld_Division_ID FROM tbl_Division WHERE Fld_Division_ID = ?', [$args['address_type_id']]);
             $fields = $columnValues($addressFields, $args) + [
-                'Fld_Company_ID' => $args['company_id'], 'Fld_Company_BAX_Contact' => $employeeId,
+                // Match the legacy Yoyamic popup form's explicit defaults; the
+                // production table has no defaults for these NOT NULL columns.
+                'Fld_Linked_ID' => 0, 'Fld_Company_ID' => $args['company_id'], 'Company_Old_Id' => 0,
+                'Fld_Company_Country' => $args['country'] ?? 'NO COUNTRY',
+                'Fld_Company_City' => $args['city'] ?? 'NO CITY',
+                'Fld_Company_State' => '', 'Fld_Company_Street' => 'No address',
+                'Fld_Company_ZipCode' => '', 'Fld_Company_Fax' => '', 'Fld_Company_Phone' => '',
+                'Fld_Company_Email' => '', 'Fld_Company_Score' => '',
+                'Fld_Company_BAX_Contact' => (string)$employeeId, 'Fld_Remark' => 'No remark',
+                'Fld_VAT_Nbr' => '', 'Fld_Date_Of_First_Contact' => '', 'UTC_timezone' => '', 'title_address' => '',
             ];
             return ['id' => $insert($db, 'tbl_Company_Details', $fields)];
         }, ['tbl_Company_Details']),
