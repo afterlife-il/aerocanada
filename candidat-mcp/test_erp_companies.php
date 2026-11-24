@@ -150,6 +150,9 @@ CREATE TABLE company_assertions (ok INT NOT NULL CHECK (ok = 1));
 INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tb_company
     WHERE Fld_Company_ID = 12 AND Fld_Company_Name = 'Test d''Aviation' AND aci_contact = 42;
 INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tb_company
+    WHERE Fld_Company_ID = 12 AND Company_Old_Id = 0 AND Fld_Company_Rating_ID = 0
+        AND `delete` = '' AND logocompany = '' AND customer_payment_term_id = 0 AND aci_payment_term_id = 0;
+INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tb_company
     WHERE Fld_Company_ID = 7 AND status = 'archive' AND customer_payment_term_amount = 110.25
         AND customer_payment_term_id = 2 AND customer_payment_term_currencyid = 3;
 INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tbl_Company_Details
@@ -161,6 +164,9 @@ INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tbl_Competitor
     WHERE Fld_Linked_ID = 12 AND Fld_Company_ID = 7 AND Fld_Competitor_ID = 9;
 INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tb_company_contact
     WHERE id_company_contact = 12 AND aci_contact = 42 AND Fld_Contact_Email = 'test@example.invalid';
+INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tb_company_contact
+    WHERE id_company_contact = 12 AND Fld_Linked_ID = 0 AND Company_Old_Id = 0
+        AND Fld_Contact_Fax = '' AND Fld_Contact_Division_ID = 0 AND Fld_Contact_Remark = '';
 SQL;
     echo "\n";
 } else {
