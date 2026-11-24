@@ -232,6 +232,10 @@
     {
       "task": "Production deployment",
       "reason": "Not requested and requires explicit approval."
+    },
+    {
+      "task": "AeroCanada MCP Issue #1: verified Auth0 subject and production write activation",
+      "reason": "No verified Auth0 sub for Yohan is accessible; the active service is legacy/read-only with three tools, the MariaDB principal has no DML and the candidate audit table is absent. Candidate is not deployed."
     }
   ],
   "reports": {
@@ -320,5 +324,23 @@
   },
   "current_sprint": "CTO Sprint Phase 3 Company 360 product development",
   "last_completed_task": "Deployed Company 360 notes and CTO evidence to isolated staging; publicly validated create/edit/pin, API-restart persistence, unpin/delete and removed the acceptance note.",
-  "next_recommended_task": "Finish Company 360 Documents and connected operational workflow boundaries before starting Part 360."
+  "next_recommended_task": "Finish Company 360 Documents and connected operational workflow boundaries before starting Part 360.",
+  "aerocanada_mcp_issue_1": {
+    "checked_at": "2026-11-24",
+    "candidate_tools": 100,
+    "candidate_deployed_tools": 0,
+    "active_service": "legacy connector, 3 read-only tools; create_rfq not published",
+    "active_oauth_scopes": [
+      "aerocanada.parts.read",
+      "aerocanada.stock.read",
+      "aerocanada.history.read"
+    ],
+    "database": "MariaDB 10.6.23; existing service account aerocanada_mcp_reader has column-scoped SELECT only; no DML; no change applied",
+    "schema_validation": "PASS isolated DDL-only clone: company/contact/create_rfq CREATE/READ, legacy dates, duplicate RFQ rejection",
+    "isolated_suite": "PASS; 17 Python tests plus PHP/MariaDB/gateway/PDF/mock-draft suites",
+    "auth0_subject_mapping": "BLOCKED; no verified Yohan sub or Auth0 Management session available; no mapping inferred from email",
+    "remaining": "production DML principal and audit table absent; active service unchanged; create_rfq not live-tested",
+    "required_external_action": "Auth0 administrator/Cowork obtains the exact sub claim from a verified delegated access token for Yohan using the existing OAuth application, then supplies only that claim through a secure administrative channel for explicit binding.",
+    "production_changes": "none; no grants, DDL, commercial writes, service restart, deployment or real email"
+  }
 }
