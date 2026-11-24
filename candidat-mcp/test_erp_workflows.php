@@ -151,9 +151,10 @@ foreach ([
     $call($get, ['id' => 1], $responses, $detail);
 }
 $call('list_supplier_capabilities', ['company_id' => 2, 'part_number' => 'PART-1'], [[]], ['items' => [], 'next_offset' => null]);
-$capability = ['part_number' => 'PART-1', 'aircraft' => 'A320', 'capability' => 'Inspection'];
+$capability = ['part_number' => 'PART-1', 'aircraft' => 'A320', 'manufacturer' => 'Synthetic Manufacturer', 'capability' => 'Inspection'];
 $call('import_supplier_capabilities', ['supplier_id' => 2, 'items' => [$capability, $capability]],
-    [[], false, 1, 1], ['ids' => [1], 'skipped_indexes' => [1]]);
+    [[], [['Fld_Part_ID' => 1, 'Fld_Part_MFG' => null]], false, 1,
+        [['Fld_Part_ID' => 1, 'Fld_Part_MFG' => null]], 1], ['ids' => [1], 'skipped_indexes' => [1]]);
 foreach (['sales', 'purchase'] as $kind) {
     $call("list_{$kind}_orders", ['supplier_id' => 2],
         [[['id' => 1]]], ['items' => [['id' => 1]], 'next_offset' => null]);
