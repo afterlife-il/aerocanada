@@ -62,3 +62,10 @@ La suite isolée a réussi après ce correctif : 17 tests Python, handlers PHP m
 - MariaDB n’a toujours que le compte lecteur en production, sans DML. Le candidate audit table n’existe pas. Le schéma RFQ réel ne correspondait pas au fixture initial (master ID 19 chars/date 9, line ID 30/date 15); le candidat a été corrigé et le nouvel E2E a passé sur un serveur MariaDB isolé reproduisant ces largeurs. Aucune donnée ni permission production modifiée.
 - Les tests exécutés après le correctif : PHP lint workflow, 36 handlers PHP workflow, E2E RFQ/schema sur base isolée. Les tests isolés antérieurs n’ont pas été relancés intégralement. La compatibilité du reste des 100 outils avec le schéma réel et les droits minimaux reste non prouvée.
 - Aucune sauvegarde fraîche n’a été prise car aucun déploiement n’est autorisé par le préflight; la sauvegarde existante a été vérifiée dans la session précédente. Aucun restart ni rollback nécessaire.
+
+
+## Schema-only lecture Yoyamic — 24 novembre 2026
+
+Un clone éphémère MariaDB du schéma `aerocanada_yoyamic` a été construit à partir d’un dump DDL sans lignes; aucune donnée commerciale n’a été exportée. 48 handlers READ non Gmail/email ont été appelés, 6 lectures Gmail/email omises faute de boîte de test. Zéro erreur SQL de table/colonne/syntaxe; 16 appels ont eu des issues non SQL faute d’enregistrements synthétiques. L’instance temporaire a été supprimée automatiquement. Ce contrôle n’établit pas la compatibilité métier des 54 lectures ni celle des 44 opérations d’écriture.
+
+Le candidat corrigé pour les longueurs/date RFQ passe son E2E MariaDB isolé. La production reste inchangée; service legacy actif, 3 outils, aucun compte DML candidate, aucun binding Auth0 subject vérifié, 0 outil candidate déployé. Le snapshot code et les suivis sont dans le commit candidat `67c3cbf29568c61d37c4e7395e7a2931002aa73f` et les commits de documentation suivants.

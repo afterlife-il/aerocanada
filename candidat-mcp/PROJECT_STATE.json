@@ -1,10 +1,10 @@
 {
   "mission": "AeroCanada MCP Full ERP — intégration et mise en service",
-  "updated_at": "2026-11-24T12:42:00Z",
+  "updated_at": "2026-11-24T13:05:00Z",
   "workspace": "/opt/aerocanada-mcp",
   "candidate": "candidat-mcp",
   "candidate_tools": 100,
-  "candidate_sha256sums": "5a674f08afa1a0f31916ca3cdd19cbc3f47f02ca634641c1378d26f9c36d3f5f",
+  "candidate_sha256sums": "13aab13f46a4b293aaba47b5af405fdb49eb41e948b26fe2265538451954ba9b",
   "tests": {
     "isolated_suite": "PASS; full suite rerun after adding actual candidate-gateway E2E against ephemeral MariaDB",
     "python_tests": 17,
@@ -26,7 +26,8 @@
     "candidate_gateway_mysql_e2e": "PASS; least-privilege synthetic MariaDB principal; company/contact/part/RFQ/supplier quote/customer quote CREATE/UPDATE/READ, PDF generation, email draft preview, unknown OAuth subject denied; no SEND invoked; no production DB",
     "targeted_rfq_production_shape": "PASS; PHP workflow test, 36 handlers; isolated MariaDB E2E mirrors tbl_RFQ and tbl_RFQ_1 RFQ ID/date widths and verifies formats, reread, duplicate rejection, overlength rejection; no production writes",
     "active_chatgpt_old_tool": "PASS; existing search_part returned no results for a synthetic nonexistent part number on 2026-11-24",
-    "active_claude": "NOT TESTED; no Claude session/tool access available"
+    "active_claude": "NOT TESTED; no Claude session/tool access available",
+    "schema_only_yoyamic_read_smoke": "48 non-mail READ handlers invoked on ephemeral MariaDB clone containing only aerocanada_yoyamic table DDL; 0 SQL schema errors; 6 Gmail/email reads skipped; 16 non-SQL exceptions; no production rows copied or modified"
   },
   "process_check": {
     "checked": true,

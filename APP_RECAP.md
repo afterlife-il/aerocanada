@@ -250,3 +250,6 @@ Resolve the seven Yoyamic full-import blockers with an approved, documented dupl
 ## AeroCanada MCP legacy integration gate — 2026-11-24
 
 The 100-tool candidate is archived under `candidat-mcp/` on the Issue #1 validation branch. It remains separate from the Ready2Go SaaS modules and is **not deployed**. Production still runs the legacy MCP connector with its three read tools; OAuth resource metadata exposes three scopes. The reported Auth0 role/permissions could not be independently checked, and the exact Auth0 subject-to-Yoyamic binding is missing. Yohan’s Yoyamic user was found with SuperAdmin status. MariaDB retains the SELECT-only reader; no app account or DML grants were created. A production RFQ schema mismatch was corrected and tested only against isolated MariaDB. No Yoyamic writes, production service changes, or emails occurred. See `docs/mcp/issue-1-validation-2026-11-23.md`.
+
+
+The 2026-11-24 Yoyamic schema-only read smoke invoked 48 non-email candidate read handlers on an isolated MariaDB clone containing DDL only: no production rows copied, no SQL table/column errors, six Gmail/email reads skipped, and sixteen non-SQL outcomes due to absent sample records. The RFQ field-width E2E also passed in isolation. These are not validation of the 44 write handlers or a deployment. Production MCP remains unchanged at three tools.

@@ -70,3 +70,15 @@ Le point de contrôle final reste bloqué : l’endpoint MCP actif annonce 3 sco
 - L’utilisateur MariaDB actif `aerocanada_mcp_reader` n’a pas de privilèges DML globaux (pas de SELECT/INSERT/UPDATE/DELETE global; ses SELECT sont limités par colonne/table). Aucun compte app distinct n’a été créé. `mcp_erp_audit` manque dans le schéma Yoyamic; les 19 autres tables de write-set du candidat y sont présentes.
 - Un décalage RFQ de production a été corrigé uniquement dans le candidat : longueur master 19, date master 9, ligne 30/15; la validation E2E correspondante s’exécute sur MariaDB isolée et réussit. Le schéma, les données et les droits de production n’ont pas été modifiés.
 - Outils candidate réellement déployés : 0/100. Backup existant vérifié SHA-256 et rollback disponible; aucun déploiement tenté puisque l’identité Auth0, les grants minimaux et la validation complète du schéma restent bloquants.
+
+## Smoke READ sur clone du schéma Yoyamic — 24 novembre 2026
+
+Un dump MariaDB sans données des seules définitions de tables de `aerocanada_yoyamic` a été importé dans une instance MariaDB temporaire, sans réseau. La table d’audit candidate a été créée uniquement dans ce clone. Les handlers ont été appelés directement, sans identité ni écriture, avec des arguments synthétiques dérivés des schémas d’entrée.
+
+- 54 outils candidate ont un scope READ; 48 handlers READ hors Gmail/email ont été appelés sur le clone.
+- 6 handlers de lecture Gmail/email ont été omis (aucune boîte de test n’est configurée).
+- 0 erreur SQL de table/colonne/syntaxe détectée parmi les handlers exécutés.
+- 16 appels ont terminé par une exception non-SQL (notamment faute de ligne/entité de test); ce smoke test n’affirme donc pas le succès métier de chaque opération.
+- L’instance temporaire et les fichiers contenant uniquement du DDL ont été supprimés automatiquement à la fin. Aucun enregistrement de production n’a été exporté ou modifié.
+
+Ce résultat valide la compatibilité de lecture SQL des handlers exécutés avec les noms et colonnes du schéma Yoyamic dans les chemins atteints. Il ne valide pas les 44 outils d’écriture, les branches métier nécessitant des lignes, les droits du compte candidat, Auth0, ni le déploiement.
