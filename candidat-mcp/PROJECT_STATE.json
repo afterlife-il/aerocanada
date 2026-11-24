@@ -1,6 +1,6 @@
 {
   "mission": "AeroCanada MCP Full ERP — intégration et mise en service",
-  "updated_at": "2026-11-24T13:23:56Z",
+  "updated_at": "2026-11-24T13:40:17Z",
   "workspace": "/opt/aerocanada-mcp",
   "candidate": "candidat-mcp",
   "candidate_tools": 100,
@@ -37,7 +37,9 @@
     "production_writer_privilege_review": "PASS; 32 table SELECT grants, 19 table INSERT, 16 table UPDATE, four Employee SELECT columns, one Employee UPDATE column; no DELETE/DDL/ALL/global/schema grants",
     "production_audit_table": "PASS; created from erp_audit.sql as InnoDB; currently zero rows",
     "existing_reader_grants": "PASS; aerocanada_mcp_reader grants compare equal to pre-change snapshot (33 column SELECT privileges); untouched",
-    "production_business_write_test": "NOT RUN by design; production DML prohibited. All mutation tests ran on the isolated DDL clone."
+    "production_business_write_test": "NOT RUN by design; production DML prohibited. All mutation tests ran on the isolated DDL clone.",
+    "employee_6_identity_check": "PASS; read-only database check matched employee 6 to the known Yohan address; current role SuperAdmin",
+    "auth0_delegated_sub_match": "BLOCKED; no delegated token access or Auth0 /userinfo connector in this session; supplied Auth0 User ID was not treated as proof of token sub"
   },
   "process_check": {
     "checked": true,
@@ -164,9 +166,9 @@
     "candidate_db_writer_scope": "Mutation-handler tables and direct references only; not reviewed for all candidate READ tools"
   },
   "verified_blockers": [
-    "No verified delegated Auth0 sub for Yohan is accessible to this server; do not infer it from email. Production write activation and runtime identity mapping remain blocked.",
+    "No verified delegated Auth0 sub for Yohan is accessible to this server; the supplied Auth0 User ID cannot be equated to the signed token sub without /userinfo/token verification. Do not infer it from email.",
     "The active MCP service still runs the legacy connector and advertises only three read scopes; 42 of 44 candidate scopes are absent from active metadata.",
-    "Candidate runtime config and explicit subject-to-Ready2Go employee binding are not configured; the newly provisioned writer account and root-only credential are intentionally not connected to the service.",
+    "Candidate runtime config and explicit subject-to-Ready2Go employee binding are not configured; the newly provisioned writer account and root-only credential remain disconnected from the service.",
     "The writer grant set covers mutation handlers and their direct references, not yet a reviewed full-ERP read permission set for all 100 tools.",
     "No Claude session is available here; ChatGPT/Claude candidate tool discovery and live execution remain untested."
   ],
@@ -197,15 +199,15 @@
     "erp_repo_modified": false
   },
   "next_steps": [
-    "Obtain Yohan’s verified sub from a delegated Auth0 access token by calling the existing Auth0 /userinfo endpoint; provide only the returned sub claim, never the bearer token.",
-    "Verify that sub against the actual Ready2Go employee identity and configure the explicit private binding; do not activate writes before this check.",
+    "In Cowork, call the existing Auth0 /userinfo endpoint with Yohan’s delegated AeroCanada access token and provide only the returned sub claim; do not provide or store the bearer token.",
+    "After /userinfo verification, match that sub to Ready2Go employee 6 and configure an explicit private binding; keep writes disabled until this verification.",
     "Review the final candidate READ grants and active scopes, then integrate the candidate into the existing MCP service only after security preflight and rollback checks.",
-    "After authorized cutover, verify create_rfq and other tools from the existing ChatGPT and Claude sessions; no production business write or real email may be used for validation."
+    "After authorized cutover, verify create_rfq and other tools from the existing ChatGPT and Claude sessions; do not use production business writes or real email for validation."
   ],
   "constraints": "Do not alter commercial production data, send real mail, bypass OAuth, or deploy before critical validations pass.",
   "deployment_attempt": {
     "result": "not deployed; legacy MCP still active with 3 read tools",
-    "reason": "candidate activation requires the verified delegated Auth0 sub and an explicit Yoyamic employee mapping; runtime/scopes preflight is incomplete. Exact-schema write validation and DB grants alone do not authorize production writes.",
+    "reason": "Candidate activation remains blocked because the supplied Auth0 User ID has not been verified as the delegated token sub. Read-only verification confirms Yoyamic employee 6 matches Yohan and has current role SuperAdmin; no subject binding was created.",
     "production_changes": "new local-only MariaDB writer principal and InnoDB audit table provisioned after verified backup; no commercial DML, service config change, restart, or email send"
   },
   "implementation_changes": [
@@ -256,7 +258,9 @@
     "yoyamic_user_match": "Yohan email maps to an existing Ready2Go row; status SuperAdmin",
     "auth0_subject_verified": false,
     "candidate_private_binding_configured": false,
-    "unknown_subjects_denied_by_candidate": true
+    "unknown_subjects_denied_by_candidate": true,
+    "yoyamic_employee_6_check": "PASS; email matches Yohan; current role SuperAdmin",
+    "user_id_to_delegated_sub": "NOT VERIFIED; delegated token and Auth0 /userinfo access are unavailable to this session"
   },
   "mariadb_write_identity": {
     "existing_principal": "aerocanada_mcp_reader@localhost",
