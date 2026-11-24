@@ -365,7 +365,9 @@ function erp_create_gmail_rfq(PDO $db, array $args, int $employeeId, array $bind
             'rfq_type_id' => $args['rfq_type_id'], 'condition_id' => $args['condition_id']];
     }
     $email = strtolower($binding['gmail'][$args['mailbox']]['email']);
-    $reference = 'MAIL-' . substr(hash('sha256', $email . "\n" . $data['message_id']), 0, 30);
+    // The Yoyamic RFQ header is VARCHAR(19); keep the derived reference inside
+    // the same limit while retaining deterministic retries for the same email.
+    $reference = 'M' . substr(hash('sha256', $email . "\n" . $data['message_id']), 0, 18);
     $request = array_intersect_key($args, array_flip(['company_id', 'contact_id', 'priority_id', 'payment_term_id']));
     $request += ['rfq_reference' => $reference, 'lines' => $lines];
     $result = \AeroCanada\Mcp\Workflows\createRfq($db, $request, $employeeId);
