@@ -208,12 +208,6 @@
       "candidat-mcp/DB_WRITER_PROVISIONING.md",
       "candidat-mcp/SHA256SUMS",
       "candidat-mcp/PROJECT_STATE.json"
-    ],
-    "temporary_identity_probe_source_commit": "c43db2478dc170ebc1f173f351c0e72f3e8f861f",
-    "temporary_identity_probe_test_commit": "916d63c5c1430541246e3d4fe2de93a77ba9f66e",
-    "temporary_identity_probe_files": [
-      "connector.py",
-      "test_identity_probe.py"
     ]
   },
   "git_local": {
