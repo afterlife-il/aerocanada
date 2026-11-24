@@ -14,10 +14,10 @@ CREATE TABLE tb_company (
     companyrating VARCHAR(32) NOT NULL DEFAULT '',
     logocompany VARCHAR(250) NOT NULL DEFAULT '',
     customer_payment_term_id INT,
-    customer_payment_term_amount DECIMAL(14,2),
+    customer_payment_term_amount INT,
     customer_payment_term_currencyid INT,
     aci_payment_term_id INT,
-    aci_payment_term_amount DECIMAL(14,2),
+    aci_payment_term_amount INT,
     aci_payment_term_currencyid INT
 ) ENGINE=InnoDB AUTO_INCREMENT=12;
 CREATE TABLE tbl_Company_Type (Fld_Company_Type_ID INT PRIMARY KEY) ENGINE=InnoDB;
@@ -26,20 +26,27 @@ CREATE TABLE tbl_Currency (Fld_Currency_ID INT PRIMARY KEY) ENGINE=InnoDB;
 CREATE TABLE tbl_Division (Fld_Division_ID INT PRIMARY KEY) ENGINE=InnoDB;
 CREATE TABLE tbl_Company_Details (
     id_tbl_company_Details INT AUTO_INCREMENT PRIMARY KEY,
+    Fld_Linked_ID INT NOT NULL DEFAULT 0,
     Fld_Company_ID INT NOT NULL,
+    Company_Old_Id INT NOT NULL DEFAULT 0,
     Fld_Company_Type_ID INT NOT NULL DEFAULT 2,
     Fld_Company_Address_Type INT NOT NULL DEFAULT 3,
-    title_address VARCHAR(100),
-    Fld_Company_Country VARCHAR(100),
-    Fld_Company_City VARCHAR(100),
-    Fld_Company_State VARCHAR(100),
-    Fld_Company_Street VARCHAR(200),
-    Fld_Company_ZipCode VARCHAR(32),
-    Fld_Company_Phone VARCHAR(50),
-    Fld_Company_Email VARCHAR(254),
-    Fld_VAT_Nbr VARCHAR(64),
-    UTC_timezone VARCHAR(64),
-    Fld_Company_BAX_Contact INT,
+    title_address VARCHAR(200) NOT NULL DEFAULT '',
+    Fld_Company_Country VARCHAR(250) NOT NULL DEFAULT '',
+    Fld_Company_City VARCHAR(250) NOT NULL DEFAULT '',
+    Fld_Company_State VARCHAR(250) NOT NULL DEFAULT '',
+    Fld_Company_Street TEXT NOT NULL DEFAULT '',
+    Fld_Company_ZipCode VARCHAR(250) NOT NULL DEFAULT '',
+    Fld_Company_Fax VARCHAR(250) NOT NULL DEFAULT '',
+    Fld_Company_Phone VARCHAR(250) NOT NULL DEFAULT '',
+    Fld_Company_Email VARCHAR(250) NOT NULL DEFAULT '',
+    Fld_Company_Score VARCHAR(100) NOT NULL DEFAULT '',
+    Fld_Company_BAX_Contact VARCHAR(250) NOT NULL DEFAULT '',
+    Fld_Remark TEXT NOT NULL DEFAULT '',
+    Fld_VAT_Nbr VARCHAR(250) NOT NULL DEFAULT '',
+    Fld_Date_Of_First_Contact VARCHAR(100) NOT NULL DEFAULT '',
+    UTC_timezone VARCHAR(100) NOT NULL DEFAULT '',
+    current_local_time VARCHAR(10),
     FOREIGN KEY (Fld_Company_ID) REFERENCES tb_company(Fld_Company_ID)
 ) ENGINE=InnoDB AUTO_INCREMENT=12;
 CREATE TABLE tb_company_contact (
