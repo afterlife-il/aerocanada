@@ -7,7 +7,7 @@ CREATE TABLE tb_company_contact (
     id_company_contact INT PRIMARY KEY, Fld_Company_ID INT NOT NULL, status VARCHAR(30) NOT NULL
 );
 CREATE TABLE tbl_Parts (
-    Fld_Part_ID INT PRIMARY KEY, Fld_Part_Nbr VARCHAR(80) NOT NULL, Fld_Part_Desc VARCHAR(200)
+    Fld_Part_ID INT PRIMARY KEY, Fld_Part_Nbr VARCHAR(80) NOT NULL, Fld_Part_Desc VARCHAR(200), Fld_Part_MFG INT
 );
 CREATE TABLE tbl_Priority (Fld_Priority_ID INT PRIMARY KEY);
 CREATE TABLE tbl_RFQ_Type (Fld_RFQ_Type_ID INT PRIMARY KEY);
@@ -40,7 +40,8 @@ CREATE TABLE tbl_RFQ_3 (
     ID INT AUTO_INCREMENT PRIMARY KEY, Fld_RFQ_ID VARCHAR(40) NOT NULL, Fld_Quote_Date DATE NOT NULL,
     Fld_Part_Id INT NOT NULL, Fld_Part_SN VARCHAR(100), Fld_Qty INT, Fld_Condition INT,
     Fld_Price DECIMAL(12,2), Fld_Currency_ID INT, Fld_Remark TEXT, lead_time VARCHAR(100), Fld_Release_ID INT,
-    Fld_Priority_ID INT, id_tbl_rfq1 INT NOT NULL, Fld_Send_Mail VARCHAR(8), source_type VARCHAR(40), source_id INT
+    moq VARCHAR(15) NOT NULL, Fld_Priority_ID INT, id_tbl_rfq1 INT NOT NULL,
+    Fld_Send_Mail VARCHAR(8), source_type VARCHAR(40), source_id INT
 );
 CREATE TABLE tbl_PO_Draft (
     id INT AUTO_INCREMENT PRIMARY KEY, quotation_id INT NOT NULL UNIQUE, rfq_id VARCHAR(40), rfq_line_id INT,
@@ -74,9 +75,11 @@ CREATE TABLE tbl_Shipping_Items (
     quantity INT DEFAULT 1, condition_id INT, release_id INT
 );
 CREATE TABLE tbl_capa_list (
-    id_capa_list INT AUTO_INCREMENT PRIMARY KEY, id_company INT, pn VARCHAR(80), descriptioin VARCHAR(200), aircraft VARCHAR(100),
-    ata VARCHAR(100), capability VARCHAR(100), pma VARCHAR(100), doa VARCHAR(100), der VARCHAR(100),
-    code_oem VARCHAR(100), design_oem VARCHAR(100), status VARCHAR(40), entry_date DATE, comments TEXT
+    id_capa_list INT AUTO_INCREMENT PRIMARY KEY, Fld_Part_ID INT NOT NULL, pn VARCHAR(100) NOT NULL,
+    descriptioin VARCHAR(200) NOT NULL, aircraft VARCHAR(200) NOT NULL, manufacturer VARCHAR(300) NOT NULL,
+    ata INT NOT NULL, capability VARCHAR(200) NOT NULL, pma VARCHAR(11) NOT NULL, doa VARCHAR(11) NOT NULL,
+    der VARCHAR(11) NOT NULL, code_oem INT NOT NULL, design_oem VARCHAR(200) NOT NULL, id_company INT NOT NULL,
+    status VARCHAR(250) NOT NULL, entry_date VARCHAR(20) NOT NULL, comments TEXT NOT NULL
 );
 CREATE TABLE tbl_Sales_Order (
     Fld_Row_ID INT PRIMARY KEY, Fld_PO VARCHAR(100), Fld_ACI_PO VARCHAR(60), Fld_Current_Date DATE,
@@ -90,7 +93,7 @@ INSERT INTO tbl_Sales_Order VALUES (1, 'PO-SYNTH', 'ACI-SYNTH', '2026-11-23', 2,
 INSERT INTO tbl_PO_Customer VALUES (1, 'PO-SYNTH', 'ACI-SYNTH', '2026-11-23', 2);
 INSERT INTO tb_company VALUES (1, 'Synthetic customer', 'Available'), (2, 'Synthetic supplier', 'Available');
 INSERT INTO tb_company_contact VALUES (1, 1, 'Available'), (2, 2, 'Available');
-INSERT INTO tbl_Parts VALUES (1, 'PART-1', 'Synthetic');
+INSERT INTO tbl_Parts (Fld_Part_ID, Fld_Part_Nbr, Fld_Part_Desc) VALUES (1, 'PART-1', 'Synthetic');
 INSERT INTO tbl_Priority VALUES (1);
 INSERT INTO tbl_RFQ_Type VALUES (1);
 INSERT INTO tbl_Payment VALUES (1);
