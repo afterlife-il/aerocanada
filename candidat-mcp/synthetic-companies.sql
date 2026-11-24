@@ -3,7 +3,10 @@ CREATE DATABASE mcp_company_fixture CHARACTER SET utf8mb4;
 USE mcp_company_fixture;
 CREATE TABLE tb_company (
     Fld_Company_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Company_Old_Id INT NOT NULL DEFAULT 0,
     Fld_Company_Name VARCHAR(160) NOT NULL,
+    Fld_Company_Rating_ID INT NOT NULL DEFAULT 0,
+    `delete` VARCHAR(10) NOT NULL DEFAULT '',
     internet VARCHAR(250) NOT NULL DEFAULT '',
     cage_code VARCHAR(32) NOT NULL DEFAULT '',
     status VARCHAR(16) NOT NULL DEFAULT 'Available',
@@ -41,13 +44,18 @@ CREATE TABLE tbl_Company_Details (
 ) ENGINE=InnoDB AUTO_INCREMENT=12;
 CREATE TABLE tb_company_contact (
     id_company_contact INT AUTO_INCREMENT PRIMARY KEY,
+    Fld_Linked_ID INT NOT NULL DEFAULT 0,
     Fld_Company_ID INT NOT NULL,
+    Company_Old_Id INT NOT NULL DEFAULT 0,
     Fld_Contact_Name VARCHAR(160) NOT NULL,
     Fld_Contact_Email VARCHAR(254),
     Fld_Contact_Phone VARCHAR(50),
     Fld_Contact_Phone2 VARCHAR(50),
+    Fld_Contact_Fax VARCHAR(50) NOT NULL DEFAULT '',
     Fld_Company_Mobile VARCHAR(50),
+    Fld_Contact_Division_ID INT NOT NULL DEFAULT 0,
     Fld_Contact_Title VARCHAR(128),
+    Fld_Contact_Remark TEXT NOT NULL DEFAULT '',
     status VARCHAR(16) NOT NULL DEFAULT 'Available',
     aci_contact INT,
     entry_date DATE,
