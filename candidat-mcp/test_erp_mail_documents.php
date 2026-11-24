@@ -25,7 +25,7 @@ final class MailDocumentStatement extends PDOStatement
     public function execute(?array $params = null): bool
     {
         mail_check(substr_count($this->sql, '?') === count($params ?? $this->bound), 'Invalid PDO binding');
-        if (str_starts_with($this->sql, 'INSERT INTO tbl_RFQ')) {
+        if (preg_match('/^INSERT INTO `?tbl_RFQ(?:`|_)/D', $this->sql)) {
             $this->db->lastId++;
             $this->db->created = true;
         }
