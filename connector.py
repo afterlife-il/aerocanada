@@ -84,10 +84,6 @@ class OperationUnavailable(Exception):
     pass
 
 
-class IdentityProbeDenied(Exception):
-    pass
-
-
 class Lookup(BaseModel, extra="forbid"):
     part_number: PartNumber
 
@@ -170,23 +166,12 @@ class Verifier:
         except (jwt.PyJWTError, OSError, ValueError, TypeError, OverflowError):
             return None
         scope = claims.get("scope")
-        subject = claims.get("sub")
-        if not isinstance(scope, str) or not isinstance(subject, str) or not subject:
+        if not isinstance(scope, str) or not claims["sub"]:
             return None
         return AccessToken(
-            token=token, client_id=subject, subject=subject,
+            token=token, client_id=claims["sub"],
             scopes=[item for item in scope.split() if item in SCOPES or item in BUSINESS_SCOPES.values()], expires_at=int(claims["exp"]),
         )
-
-
-def verified_subject(token):
-    """Return only the subject populated after this server's JWT verification."""
-    if token is None or TOOL_SCOPES["search_part"] not in token.scopes:
-        raise IdentityProbeDenied
-    subject = token.subject
-    if not isinstance(subject, str) or not subject or subject != token.client_id:
-        raise IdentityProbeDenied
-    return subject
 
 
 async def invoke(connect, operation, part_number):
@@ -204,22 +189,6 @@ def build_app(connect, verifier, issuer, resource, allowed_hosts, *, business_re
 
     metadata_url = f"{resource.removesuffix('/mcp')}/.well-known/oauth-protected-resource/mcp"
     capacity = asyncio.Semaphore(4)
-
-    @mcp.tool(
-        name="verify_delegated_sub",
-        annotations={"readOnlyHint": True, "openWorldHint": False},
-        meta={"securitySchemes": [{"type": "oauth2", "scopes": [TOOL_SCOPES["search_part"]]}]},
-        structured_output=False,
-    )
-    async def verify_delegated_sub():
-        """Temporary identity check: validate the current OAuth token and return only its signed sub claim."""
-        try:
-            return verified_subject(get_access_token())
-        except IdentityProbeDenied:
-            return CallToolResult(
-                content=[TextContent(type="text", text="Accès refusé")],
-                isError=True,
-            )
 
     async def query(operation, value):
         try:
