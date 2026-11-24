@@ -19,6 +19,14 @@ Le catalogue de tous les outils implémentés peut être obtenu sans connexion e
 php candidat-mcp/erp_gateway.php --manifest
 ```
 
+## Compatibilité avec le schéma Yoyamic — 24 novembre 2026
+
+Un test E2E additionnel a utilisé un instantané **DDL uniquement** (10 tables, aucune ligne) de `aerocanada_yoyamic`, importé dans une instance MariaDB isolée sans réseau. Les créations de données de test étaient exclusivement synthétiques. Le test a exercé la création et relecture d’une compagnie, d’un contact, puis l’outil `create_rfq` avec relecture des lignes, vérification des formats de date historiques et rejet d’une référence dupliquée. L’instance temporaire, le compte de test et le DDL temporaire ont été supprimés à la fin.
+
+Ce contrôle a révélé les colonnes historiques `NOT NULL` de `tb_company` et `tb_company_contact` absentes des insertions candidate, ainsi qu’un identifiant de colonne réservé (`delete`) qui devait être cité. Les insertions candidate fournissent maintenant les valeurs historiques par défaut attendues et citent les identifiants SQL. La suite isolée complète repasse après cette correction avec `AEROCANADA_YOYAMIC_PAGES=/opt/aerocanada/pages`.
+
+Le test reste isolé : il n’a accordé aucun droit SQL de production, exécuté aucun CREATE/UPDATE sur les données Yoyamic, ni validé les autres écritures candidates sur toutes les tables métier. Le service actif reste sur l’ancien connecteur et ne publie pas `create_rfq`.
+
 ## Identité, permissions et audit
 
 Le serveur conserve les validations Auth0 de signature RS256, d’émetteur, d’audience et d’expiration. Le sujet signé est transmis au processus PHP privé. Le fichier d’exploitation associe explicitement le couple émetteur/sujet à un identifiant et à une adresse d’employé Yoyamic. L’adresse du jeton et les champs envoyés à l’outil ne décident jamais de cette association. À chaque exécution, le processus requiert un rattachement actif, l’autorisation du nom d’outil, le scope signé et un rôle Yoyamic courant autorisé. Une suppression de l’employé, un changement d’adresse ou un rôle inadmissible bloque l’action. Les mutations de workflows identifiables par propriétaire valident aussi son identifiant dans Yoyamic. La route CLI doit rester privée et être exécutée par le serveur MCP.
