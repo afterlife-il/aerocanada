@@ -234,3 +234,8 @@ This is a separate legacy integration, not the SaaS Aviation ERP and not a compl
 
 
 Legacy MCP follow-up (2026-11-24): 48 non-email read handlers were smoke-executed against a temporary schema-only MariaDB clone of Yoyamic with no production rows. No SQL table/column errors appeared; 6 Gmail/email reads were not run, and 16 calls stopped with non-SQL outcomes because no synthetic business rows were seeded. RFQ width/date correction passed its isolated E2E. No production DB rights, data, service, or SaaS module status changed. Candidate remains not deployed; 44 write operations still lack full schema-fidelity validation.
+
+
+### AeroCanada MCP — vérification ciblée du 24 novembre 2026
+
+Le candidat corrigé passe un E2E CREATE/READ compagnie, contact et create_rfq sur clone MariaDB temporaire contenant uniquement le DDL Yoyamic; dates et refus des doublons vérifiés, aucune donnée de production. La suite isolée complète repasse (17 tests Python, handlers PHP, MariaDB, PDF, brouillon simulé). Le serveur en service reste le legacy à trois outils et ne publie pas create_rfq. Le compte MariaDB reste SELECT-only, la table d’audit candidate est absente et aucun sub Auth0 Yohan vérifié n’est disponible. Aucun grant, changement de base/configuration, redémarrage, déploiement ou email réel.
