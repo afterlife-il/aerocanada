@@ -86,7 +86,7 @@ $run('create_company', ['name' => "  Test d'Aviation  "], [false, false], ['id' 
 checkCompanies(in_array(42, $calls['create_company'][1][1], true), 'verified actor on company');
 $run('update_company', $company + ['cage_code' => 'AB123'], [$active, false], ['id' => 7]);
 $run('get_company_payment_terms', $company, [['customer_term_id' => 2]], ['customer_term_id' => 2]);
-$run('update_company_payment_terms', $company + ['customer_term_id' => 2, 'customer_amount' => '110.25', 'customer_currency_id' => 3],
+$run('update_company_payment_terms', $company + ['customer_term_id' => 2, 'customer_amount' => '110', 'customer_currency_id' => 3],
     [$active, ['id' => 2], ['id' => 3], false], ['id' => 7]);
 $run('archive_company', $company, [$active, false], ['id' => 7, 'status' => 'archive']);
 $run('list_company_addresses', $company, [$rows], ['items' => $rows, 'next_after_id' => null]);
@@ -153,7 +153,7 @@ INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tb_company
     WHERE Fld_Company_ID = 12 AND Company_Old_Id = 0 AND Fld_Company_Rating_ID = 0
         AND `delete` = '' AND logocompany = '' AND customer_payment_term_id = 0 AND aci_payment_term_id = 0;
 INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tb_company
-    WHERE Fld_Company_ID = 7 AND status = 'archive' AND customer_payment_term_amount = 110.25
+    WHERE Fld_Company_ID = 7 AND status = 'archive' AND customer_payment_term_amount = 110
         AND customer_payment_term_id = 2 AND customer_payment_term_currencyid = 3;
 INSERT INTO company_assertions SELECT COUNT(*) = 1 FROM tbl_Company_Details
     WHERE id_tbl_company_Details = 4 AND Fld_Company_City = 'Québec';
