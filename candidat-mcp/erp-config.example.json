@@ -1,0 +1,24 @@
+{
+  "issuer": "https://issuer.example/",
+  "enableSend": false,
+  "database": "synthetic_yoyamic",
+  "socket": "/run/mariadb-staging/mariadb.sock",
+  "user": "mcp_stage_erp",
+  "passwordFile": "/etc/mcp-staging/mariadb-secret",
+  "yoyamicPages": "/srv/yoyamic-staging/pages",
+  "subjects": {
+    "auth0|synthetic-subject": {
+      "enabled": true,
+      "employeeId": 42,
+      "employeeEmail": "employee@example.test",
+      "operations": ["get_yoyamic_profile", "search_companies", "search_gmail_messages"],
+      "gmail": {
+        "employee": {
+          "email": "employee@example.test",
+          "readTokenFile": "/etc/mcp-staging/gmail-readonly-token",
+          "draftTokenFile": "/etc/mcp-staging/gmail-compose-token"
+        }
+      }
+    }
+  }
+}

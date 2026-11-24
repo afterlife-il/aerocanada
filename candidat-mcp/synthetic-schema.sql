@@ -1,0 +1,18 @@
+CREATE TABLE tbl_Parts (Fld_Part_ID INT PRIMARY KEY, Fld_Part_Nbr VARCHAR(80), Fld_Part_Desc VARCHAR(200));
+CREATE TABLE tbl_Status (Fld_Status_ID INT PRIMARY KEY, Fld_Status_Text VARCHAR(80));
+CREATE TABLE tbl_Stock (Fld_Stock_ID INT PRIMARY KEY, Fld_Part_ID INT, Fld_Qty INT, Fld_Physical_Stock INT, Fld_Status_ID INT);
+CREATE TABLE tbl_Stock_external (Fld_Stock_externe_ID INT PRIMARY KEY, Fld_Part_ID INT, Fld_Qty INT, Fld_Physical_Stock INT, Fld_Status_ID INT);
+CREATE TABLE tb_company (Fld_Company_ID INT PRIMARY KEY, Fld_Company_Name VARCHAR(160));
+CREATE TABLE tb_company_contact (id_company_contact INT PRIMARY KEY, Fld_Company_ID INT, Fld_Contact_Name VARCHAR(160), status VARCHAR(30));
+CREATE TABLE tbl_RFQ_1 (ID INT PRIMARY KEY, Fld_RFQ_ID VARCHAR(80), date DATE, Fld_Customer_ID INT, Fld_Part_ID INT, pn_rfq VARCHAR(80));
+CREATE TABLE tbl_RFQ_2 (ID INT PRIMARY KEY, Fld_RFQ_ID VARCHAR(80), Fld_Current_Date DATE, Fld_Part_ID INT, Fld_Supplier_ID INT);
+CREATE TABLE tbl_RFQ_3 (ID INT PRIMARY KEY, Fld_RFQ_ID VARCHAR(80), Fld_Quote_Date DATE, Fld_Part_Id INT, id_tbl_rfq1 INT);
+INSERT INTO tbl_Parts VALUES (1, 'SYNTH-PN', 'Synthetic part');
+INSERT INTO tbl_Status VALUES (1, 'Synthetic status');
+INSERT INTO tbl_Stock VALUES (1, 1, 5, 4, 1);
+INSERT INTO tbl_Stock_external VALUES (1, 1, 5, 4, 1);
+INSERT INTO tb_company VALUES (7, 'Synthetic company');
+INSERT INTO tb_company_contact VALUES (1, 7, 'Synthetic contact', 'Available');
+INSERT INTO tbl_RFQ_1 VALUES (1, '2026-11-23-120000', '2026-11-23', 7, 1, 'SYNTH-PN'), (2, '2026-11-23-120000', '2026-11-23', 7, 1, 'SYNTH-PN'), (3, '2026', '2026-11-23', 7, 1, 'SYNTH-PN');
+INSERT INTO tbl_RFQ_2 VALUES (7, '2026-11-23-120000', '2026-11-23', 1, 7);
+INSERT INTO tbl_RFQ_3 VALUES (7, '2026-11-23-120000', '2026-11-23', 1, 1);

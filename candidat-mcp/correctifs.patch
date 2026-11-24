@@ -1,0 +1,194 @@
+--- a/business_reads.py
++++ b/business_reads.py
+@@ -1,10 +1,14 @@
+ """Opt-in read operations for commercial records."""
+ from typing import Annotated
+ 
+-from pydantic import Field
++from pydantic import Field, StringConstraints
+ 
+ RecordId = Annotated[int, Field(strict=True, ge=1, le=2147483647)]
+ 
++RfqReference = RecordId | Annotated[
++    str, StringConstraints(strict=True, pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._/-]{0,79}$")
++]
++
+ BUSINESS_QUERIES = {
+     "get_contacts": ("contacts", """
+         SELECT id_company_contact AS contact_id, Fld_Company_ID AS company_id,
+--- a/connector.py
++++ b/connector.py
+@@ -14,7 +14,6 @@
+ from mcp.server.auth.middleware.auth_context import get_access_token
+ from mcp.server.auth.settings import AuthSettings
+ from mcp.server.auth.routes import create_protected_resource_routes
+-from mcp.server.fastmcp import FastMCP
+ from mcp.server.transport_security import TransportSecuritySettings
+ from mcp.types import CallToolResult, TextContent
+ from pydantic import AnyHttpUrl, BaseModel, StringConstraints, ValidationError
+@@ -23,7 +22,8 @@
+ from starlette.routing import Mount, Route
+ from starlette.applications import Starlette
+ 
+-from business_reads import BUSINESS_QUERIES, BUSINESS_SCOPES, RecordId
++from erp_bridge import ErpBridge, ErpFastMCP
++from business_reads import BUSINESS_QUERIES, BUSINESS_SCOPES, RecordId, RfqReference
+ 
+ SCOPES = ("aerocanada.parts.read", "aerocanada.stock.read", "aerocanada.history.read")
+ SOURCES = ("aerocanada", "aerocanada_yoyamic")
+@@ -147,10 +147,11 @@
+ 
+ 
+ class Verifier:
+-    def __init__(self, issuer, audience, jwks):
++    def __init__(self, issuer, audience, jwks, *, extra_scopes=()):
+         self.issuer = issuer
+         self.audience = audience
+         self.jwks = jwks
++        self.scopes = set(SCOPES) | set(BUSINESS_SCOPES.values()) | set(extra_scopes)
+ 
+     async def verify_token(self, token: str) -> AccessToken | None:
+         if len(token) > 8192:
+@@ -170,7 +171,7 @@
+             return None
+         return AccessToken(
+             token=token, client_id=claims["sub"],
+-            scopes=[item for item in scope.split() if item in SCOPES or item in BUSINESS_SCOPES.values()], expires_at=int(claims["exp"]),
++            scopes=[item for item in scope.split() if item in self.scopes], expires_at=int(claims["exp"]),
+         )
+ 
+ 
+@@ -178,16 +179,18 @@
+     return await asyncio.to_thread(lookup, connect, operation, part_number)
+ 
+ 
+-def build_app(connect, verifier, issuer, resource, allowed_hosts, *, business_reads=False):
++def build_app(connect, verifier, issuer, resource, allowed_hosts, *, business_reads=False, erp=None):
+     exposed_scopes = {**TOOL_SCOPES, **BUSINESS_SCOPES} if business_reads else TOOL_SCOPES
+-    mcp = FastMCP(
+-        "AeroCanada", stateless_http=True, json_response=True, token_verifier=verifier,
++    metadata_url = f"{resource.removesuffix('/mcp')}/.well-known/oauth-protected-resource/mcp"
++    if erp and set(erp.catalog) & (set(TOOL_SCOPES) | set(BUSINESS_SCOPES)):
++        raise ValueError("ERP operation conflicts with an existing MCP tool")
++    mcp = ErpFastMCP(
++        "AeroCanada", erp=erp, metadata_url=metadata_url, stateless_http=True, json_response=True, token_verifier=verifier,
+         auth=AuthSettings(issuer_url=AnyHttpUrl(issuer), resource_server_url=AnyHttpUrl(resource),
+                           required_scopes=[], validate_token_resource=False),
+         transport_security=TransportSecuritySettings(allowed_hosts=allowed_hosts, allowed_origins=[]),
+     )
+ 
+-    metadata_url = f"{resource.removesuffix('/mcp')}/.well-known/oauth-protected-resource/mcp"
+     capacity = asyncio.Semaphore(4)
+ 
+     async def query(operation, value):
+@@ -247,10 +250,7 @@
+         return await call("get_part_history", part_number)
+ 
+     if business_reads:
+-        def business_tool(name, description):
+-            async def read(record_id: RecordId):
+-                return await call(name, record_id)
+-
++        def register_business_tool(name, description, read):
+             mcp.add_tool(
+                 read, name=name, description=description,
+                 annotations={"readOnlyHint": True, "openWorldHint": False},
+@@ -258,10 +258,19 @@
+                 structured_output=False,
+             )
+ 
++        def business_tool(name, description):
++            async def read(record_id: RecordId):
++                return await call(name, record_id)
++
++            register_business_tool(name, description, read)
++
++        async def get_rfq(record_id: RfqReference):
++            return await call("get_rfq", str(record_id))
++
+         business_tool("get_contacts", "Liste les noms des contacts actifs de la société record_id.")
+         business_tool("get_customer", "Consulte la société record_id si elle a une demande RFQ client.")
+         business_tool("get_supplier", "Consulte la société record_id si elle a un devis fournisseur.")
+-        business_tool("get_rfq", "Consulte les lignes de la demande RFQ record_id.")
++        register_business_tool("get_rfq", "Consulte les lignes par référence RFQ, par exemple 2026-11-23-120000.", get_rfq)
+         business_tool("get_supplier_quote", "Consulte le devis fournisseur record_id, sans prix.")
+ 
+     async def api(request: Request):
+@@ -301,7 +310,7 @@
+             yield
+ 
+     metadata_routes = create_protected_resource_routes(
+-        AnyHttpUrl(resource), [AnyHttpUrl(issuer)], scopes_supported=list(exposed_scopes.values()),
++        AnyHttpUrl(resource), [AnyHttpUrl(issuer)], scopes_supported=sorted(set(exposed_scopes.values()) | (erp.scopes if erp else set())),
+     )
+     routes = [Route("/v1/{operation}", api, methods=["POST"]), *metadata_routes, Mount("/", mcp_app)]
+     return Starlette(routes=routes, lifespan=lifespan)
+@@ -339,8 +348,11 @@
+     sdk_log = logging.getLogger("mcp")
+     sdk_log.addHandler(logging.NullHandler())
+     sdk_log.propagate = False
++    erp = ErpBridge.from_env(issuer)
++    verifier = Verifier(issuer, resource, jwt.PyJWKClient(jwks, timeout=3),
++                        extra_scopes=erp.scopes if erp else ())
+     return build_app(
+-        db_factory(), Verifier(issuer, resource, jwt.PyJWKClient(jwks, timeout=3)),
++        db_factory(), verifier,
+         issuer, resource, allowed_hosts,
+-        business_reads=os.getenv("AEROCANADA_ENABLE_BUSINESS_READS") == "1",
++        business_reads=os.getenv("AEROCANADA_ENABLE_BUSINESS_READS") == "1", erp=erp,
+     )
+--- a/preflight.py
++++ b/preflight.py
+@@ -22,7 +22,7 @@
+ 
+ def check():
+     if os.environ.get("AEROCANADA_ACTIVATION_LOCK") == "1":
+-        return [{"check": "activation_lock", "ok": True, "detail": "OAuth pending; MCP returns 503"}]
++        return [{"check": "activation_lock", "ok": False, "detail": "OAuth pending; MCP returns 503"}]
+ 
+     results = []
+     def add(name, ok, reason):
+--- a/verify_oauth.py
++++ b/verify_oauth.py
+@@ -3,6 +3,7 @@
+ import asyncio
+ import json
+ import os
++import subprocess
+ import sys
+ from urllib.parse import urlsplit, urlunsplit
+ from urllib.error import HTTPError
+@@ -12,6 +13,7 @@
+ 
+ from business_reads import BUSINESS_SCOPES
+ from connector import SCOPES, Verifier
++from erp_bridge import ErpBridge
+ 
+ 
+ class NoRedirect(HTTPRedirectHandler):
+@@ -106,6 +108,9 @@
+         if os.getenv("AEROCANADA_ENABLE_BUSINESS_READS") == "1":
+             scopes.extend(BUSINESS_SCOPES.values())
+         issuer = os.environ["AEROCANADA_OAUTH_ISSUER"]
++        erp = ErpBridge.from_env(issuer)
++        if erp:
++            scopes.extend(sorted(erp.scopes - set(scopes)))
+         jwks = os.getenv("AEROCANADA_OAUTH_JWKS")
+         if args.provider_only:
+             jwks = verify_provider(issuer, jwks)
+@@ -114,12 +119,12 @@
+             verify(issuer, os.environ["AEROCANADA_OAUTH_RESOURCE"], jwks, scopes)
+         if args.token_stdin:
+             verifier = Verifier(issuer, os.environ["AEROCANADA_OAUTH_RESOURCE"],
+-                                jwt.PyJWKClient(jwks, timeout=3))
++                                jwt.PyJWKClient(jwks, timeout=3), extra_scopes=erp.scopes if erp else ())
+             token = sys.stdin.read(8194).strip()
+             verified = asyncio.run(verifier.verify_token(token))
+             if verified is None or not set(scopes).issubset(verified.scopes):
+-                raise ValueError("Invalid access token or missing read scopes")
+-    except (KeyError, ValueError, TypeError, OSError, jwt.PyJWTError) as error:
++                raise ValueError("Invalid access token or missing configured scopes")
++    except (KeyError, ValueError, TypeError, OSError, subprocess.SubprocessError, jwt.PyJWTError) as error:
+         print(f"Échec de la vérification OAuth ({type(error).__name__}).", file=sys.stderr)
+         return 1
+     if args.provider_only:
