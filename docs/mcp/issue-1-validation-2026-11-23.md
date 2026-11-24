@@ -89,3 +89,11 @@ Le candidat corrigé pour les longueurs/date RFQ passe son E2E MariaDB isolé. L
 - Production metadata changes are limited to `aerocanada_mcp_writer@localhost` and InnoDB table `aerocanada_yoyamic.mcp_erp_audit`. The writer has 32 table SELECT grants, 19 INSERT, 16 UPDATE, four Employee SELECT columns, and UPDATE on `tbl_Employee.statut`; no DELETE, DDL, ALL, global or schema-level grants. The reader’s 33 column SELECT grants are unchanged. The production audit table has zero rows. A live writer login and zero-row SELECT probes passed; no production commercial DML was run.
 - The active MCP service was not reconfigured or restarted; it still exposes three legacy read tools. The writer credential remains root-only and is not connected to the service. Production write activation remains blocked until Yohan’s delegated Auth0 subject is verified and explicitly mapped to a Ready2Go employee.
 - The only user action needed to unblock identity verification is: call the existing Auth0 `/userinfo` endpoint with Yohan’s delegated access token and provide the returned `sub` claim only; do not share the bearer token.
+
+
+## Contrôle du sub Auth0 délégué — 24 novembre 2026
+
+- Vérification en lecture seule de `tbl_Employee` : l’employé Yoyamic 6 correspond à l’adresse professionnelle connue de Yohan; le rôle actuel retourné est `SuperAdmin`.
+- Aucun accès de cette session ne permet de récupérer le jeton délégué AeroCanada ni d’appeler le `/userinfo` du tenant Auth0 existant. L’identifiant de profil communiqué par l’utilisateur n’a donc pas été considéré comme preuve de la claim signée `sub` du jeton.
+- Aucun jeton n’a été lu, affiché ou enregistré; aucun binding Auth0→employé n’a été écrit. Le candidat reste non déployé et le service actif inchangé.
+- Action exacte manquante : dans Cowork, appeler le `/userinfo` Auth0 existant avec le jeton délégué AeroCanada de Yohan et transmettre uniquement le claim `sub` retourné (jamais le bearer token). Après vérification de cette valeur, reprendre le binding explicite et les contrôles de déploiement.
