@@ -138,7 +138,7 @@ $columnValues = static function (array $fields, array $args): array {
     return $values;
 };
 $insert = static function (PDO $db, string $table, array $values) use ($query): int {
-    $columns = implode(', ', array_keys($values));
+    $columns = implode(', ', array_map(static fn (string $column): string => '`' . str_replace('`', '``', $column) . '`', array_keys($values)));
     $bindings = implode(', ', array_fill(0, count($values), '?'));
     $query($db, "INSERT INTO $table ($columns) VALUES ($bindings)", $values);
     $id = (int) $db->lastInsertId();
@@ -151,7 +151,8 @@ $update = static function (PDO $db, string $table, string $key, int $recordId, a
     if (!$values) {
         throw new InvalidArgumentException('Au moins un champ modifiable est requis.');
     }
-    $assignments = implode(', ', array_map(static fn (string $field): string => "$field = ?", array_keys($values)));
+    $assignments = implode(', ', array_map(static fn (string $field): string => '`' . str_replace('`', '``', $field) . '` = ?', array_keys($values)));
+    $key = '`' . str_replace('`', '``', $key) . '`';
     $query($db, "UPDATE $table SET $assignments WHERE $key = ?", [...array_values($values), $recordId]);
 };
 $one = static function (PDO $db, string $sql, array $parameters) use ($query): array {
@@ -281,8 +282,15 @@ return [
         static function (PDO $db, array $args, int $employeeId) use ($insert, $columnValues, $companyFields, $checkCompanyName): array {
             $checkCompanyName($db, $args['name']);
             $values = $columnValues($companyFields, $args) + [
-                'aci_contact' => $employeeId, 'status' => 'Available', 'logocompany' => '',
-                'internet' => '', 'cage_code' => '', 'companyrating' => '',
+                // tb_company has legacy NOT NULL columns without SQL defaults.
+                // Match the values emitted by Yoyamic's native company form so
+                // strict SQL mode and the real schema behave like the test schema.
+                'Company_Old_Id' => 0, 'Fld_Company_Rating_ID' => 0, 'delete' => '',
+                'aci_contact' => $employeeId, 'logocompany' => '', 'status' => 'Available',
+                'internet' => '', 'cage_code' => '', 'companyrating' => 0,
+                'customer_payment_term_id' => 0, 'customer_payment_term_amount' => 0,
+                'customer_payment_term_currencyid' => 0, 'aci_payment_term_id' => 0,
+                'aci_payment_term_amount' => 0, 'aci_payment_term_currencyid' => 0,
             ];
             return ['id' => $insert($db, 'tb_company', $values)];
         }, ['tb_company']),
@@ -445,7 +453,12 @@ return [
             $lockAvailableCompany($db, $id);
             $checkContactEmail($db, $id, $args['email'] ?? '');
             $values = $columnValues($contactFields, $args) + [
-                'Fld_Company_ID' => $id, 'status' => 'Available', 'aci_contact' => $employeeId,
+                // The legacy contact table also has required fields which are
+                // not part of the MCP contact form. Preserve Yoyamic's empty
+                // values rather than relying on permissive implicit defaults.
+                'Fld_Linked_ID' => 0, 'Fld_Company_ID' => $id, 'Company_Old_Id' => 0,
+                'Fld_Contact_Fax' => '', 'Fld_Contact_Division_ID' => 0, 'Fld_Contact_Remark' => '',
+                'status' => 'Available', 'aci_contact' => $employeeId,
                 'entry_date' => date('Y-m-d'), 'modified_date' => date('Y-m-d H:i:s'),
                 'Fld_Contact_Email' => '', 'Fld_Contact_Phone' => '', 'Fld_Contact_Phone2' => '',
                 'Fld_Company_Mobile' => '', 'Fld_Contact_Title' => '',
