@@ -47,13 +47,24 @@ ALTER TABLE tbl_RFQ DROP INDEX Fld_RFQ_ID,
     MODIFY Fld_RFQ_ID VARCHAR(19) NULL, MODIFY Fld_Date VARCHAR(9) NULL;
 ALTER TABLE tbl_RFQ_1 MODIFY Fld_RFQ_ID VARCHAR(30) NULL, MODIFY `date` VARCHAR(15) NOT NULL;
 ALTER TABLE tb_company
+    ADD Company_Old_Id INT NOT NULL DEFAULT 0, ADD Fld_Company_Rating_ID INT NOT NULL DEFAULT 0,
+    ADD `delete` VARCHAR(10) NOT NULL DEFAULT '',
     ADD internet VARCHAR(250) NOT NULL DEFAULT '', ADD cage_code VARCHAR(32) NOT NULL DEFAULT '',
     ADD aci_contact INT NOT NULL DEFAULT 1, ADD companyrating VARCHAR(32) NOT NULL DEFAULT '',
-    ADD logocompany VARCHAR(250) NOT NULL DEFAULT '';
+    ADD logocompany VARCHAR(250) NOT NULL DEFAULT '',
+    ADD customer_payment_term_id INT NOT NULL DEFAULT 0,
+    ADD customer_payment_term_amount DECIMAL(14,2) NOT NULL DEFAULT 0,
+    ADD customer_payment_term_currencyid INT NOT NULL DEFAULT 0,
+    ADD aci_payment_term_id INT NOT NULL DEFAULT 0,
+    ADD aci_payment_term_amount DECIMAL(14,2) NOT NULL DEFAULT 0,
+    ADD aci_payment_term_currencyid INT NOT NULL DEFAULT 0;
 ALTER TABLE tb_company_contact
+    ADD Fld_Linked_ID INT NOT NULL DEFAULT 0, ADD Company_Old_Id INT NOT NULL DEFAULT 0,
     ADD Fld_Contact_Name VARCHAR(160) NOT NULL DEFAULT '', ADD Fld_Contact_Email VARCHAR(254) NULL,
     ADD Fld_Contact_Phone VARCHAR(50) NULL, ADD Fld_Contact_Phone2 VARCHAR(50) NULL,
     ADD Fld_Company_Mobile VARCHAR(50) NULL, ADD Fld_Contact_Title VARCHAR(128) NULL,
+    ADD Fld_Contact_Fax VARCHAR(50) NOT NULL DEFAULT '', ADD Fld_Contact_Division_ID INT NOT NULL DEFAULT 0,
+    ADD Fld_Contact_Remark TEXT NOT NULL DEFAULT '',
     ADD aci_contact INT NULL, ADD entry_date DATE NULL, ADD modified_date DATETIME NULL;
 UPDATE tb_company_contact
     SET Fld_Contact_Name = CASE id_company_contact WHEN 1 THEN 'Synthetic Customer Buyer' ELSE 'Synthetic Supplier Buyer' END,
