@@ -1,6 +1,6 @@
 {
   "mission": "AeroCanada MCP Full ERP — intégration et mise en service",
-  "updated_at": "2026-11-24T13:16:24Z",
+  "updated_at": "2026-11-24T13:23:56Z",
   "workspace": "/opt/aerocanada-mcp",
   "candidate": "candidat-mcp",
   "candidate_tools": 100,
