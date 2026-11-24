@@ -1,4 +1,4 @@
-# Scopes Auth0 à configurer — AeroCanada MCP (candidat 100 outils)
+# Scopes Auth0 et MCP — matrice de vérification du candidat 100 outils
 
 > Document préparé depuis le manifeste et les descripteurs exécutables de `candidat-mcp/erp_gateway.php` et `erp_*.php`. Les scopes sont des permissions exactes, sans joker. Le middleware valide en plus le lien Auth0 subject → employé Ready2Go et le rôle `statut` de cet employé; attribuer un scope seul ne contourne pas ce contrôle.
 
@@ -6,9 +6,9 @@
 
 - API / Audience : conserver l’audience MCP existante; ne pas créer une application OAuth ni modifier les callbacks ChatGPT ou Claude.
 - RBAC : conserver l’activation existante. Ajouter les permissions listées ci-dessous à l’API Resource Server existante.
-- Le candidat publie **44 scopes distincts**. L’endpoint protégé du service actif annonce actuellement `aerocanada.parts.read`, `aerocanada.stock.read` et `aerocanada.history.read`.
-- Les scopes candidats déjà annoncés sont `aerocanada.parts.read` et `aerocanada.stock.read`. Ajouter les **42 scopes manquants** listés comme `À AJOUTER`.
-- `aerocanada.history.read` est un scope ancien annoncé par le service mais absent du manifeste candidat; le conserver pendant l’intégration, sans l’attribuer sur la base de ce document.
+- Le candidat publie **44 scopes distincts**. Le compte rendu utilisateur indique que 45 permissions sont déjà disponibles dans Auth0, et que le rôle `AeroCanada MCP Operator` est attribué à Yohan. Je ne dispose pas d’un accès Auth0 Management pour confirmer ces changements.
+- L’endpoint protégé MCP actif annonce seulement `aerocanada.parts.read`, `aerocanada.stock.read` et `aerocanada.history.read`. Parmi les 44 scopes candidat, 2 sont annoncés et 42 restent **non exposés par le serveur actif**. Ce constat ne prouve pas que les permissions Auth0 sont absentes. Ne pas recréer les permissions signalées comme déjà présentes.
+- `aerocanada.history.read` est annoncé par le service mais absent du manifeste candidat; le préserver tant que les anciens outils sont actifs.
 - Attribuer les permissions individuellement selon le rôle/métier approuvé de chaque utilisateur. Ne pas créer un rôle générique `ERP full access` et ne pas donner les 44 permissions à tous.
 - Le serveur applique les rôles Ready2Go visibles dans la colonne « Rôles Ready2Go » outil par outil. Les scopes WRITE/DELETE ne sont pas publiés; DELETE est absent.
 - **Pré-requis** : après configuration Auth0, relire la ressource OAuth protégée et vérifier l’émission réelle des scopes dans un jeton de chaque utilisateur habilité. La métadonnée actuelle ne prouve pas que ces permissions sont accordées aux utilisateurs.
@@ -64,7 +64,7 @@
 
 ## Procédure de configuration
 
-1. Dans l’API Resource Server correspondant à l’audience MCP existante, conserver RBAC et ajouter chaque permission marquée `À AJOUTER` avec le nom exact ci-dessus.
+1. Dans l’API Resource Server correspondant à l’audience MCP existante, conserver RBAC et ajouter chaque permission marquée `À EXPOSER / VÉRIFIER` avec le nom exact ci-dessus.
 2. Ne pas modifier ni recréer les applications OAuth ChatGPT/Claude, leurs client IDs, callbacks ou audience.
 3. Dans la politique de rôles/permissions existante, attribuer seulement les scopes nécessaires à chaque utilisateur autorisé. Les rôles Ready2Go de la table sont des restrictions d’exécution côté serveur, pas des instructions pour accorder automatiquement des permissions Auth0 à tous les comptes portant ce rôle.
 4. Pour chaque utilisateur, valider le sujet Auth0 contre son employé Ready2Go et son rôle actuel avant d’activer le mapping MCP. Les sujets sans correspondance explicite doivent rester refusés.
@@ -85,3 +85,10 @@
 - Aucun scope `delete` ou générique `write`.
 
 Généré à partir du candidat local; les scopes doivent être appliqués par un administrateur Auth0/Cowork autorisé. Le présent document ne prétend pas qu’ils sont déjà configurés.
+
+
+## État de vérification — 24 novembre 2026
+
+- Compte rendu utilisateur : 45 permissions Auth0 disponibles pour les deux applications déléguées; rôle `AeroCanada MCP Operator` affecté à Yohan. État non vérifiable depuis cette session faute d’API/console Auth0.
+- Vérification MCP directe : le protected-resource endpoint expose toujours 3 scopes. Le service candidate est absent du runtime; la configuration des applications Auth0 ne suffit donc pas à publier les outils.
+- Le compte Yoyamic associé à l’adresse Yohan existe avec statut `SuperAdmin`, mais le `sub` Auth0 n’a pas été obtenu. Aucun binding d’identité n’a été écrit.
