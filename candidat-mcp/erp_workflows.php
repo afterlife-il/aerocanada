@@ -31,18 +31,18 @@ function one(PDO $db, string $sql, array $args, string $error): array
 
 function insert(PDO $db, string $table, array $data): int
 {
-    $columns = implode(', ', array_keys($data));
+    $columns = implode(', ', array_map(static fn (string $column): string => '`' . str_replace('`', '``', $column) . '`', array_keys($data)));
     $values = implode(', ', array_fill(0, count($data), '?'));
-    query($db, "INSERT INTO $table ($columns) VALUES ($values)", array_values($data));
+    query($db, "INSERT INTO `$table` ($columns) VALUES ($values)", array_values($data));
     return (int)$db->lastInsertId();
 }
 
 function update(PDO $db, string $table, int $id, array $data): void
 {
     $pairs = implode(', ', array_map(static function (string $column): string {
-        return "$column = ?";
+        return '`' . str_replace('`', '``', $column) . '` = ?';
     }, array_keys($data)));
-    query($db, "UPDATE $table SET $pairs WHERE id = ?", array_merge(array_values($data), [$id]));
+    query($db, "UPDATE `$table` SET $pairs WHERE `id` = ?", array_merge(array_values($data), [$id]));
 }
 
 function idSchema(): array
@@ -246,9 +246,6 @@ function createRfq(PDO $db, array $args, int $employee): array
     ]);
     $lineIds = [];
     foreach ($lines as $line) {
-        // DATE is reserved and the native field is lower-case.
-        $line['`date`'] = $line['date'];
-        unset($line['date']);
         $lineIds[] = insert($db, 'tbl_RFQ_1', $line);
     }
     return ['id' => $master, 'rfq_reference' => $rfq, 'line_ids' => $lineIds];
@@ -321,8 +318,6 @@ function addRfqLine(PDO $db, array $args, int $employee): array
     $line = one($db, 'SELECT Fld_Customer_ID, `date`, Fld_Priority_ID, Fld_Payment_Term_ID, id_company_contact
             FROM tbl_RFQ_1 WHERE Fld_RFQ_ID = ? AND Employee_ID = ? ORDER BY ID LIMIT 1 FOR UPDATE',
         [$rfq, $employee], 'Ligne de référence RFQ introuvable');
-    $line['`date`'] = $line['date'];
-    unset($line['date']);
     $id = insert($db, 'tbl_RFQ_1', $line + ['Fld_RFQ_ID' => $rfq, 'Employee_ID' => $employee]
         + lineData($db, $args['line']));
     return ['id' => $id, 'rfq_reference' => $rfq];
