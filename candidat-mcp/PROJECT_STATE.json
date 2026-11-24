@@ -1,20 +1,20 @@
 {
   "mission": "AeroCanada MCP Full ERP — intégration et mise en service",
-  "updated_at": "2026-11-24T12:14:00Z",
+  "updated_at": "2026-11-24T13:16:24Z",
   "workspace": "/opt/aerocanada-mcp",
   "candidate": "candidat-mcp",
   "candidate_tools": 100,
-  "candidate_sha256sums": "9726ce55424284a0c712a5ae423e48cf2740d331ca8d671e5ce33e541f09143d",
+  "candidate_sha256sums": "f6488036e9441751ddf4de7de4be2a3f7ebf00a1ceff8c90827efa3989c37c2b",
   "tests": {
-    "isolated_suite": "PASS on 2026-11-24 after candidate SQL/schema fixes; AEROCANADA_YOYAMIC_PAGES=/opt/aerocanada/pages; 17 Python tests, PHP handler groups, MariaDB bootstrap suites, candidate gateway E2E all passed",
+    "isolated_suite": "PASS on 2026-11-24; 17 Python tests, PHP lint/handler tests, company/inventory/workflow/audit MariaDB bootstrap tests and candidate gateway E2E all passed; no active test process remains",
     "python_tests": 17,
     "php_handlers": "PASS; companies/contacts 23 + 9 rejection cases, inventory 17, workflow 36, operations/admin 12, mail/PDF 12",
-    "mariadb_offline": "PASS; synthetic schema/bootstrap only; workflow 119 SQL statements + 21 assertions; stock and audit rollback assertions passed",
+    "mariadb_offline": "PASS; synthetic company/contact/reference SQL, 24 read queries with audit/rollback assertions, stock SQL with 5 persistence checks, 121 workflow SQL statements with 21 assertions, and gateway E2E",
     "gmail": "PASS with mock transport only; SEND approvals and reconciliation tested; no real email",
     "pdf": "PASS; existing FPDF library read-only, synthetic quote output",
     "last_log": "/tmp/aerocanada-create-update-tests.log",
     "manifest_tools": 100,
-    "sha256_manifest": "PASS; 32 entries verified after fixes",
+    "sha256_manifest": "PASS; all 36 static candidate files verified against candidat-mcp/SHA256SUMS; PROJECT_STATE.json intentionally excluded because it stores the manifest digest",
     "production_readonly_integration": "PASS; search_part, get_stock, get_part_history as service identity using a synthetic non-existent part number; no ERP rows emitted",
     "oauth_provider_and_protected_resource": "PASS; discovery, issuer, PKCE, signing key, scopes metadata",
     "production_mcp_auth_gate": "PASS; unauthenticated /mcp returned 401; protected-resource metadata returned 200",
@@ -23,16 +23,21 @@
     "candidate_oauth_scope_compatibility": "BLOCKED at active MCP metadata; Auth0 configuration reported by user, but active resource server advertises 3 scopes and token permissions cannot be independently verified",
     "permission_scopes": "PASS; 54 read, 21 create, 24 update, 1 send; no generic write/delete scope; mismatched create/update scope rejected",
     "archive_activation_guard": "PASS; archive/delete/remove operations rejected by deployment allowlist",
-    "candidate_gateway_mysql_e2e": "PASS; least-privilege synthetic MariaDB principal; company/contact/part/RFQ/supplier quote/customer quote CREATE/UPDATE/READ, PDF generation, email draft preview, unknown OAuth subject denied; no SEND invoked; no production DB",
+    "candidate_gateway_mysql_e2e": "PASS; synthetic least-privilege MariaDB account: company/contact/part/RFQ/quotes/PDF/email preview workflows; unknown OAuth subject denied; SEND not invoked",
     "targeted_rfq_production_shape": "PASS; PHP workflow test, 36 handlers; isolated MariaDB E2E mirrors tbl_RFQ and tbl_RFQ_1 RFQ ID/date widths and verifies formats, reread, duplicate rejection, overlength rejection; no production writes",
     "active_chatgpt_old_tool": "PASS; existing search_part returned no results for a synthetic nonexistent part number on 2026-11-24",
     "active_claude": "NOT TESTED; no Claude session/tool access available",
     "schema_only_yoyamic_read_smoke": "48 non-mail READ handlers invoked on ephemeral MariaDB clone containing only aerocanada_yoyamic table DDL; 0 SQL schema errors; 6 Gmail/email reads skipped; 16 non-SQL exceptions; no production rows copied or modified",
-    "yoyamic_exact_schema_write_e2e": "PASS in disposable MariaDB using DDL-only snapshot of 10 production tables (no production rows): company CREATE/READ, contact CREATE/READ, create_rfq CREATE/READ, date formats, duplicate rejection; synthetic least-privilege DB principal; temporary instance and files cleaned",
+    "yoyamic_exact_schema_write_e2e": "PASS in a temporary MariaDB 10.6.23 clone of DDL only from all 426 production base tables; 44/44 distinct Yoyamic DB mutation operations, fake Gmail draft, 48/48 audit rows, persistence checks; ran through the same least-privilege grant template; denied DELETE and DDL; no production rows copied or written",
     "company_contact_legacy_required_columns": "PASS; exact-schema test validates required legacy fields and reserved `delete` column quoting",
     "production_db_connection_recheck": "PASS; existing service credential connected as aerocanada_mcp_reader@localhost to MariaDB 10.6.23; column-scoped SELECT only; no DML grants",
     "active_server_tools_recheck": "BLOCKED for candidate; active unit still runs legacy connector and resource metadata publishes exactly 3 read scopes; unauthenticated /mcp initialize returned 401",
-    "create_rfq_live": "NOT TESTED; create_rfq is not published by the active service, and no verified Auth0 subject/token is available"
+    "create_rfq_live": "NOT TESTED; active service still does not publish create_rfq; no verified delegated Auth0 subject/employee binding is accessible",
+    "production_writer_auth_probe": "PASS; new local writer credential authenticated; zero-row SELECT probes passed on 33 grant-covered table names plus scoped employee identity columns; no business rows fetched",
+    "production_writer_privilege_review": "PASS; 32 table SELECT grants, 19 table INSERT, 16 table UPDATE, four Employee SELECT columns, one Employee UPDATE column; no DELETE/DDL/ALL/global/schema grants",
+    "production_audit_table": "PASS; created from erp_audit.sql as InnoDB; currently zero rows",
+    "existing_reader_grants": "PASS; aerocanada_mcp_reader grants compare equal to pre-change snapshot (33 column SELECT privileges); untouched",
+    "production_business_write_test": "NOT RUN by design; production DML prohibited. All mutation tests ran on the isolated DDL clone."
   },
   "process_check": {
     "checked": true,
@@ -46,30 +51,36 @@
     "commercial_data_mutated": false,
     "real_email_sent": false,
     "service_active": true,
-    "live_connector": "legacy connector.py (rechecked 2026-11-24)",
+    "live_connector": "legacy connector.py; still exposes the existing 3 read tools",
     "live_tool_count": 3,
     "business_reads_enabled": false,
     "backup_created": true,
-    "backup_reason": "no deployment or sensitive production change performed",
-    "backup_path": "/var/backups/aerocanada-mcp/pre-readonly-deploy-20261123T160407Z.tar.gz",
-    "backup_sha256": "027a42c9aa194998c0099021013412053ad3688604c7cb9ec66f3afc9727443d",
+    "backup_reason": "verified schema/grants backup created before provisioning the new writer and audit table; no business data changed",
+    "backup_path": "/var/backups/aerocanada-mcp/pre-writer-provision-20261124T130729Z.tar.gz",
+    "backup_sha256": "4f65581b7cb330387837af7c1b69b8279b57bd664f9de5227c7764b90df9d3f7",
     "candidate_code_changed": true,
     "candidate_code_deployed": false,
-    "permissions_changed": false
+    "permissions_changed": true,
+    "configuration_backup_path": "/var/backups/aerocanada-mcp/pre-readonly-deploy-20261123T160407Z.tar.gz",
+    "configuration_backup_sha256": "027a42c9aa194998c0099021013412053ad3688604c7cb9ec66f3afc9727443d",
+    "writer_account_provisioned": true,
+    "audit_table_provisioned": true,
+    "writer_connected_to_runtime": false,
+    "writer_credential_path": "/etc/aerocanada-mcp/aerocanada_mcp_writer.password (root:root 0600; not configured in MCP)"
   },
   "integration": {
     "mariadb_account_configured": true,
     "mariadb_secret_read_from_sandbox": true,
     "mariadb_service_identity_connection": "PASS; reused existing service credential without exposing it",
     "mariadb_version": "10.6.23",
-    "mariadb_grants": "66 column-scoped SELECT privileges; no INSERT/UPDATE/DELETE observed",
+    "mariadb_grants": "Existing reader unchanged: column-scoped SELECT only (33 entries); new writer: 32 table SELECT, 19 table INSERT, 16 table UPDATE, four Employee SELECT columns, one Employee UPDATE column; no DELETE/DDL/ALL/schema/global grants",
     "systemd_bus_available": true,
     "oauth_discovery_verified": true,
     "live_mcp_endpoint_auth_required": true,
     "auth0_subject_to_employee_bindings_verified": false,
     "candidate_identity_binding_configured": false,
-    "candidate_erp_write_grants_configured": false,
-    "candidate_audit_table_provisioned": false,
+    "candidate_erp_write_grants_configured": true,
+    "candidate_audit_table_provisioned": true,
     "candidate_gmail_test_tokens_configured": false,
     "claude_live_test": false,
     "chatgpt_live_test": false,
@@ -133,9 +144,9 @@
     "auth0_management_credential_available": false,
     "candidate_runtime_configured": false,
     "candidate_subject_employee_mapping_configured": false,
-    "candidate_db_employee_lookup_grant": false,
-    "candidate_db_audit_grant": false,
-    "production_database_account": "aerocanada_mcp_reader@localhost",
+    "candidate_db_employee_lookup_grant": true,
+    "candidate_db_audit_grant": true,
+    "production_database_account": "aerocanada_mcp_reader@localhost (still used by active service; unchanged)",
     "production_database_privileges": [
       "SELECT",
       "USAGE"
@@ -147,22 +158,37 @@
       "get_part_history"
     ],
     "claude_connector_available_in_session": false,
-    "auth0_provider_and_active_resource_verification": "PASS"
+    "auth0_provider_and_active_resource_verification": "PASS",
+    "production_database_writer": "aerocanada_mcp_writer@localhost (provisioned, locally authenticated, not connected to MCP)",
+    "production_database_writer_privilege_test": "PASS; exact grant template passed 44-write isolated DDL-clone test and denied DELETE/DDL",
+    "candidate_db_writer_scope": "Mutation-handler tables and direct references only; not reviewed for all candidate READ tools"
   },
   "verified_blockers": [
-    "No Auth0 Management API credential or Auth0 administration connector is available; only issuer/resource metadata can be verified",
-    "Active protected-resource metadata advertises 3 scopes; 42 of 44 candidate scopes are missing (includes all CREATE/UPDATE/SEND scopes)",
-    "AEROCANADA_ERP_CONFIG and AEROCANADA_ERP_OPERATIONS are not configured for the active service",
-    "No verified Auth0 subject-to-Ready2Go employee mapping is configured; candidate gateway correctly denies unknown subjects",
-    "Production MariaDB principal aerocanada_mcp_reader@localhost has SELECT/USAGE only, no DML, and no SELECT on tbl_Employee or mcp_erp_audit",
-    "No Claude connector/session is available to test from this environment; ChatGPT exposes only the existing 3 read tools"
+    "No verified delegated Auth0 sub for Yohan is accessible to this server; do not infer it from email. Production write activation and runtime identity mapping remain blocked.",
+    "The active MCP service still runs the legacy connector and advertises only three read scopes; 42 of 44 candidate scopes are absent from active metadata.",
+    "Candidate runtime config and explicit subject-to-Ready2Go employee binding are not configured; the newly provisioned writer account and root-only credential are intentionally not connected to the service.",
+    "The writer grant set covers mutation handlers and their direct references, not yet a reviewed full-ERP read permission set for all 100 tools.",
+    "No Claude session is available here; ChatGPT/Claude candidate tool discovery and live execution remain untested."
   ],
   "github_trace": {
     "repository": "afterlife-il/aerocanada",
     "branch": "codex/issue-1-mcp-erp-validation",
-    "commit": "67c3cbf29568c61d37c4e7395e7a2931002aa73f",
+    "commit": "71c7b9605d44181782c5225cd24036dc058d0606",
     "file": "docs/mcp/issue-1-validation-2026-11-23.md",
-    "candidate_path": "candidat-mcp/"
+    "candidate_path": "candidat-mcp/",
+    "candidate_files_updated": [
+      "candidat-mcp/erp_companies.php",
+      "candidat-mcp/erp_inventory.php",
+      "candidat-mcp/erp_workflows.php",
+      "candidat-mcp/erp_operations.php",
+      "candidat-mcp/erp_mail.php",
+      "candidat-mcp/mcp_writer_grants.template.sql",
+      "candidat-mcp/test_real_schema_writes.php",
+      "candidat-mcp/test_real_schema_writes.sh",
+      "candidat-mcp/DB_WRITER_PROVISIONING.md",
+      "candidat-mcp/SHA256SUMS",
+      "candidat-mcp/PROJECT_STATE.json"
+    ]
   },
   "git_local": {
     "mcp_workspace_git_metadata": "unavailable (.git directory inaccessible/empty)",
@@ -171,17 +197,16 @@
     "erp_repo_modified": false
   },
   "next_steps": [
-    "Obtain exact verified Auth0 sub for Yohan from the existing Auth0 account via Cowork and provision an explicit private binding; do not infer it from email",
-    "Validate all candidate operations against a schema-only isolated copy of aerocanada_yoyamic and provision mcp_erp_audit only in that isolated environment first",
-    "Then derive and verify a separate MariaDB service principal with narrow SELECT/INSERT/UPDATE grants for the confirmed schema; leave reader unchanged",
-    "Integrate candidate into the existing service and advertise scopes only after isolated schema checks and identity preflight; deploy with verified backup and rollback",
-    "Test delegated ChatGPT and Claude sessions after runtime cutover; Claude session currently unavailable here"
+    "Obtain Yohan’s verified sub from a delegated Auth0 access token by calling the existing Auth0 /userinfo endpoint; provide only the returned sub claim, never the bearer token.",
+    "Verify that sub against the actual Ready2Go employee identity and configure the explicit private binding; do not activate writes before this check.",
+    "Review the final candidate READ grants and active scopes, then integrate the candidate into the existing MCP service only after security preflight and rollback checks.",
+    "After authorized cutover, verify create_rfq and other tools from the existing ChatGPT and Claude sessions; no production business write or real email may be used for validation."
   ],
   "constraints": "Do not alter commercial production data, send real mail, bypass OAuth, or deploy before critical validations pass.",
   "deployment_attempt": {
-    "result": "not deployed; active service remains on legacy connector and exposes 3 tools",
-    "reason": "No verified Auth0 subject-to-employee binding; current production DB principal is SELECT-only; mcp_erp_audit is absent; active server does not publish create_rfq. Exact-schema isolated E2E is not permission to activate production writes.",
-    "production_changes": "none; no grants, DDL, commercial writes, runtime config changes, service restart, or email send"
+    "result": "not deployed; legacy MCP still active with 3 read tools",
+    "reason": "candidate activation requires the verified delegated Auth0 sub and an explicit Yoyamic employee mapping; runtime/scopes preflight is incomplete. Exact-schema write validation and DB grants alone do not authorize production writes.",
+    "production_changes": "new local-only MariaDB writer principal and InnoDB audit table provisioned after verified backup; no commercial DML, service config change, restart, or email send"
   },
   "implementation_changes": [
     "Candidate maps legacy internal .write descriptors to separate published .create and .update OAuth scopes",
@@ -190,14 +215,17 @@
     "Tests prove create and update scope separation and activation refusal",
     "Added candidate-gateway MariaDB E2E harness using an ephemeral local MariaDB instance, synthetic schema and temporary least-privilege account; integrated it into run_isolated_tests.sh",
     "Corrected RFQ candidate reference max length and legacy field-specific date serialization; E2E now uses production RFQ column widths in ephemeral MariaDB",
-    "Fixed company/contact inserts to populate Yoyamic legacy NOT NULL columns and quote reserved identifiers; updated synthetic schemas and duplicate-RFQ fixture; verified CREATE/READ on isolated DDL-only copy of live Yoyamic schema."
+    "Fixed company/contact inserts to populate Yoyamic legacy NOT NULL columns and quote reserved identifiers; updated synthetic schemas and duplicate-RFQ fixture; verified CREATE/READ on isolated DDL-only copy of live Yoyamic schema.",
+    "Aligned company, inventory, workflow and E2E synthetic MariaDB fixtures with production Yoyamic column constraints and field types",
+    "Added exact-schema write harness that clones DDL only for all 426 production base tables, runs all 44 DB mutation tools through the gateway using the same writer grant template, confirms audit/persistence, and proves DELETE/DDL denial",
+    "Added least-privilege MariaDB writer grant template; provisioned a separate local production writer account and InnoDB audit table after a verified schema/grants backup; left the reader and active MCP unchanged"
   ],
   "validation_followup": {
     "read_create_update_isolated_suite": "PASS; full isolated runner incl. ephemeral MariaDB candidate-gateway CREATE/UPDATE/READ and end-to-end synthetic commercial flow",
     "send_permission": "PASS in isolated tests; explicit SEND gates and approval validation; no real email",
     "live_chatgpt_existing_tools": "PASS; all 3 existing reads returned empty for synthetic non-existent part number",
     "live_claude": "NOT TESTED; no Claude tool/session available",
-    "production_preflight": "FAIL for candidate activation due absent Auth0 scopes, employee mapping, DML grants, employee/audit table grants and runtime allowlist",
+    "production_preflight": "PASS for isolated 44-operation schema/grant validation and production writer/audit provisioning; candidate activation remains BLOCKED by missing verified Auth0 sub, identity binding, candidate runtime config and active scope publication",
     "candidate_gateway_mysql_e2e": "PASS; ephemeral database only; no production writes or real email"
   },
   "candidate_oauth_scope_compatibility": "BLOCKED; candidate declares 44 unique scopes, active resource advertises 3; 42 candidate scopes missing including all CREATE/UPDATE/SEND scopes",
@@ -232,10 +260,14 @@
   },
   "mariadb_write_identity": {
     "existing_principal": "aerocanada_mcp_reader@localhost",
-    "existing_privileges": "SELECT column grants and USAGE; no INSERT/UPDATE/DELETE",
-    "candidate_database": "aerocanada_yoyamic is the Yoyamic target; 19 of 20 candidate write tables exist there; mcp_erp_audit is absent",
-    "production_grant_applied": false,
-    "reason": "No writer account or production grant was added. Candidate CREATE company/contact/RFQ now passes against a DDL-only isolated clone of the real schema, but the Auth0 subject remains unavailable, mcp_erp_audit is absent, and the full write-set/schema and employee authorization preflight must be completed before provisioning production DML."
+    "existing_privileges": "33 column SELECT privileges; unchanged; no DML",
+    "new_candidate_principal": "aerocanada_mcp_writer@localhost",
+    "new_candidate_privileges": "32 table SELECT; 19 table INSERT; 16 table UPDATE; four Employee SELECT columns; one Employee UPDATE column (statut); no DELETE/DDL/ALL/global/schema grants",
+    "production_audit_table": "aerocanada_yoyamic.mcp_erp_audit; InnoDB; 0 rows",
+    "credential_storage": "root:root 0600 at /etc/aerocanada-mcp/aerocanada_mcp_writer.password; not used by active MCP",
+    "production_grant_applied": true,
+    "runtime_connected": false,
+    "reason": "write-specific grants were tested against all 426 production table definitions in an isolated MariaDB clone; production DML was not run; identity and deployment remain blocked by missing verified Auth0 sub"
   },
   "final_preflight": {
     "mcp_service": "active; legacy connector; 3 existing read tools; unauthenticated MCP initialize returns 401",
